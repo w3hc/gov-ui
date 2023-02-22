@@ -1,20 +1,31 @@
-import { Heading, Button } from '@chakra-ui/react'
+import { Heading, Button, Badge } from '@chakra-ui/react'
+// import ExternalLinkIcon from '@chakra-ui/icon'
+import { PhoneIcon, AddIcon, WarningIcon } from '@chakra-ui/icons'
 import { Head } from '../components/layout/Head'
-// import Image from 'next/image'
+import Image from 'next/image'
 import { LinkComponent } from '../components/layout/LinkComponent'
-import { useState, useEffect } from 'react'
-import { useFeeData, useSigner, useAccount, useBalance, useNetwork } from 'wagmi'
+import { useState, useEffect, useCallback } from 'react'
+import { useFeeData, useSigner, useAccount, useBalance, useNetwork, useProvider } from 'wagmi'
 import { ethers } from 'ethers'
-import { NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI } from '../lib/consts'
-import useSound from 'use-sound' // https://www.joshwcomeau.com/react/announcing-use-sound-react-hook/
-const stevie = 'https://bafybeicxvrehw23nzkwjcxvsytimqj2wos7dhh4evrv5kscbbj6agilcsy.ipfs.w3s.link/another-star.mp3'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI } from '../../src/utils/config'
 
 export default function Home() {
-  const [loading, setLoading] = useState<boolean>(false)
-  const [userBal, setUserBal] = useState<string>('')
-  const [txLink, setTxLink] = useState<string>('')
+  const [name, setName] = useState<string>('')
+  const [block, setBlock] = useState(0)
+  const [manifesto, setManifesto] = useState('')
+  const [manifestoLink, setManifestoLink] = useState('')
+  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([
+    {
+      id: '12345678',
+      link: 'http://link.com',
+      title: '',
+      state: 0,
+    },
+  ])
+  const [initialized, setInitialized] = useState(false)
+  const proposalState = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const baseUrl = '/proposal/'
 
-  const { data } = useFeeData()
   const { address, isConnecting, isDisconnected } = useAccount()
 
   const { data: signer } = useSigner()
@@ -26,39 +37,111 @@ export default function Home() {
     address: address,
   })
   const network = useNetwork()
+  const provider = useProvider()
 
-  const [play, { stop, pause }] = useSound(stevie, {
-    volume: 0.5,
-  })
-
-  const explorerUrl = network.chain?.blockExplorers?.default.url
-
-  const nft = new ethers.Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, signer)
+  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
 
   useEffect(() => {
-    const val = Number(bal?.formatted).toFixed(3)
-    setUserBal(String(val) + ' ' + bal?.symbol)
-  }, [bal?.formatted, bal?.symbol, address])
+    getBlock()
+    getName()
+    getManifesto()
+  }, [])
 
-  const checkFees = () => {
-    console.log('data?.formatted:', JSON.stringify(data?.formatted))
-    return JSON.stringify(data?.formatted)
+  const getName = useCallback(async () => {
+    const name = await gov.name()
+    if (name === '') {
+      setName('unset')
+    } else {
+      setName(name)
+    }
+  }, [])
+
+  const getBlock = useCallback(async () => {
+    const blockNumber = await provider.getBlockNumber()
+    setBlock(blockNumber)
+  }, [])
+
+  const getManifesto = useCallback(async () => {
+    const manifesto = await gov.manifesto()
+    // console.log('manifesto:', manifesto)
+    if (manifesto === '') {
+      setManifesto('unset')
+      setManifestoLink('https://bafybeihmgfg2gmm23ozur3ylmkxgwkyr5dlpruivv3wjeujrdktxihqe3a.ipfs.w3s.link/manifesto.md')
+    } else {
+      console.log('manifesto:', manifesto)
+
+      setManifesto(manifesto)
+      setManifestoLink('https://' + manifesto + '.ipfs.w3s.link')
+    }
+  }, [])
+
+  const getState = async (proposalId) => {
+    return await gov.state(proposalId)
   }
 
-  const mint = async () => {
-    console.log('minting...')
-    try {
-      setLoading(true)
-      const call = await nft.safeMint()
-      const nftReceipt = await call.wait(1)
-      console.log('tx:', nftReceipt)
-      setTxLink(explorerUrl + '/tx/' + nftReceipt.transactionHash)
-      setLoading(false)
-      play()
-    } catch (e) {
-      setLoading(false)
-      console.log('error:', e)
+  const getProposals = useCallback(async () => {
+    if (block > 1) {
+      const proposals = await gov.queryFilter('ProposalCreated' as any, 5702215, block)
+      try {
+        let i: number = 0
+        let proposalsRaw = proposal
+        if (proposals[0].args != undefined) {
+          for (i = 93; i < Number(proposals.length); i++) {
+            // console.log('proposals[i]:', proposals[i].args[8])
+            proposalsRaw.push(
+              ...[
+                {
+                  id: String(proposals[i].args?.proposalId),
+                  link: baseUrl + String(proposals[i].args?.proposalId),
+                  title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
+                  state: await getState(proposals[i].args?.proposalId),
+                },
+              ]
+            )
+          }
+          delete proposal[0]
+          setProposal(proposalsRaw)
+          setInitialized(true)
+        }
+      } catch (error) {
+        console.log('error:', error)
+      }
     }
+  }, [block, proposal])
+
+  useEffect(() => {
+    getProposals()
+  }, [getProposals, proposal])
+
+  function Item(props) {
+    return (
+      <>
+        <div className="">
+          <div>
+            <strong>
+              <a style={{ color: '#45a2f8' }} href={props.link}>
+                {props.title}
+              </a>
+            </strong>{' '}
+            <Badge ml="1" fontSize="0.5em" colorScheme="purple" variant="solid">
+              {proposalState[props.state]}
+            </Badge>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  function List() {
+    return (
+      <div>
+        {initialized === true ? (
+          proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
+        ) : (
+          <Image width="100" height="100" alt="loader" src="./reggae-loader.svg" />
+        )}
+      </div>
+    )
   }
 
   return (
@@ -66,62 +149,36 @@ export default function Home() {
       <Head />
 
       <main>
-        <Heading as="h2">Basic Minter</Heading>
-        <br />
-        <p>Welcome to Basic Minter!</p>
-        <br />
-        <p>You&apos;re about to mint 1 NFT on Ethereum Goerli Testnet.</p>
+        <Heading as="h2">{name}</Heading>
         <br />
         <p>
-          You&apos;re connected to <strong>Ethereum Goerli Testnet</strong> and your wallet currently holds
-          <strong> {userBal}</strong>. Just click on the &apos;Mint&apos; button below: you will be invited to sign your transaction.{' '}
+          Gov contract address:{' '}
+          <strong>
+            <a
+              style={{ color: '#45a2f8' }}
+              target="_blank"
+              rel="noopener noreferrer"
+              href={'https://goerli.arbiscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
+              {GOV_CONTRACT_ADDRESS}
+            </a>
+          </strong>
         </p>
-
-        {/* <p>
-          Only <strong>you</strong> can mint this NFT since you are the owner of the NFT smart contract.
-        </p> */}
+        <br />
 
         <br />
-        {!loading ? (
-          !txLink ? (
-            <Button colorScheme="green" variant="outline" onClick={mint}>
-              Mint
-            </Button>
-          ) : (
-            <Button disabled colorScheme="green" variant="outline" onClick={mint}>
-              Mint
-            </Button>
-          )
-        ) : (
-          <Button isLoading colorScheme="green" loadingText="Minting" variant="outline">
-            Mint
+        <p>
+          Manifesto CID: <a href={manifestoLink}> {manifesto}</a>
+        </p>
+        <br />
+        <LinkComponent href="/push">
+          <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            New proposal
           </Button>
-        )}
-        {/* <br />
+          <br />
+        </LinkComponent>
         <br />
-        <Button colorScheme="blue" variant="outline" onClick={checkFees}>
-          Check fees
-        </Button> */}
-
-        {txLink && (
-          <>
-            <br />
-            <br />
-            <p>Done! You can view your transaction on Etherscan:</p>
-            <br />
-            <LinkComponent target="blank" href={txLink}>
-              {txLink}
-            </LinkComponent>
-          </>
-        )}
+        <List />
         <br />
-        <br />
-        {txLink && (
-          <Button colorScheme="red" variant="outline" onClick={() => stop()}>
-            Stop the music
-          </Button>
-        )}
-        {/* <Image height="800" width="800" alt="contract-image" src="/thistle-contract-feb-15-2023.png" /> */}
       </main>
     </>
   )

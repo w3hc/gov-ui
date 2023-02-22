@@ -1,6 +1,6 @@
 import React from 'react'
 import { Flex, useColorModeValue, Spacer, Heading } from '@chakra-ui/react'
-import { SITE_NAME } from '../../utils/config'
+import { SITE_NAME, APP_VERSION } from '../../utils/config'
 import { LinkComponent } from './LinkComponent'
 import { ThemeSwitcher } from './ThemeSwitcher'
 import { ConnectKitButton } from 'connectkit'
