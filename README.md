@@ -2,6 +2,8 @@
 
 A basic UI for [Gov](https://github.com/w3hc/gov).
 
+Live demo: [https://gov-ui.netlify.app](https://gov-ui.netlify.app)
+
 ## Install
 
 ```sh
@@ -10,13 +12,17 @@ npm i
 
 ## Run
 
+Create a `.env` on the model of `.env.example`:
+
+```sh
+cp .env.example .env
+```
+
+Add your own keys in your `.env` file, then:
+
 ```sh
 npm run dev
 ```
-
-## Latest build
-
-- Netlify: [https://gov-ui.netlify.app](https://gov-ui.netlify.app)
 
 ## Support
 
