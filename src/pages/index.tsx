@@ -4,15 +4,11 @@ import { Head } from '../components/layout/Head'
 import { useState, useEffect } from 'react'
 import { useSigner, useProvider, useNetwork, useAccount } from 'wagmi'
 import { ethers, ContractFactory } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, NFT_ABI, NFT_BYTECODE, GOV_ABI, GOV_BYTECODE } from '../utils/config'
+import { NFT_ABI, NFT_BYTECODE, GOV_ABI, GOV_BYTECODE } from '../utils/config'
 import { UploadFile } from '../components/layout/UploadFile'
 import { UploadData } from '../components/layout/UploadData'
 import { UploadUserData } from '../components/layout/UploadUserData'
-
 import { useRouter } from 'next/router'
-// import { Web3Storage, getFilesFromPath } from 'web3.storage'
-// import * as dotenv from 'dotenv'
-// dotenv.config()
 
 export default function Deploy() {
   const [loading, setLoading] = useState(false)
@@ -33,21 +29,8 @@ export default function Deploy() {
   const router = useRouter()
   const { data: signer, isError, isLoading } = useSigner()
   const { chain } = useNetwork()
-
   const { address, isConnecting, isDisconnected } = useAccount()
-
   const toast = useToast()
-
-  useEffect(() => {
-    console.log('chain:', chain)
-    if (chain !== undefined) {
-      console.log('initialized')
-
-      if (chain.id !== 421613) {
-        // console.log('switchNetwork:', switchNetwork?.name)
-      }
-    }
-  }, [chain])
 
   const deploy = async (e: any) => {
     e.preventDefault()
@@ -70,7 +53,6 @@ export default function Deploy() {
       const uri = await makeNftMetadata()
 
       // Deploy the NFT contract
-      // const uri = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
       const nftFactory = new ContractFactory(NFT_ABI, NFT_BYTECODE, signer)
       const nft = await nftFactory.deploy([address, '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'], uri)
       console.log('tx:', nft.deployTransaction)
@@ -79,12 +61,8 @@ export default function Deploy() {
       console.log('NFT contract deployed ✅')
 
       // Deploy the Gov contract
-
-      // "#Thistles CollectiveManifesto ## Statement of intent**We want to protect the thistles.**"
       const manifestoContent = '# ' + daoName + ' Manifesto ## Statement of intent ' + '**' + missionStatement + '**'
-
       const manifesto = UploadData(manifestoContent, 'manifesto.md')
-
       const govFactory = new ContractFactory(GOV_ABI, GOV_BYTECODE, signer)
       const gov = await govFactory.deploy(nft.address, manifesto, daoName, votingDelay, votingPeriod, votingThreshold, quorum)
       console.log('Gov deployment tx:', gov.deployTransaction)
@@ -96,8 +74,6 @@ export default function Deploy() {
       const ownershipTransfer = await nft.transferOwnership(gov.address)
       const receipt = await ownershipTransfer.wait()
       console.log('\nNFT contract ownership transferred to', gov.address, '✅')
-
-      // Redirect to result page
       toast({
         title: 'Success!',
         description: 'Your DAO is deployed at ' + nft.address,
@@ -105,9 +81,11 @@ export default function Deploy() {
         duration: 20000,
         isClosable: true,
       })
+      setLoading(false)
+
+      // TODO: Redirect to result page
       // const targetURL = '/' + gov.address
       // router.push(targetURL)
-      setLoading(false)
     } catch (e) {
       console.log('error:', e)
       console.log('e.message:', e.message)
@@ -134,9 +112,6 @@ export default function Deploy() {
     console.log('fileName:', fileName)
 
     if (fileName) {
-      // nftImageCid = await UploadUserData(plaintext, fileName)
-      // console.log('nftImageCid:', nftImageCid)
-      // nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
       nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
     } else {
       nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
@@ -181,23 +156,14 @@ export default function Deploy() {
   }
 
   const handleFileChange = (event: any) => {
-    console.log('handleFileChange:', event)
     const file = event
     setFileName(file.name)
-
-    // event.target.files[0]
-
     const reader = new FileReader()
     reader.readAsDataURL(file)
     reader.onload = (event) => {
-      // const plaintext = event.target?.readAsText as string
-      // console.log('plaintext (handleFileChange)', plaintext)
-      console.log('event.target?.result', event.target?.result)
-      setPlaintext(event.target?.result)
+      const plaintext = event.target?.result as string
+      setPlaintext(plaintext)
     }
-    // setPlaintext(event.target.files[0])
-    console.log('event.target.files[0]', event.target)
-
     reader.onerror = (error) => {
       console.log('File Input Error: ', error)
     }
@@ -235,7 +201,7 @@ export default function Deploy() {
           <FormHelperText>These wallets will receive the membership NFT.</FormHelperText>
           {/*<br />
 
-           <FormLabel>DAO Membership NFT image</FormLabel>
+          <FormLabel>DAO Membership NFT image</FormLabel>
           <input
             className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             id="file_input"
