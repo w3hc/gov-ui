@@ -33,6 +33,7 @@
     "connectkit": "^1.1.1",
     "dayjs": "^1.11.7",
     "ethers": "^5.4.0",
+    "files-from-path": "^1.0.0",
     "framer-motion": "^8.0.2",
     "iron-session": "^6.3.1",
     "js-base64": "^3.7.4",

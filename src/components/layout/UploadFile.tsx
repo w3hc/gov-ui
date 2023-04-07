@@ -13,10 +13,15 @@ export const UploadFile = async (selectedFile: any, fileName: any) => {
     return new Web3Storage({ token: getAccessToken() || '' })
   }
 
-  async function storeFile(selectedFile: any) {
+  // async function getFiles(file: any) {
+  //   const File = await getFilesFromPath(file)
+  //   return File
+  // }
+
+  async function storeFile(files: any) {
     try {
       const client = makeStorageClient()
-      const put = await client.put([selectedFile], { wrapWithDirectory: true })
+      const put = await client.put(files)
       return put
     } catch (error) {
       console.error('error (storeFile):', error)
@@ -24,14 +29,16 @@ export const UploadFile = async (selectedFile: any, fileName: any) => {
     }
   }
 
-  let cid = null
-  try {
-    cid = await storeFile(selectedFile)
-  } catch (error) {
-    console.error('upload error:', error)
-  }
+  const cid = await storeFile(fileName)
 
-  console.log('✅ cid:', cid)
-  console.log('✅ uri:', 'https://' + cid + '.ipfs.w3s.link' + '/' + fileName)
+  // let cid = null
+  // try {
+  //   cid = await storeFile(selectedFile)
+  // } catch (error) {
+  //   console.error('upload error:', error)
+  // }
+
+  // console.log('✅ cid:', cid)
+  // console.log('✅ uri:', 'https://' + cid + '.ipfs.w3s.link' + '/' + fileName)
   return 'https://' + cid + '.ipfs.w3s.link' + '/' + fileName
 }

@@ -7,6 +7,8 @@ import { ethers, ContractFactory } from 'ethers'
 import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, NFT_ABI, NFT_BYTECODE, GOV_ABI, GOV_BYTECODE } from '../utils/config'
 import { UploadFile } from '../components/layout/UploadFile'
 import { UploadData } from '../components/layout/UploadData'
+import { UploadUserData } from '../components/layout/UploadUserData'
+
 import { useRouter } from 'next/router'
 // import { Web3Storage, getFilesFromPath } from 'web3.storage'
 // import * as dotenv from 'dotenv'
@@ -65,12 +67,10 @@ export default function Deploy() {
       console.log('nftSymbol:', nftSymbol)
       console.log('nftAttributes:', nftAttributes)
 
-      console.log('makeNftMetadata:', await makeNftMetadata())
-
-      return
+      const uri = await makeNftMetadata()
 
       // Deploy the NFT contract
-      const uri = 'ipfs://bafkreih2ac5yabo2daerkw5w5wcwdc7rveqejf4l645hx2px26r5fxfnpe'
+      // const uri = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
       const nftFactory = new ContractFactory(NFT_ABI, NFT_BYTECODE, signer)
       const nft = await nftFactory.deploy([address, '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'], uri)
       console.log('tx:', nft.deployTransaction)
@@ -80,11 +80,10 @@ export default function Deploy() {
 
       // Deploy the Gov contract
 
-      // const votingDelay = 1
-      // const votingPeriod = 300
-      // const votingThreshold = 1
-      // const quorum = 20
-      const manifesto = 'yo'
+      // "#Thistles CollectiveManifesto ## Statement of intent**We want to protect the thistles.**"
+      const manifestoContent = '# ' + daoName + ' Manifesto ## Statement of intent ' + '**' + missionStatement + '**'
+
+      const manifesto = UploadData(manifestoContent, 'manifesto.md')
 
       const govFactory = new ContractFactory(GOV_ABI, GOV_BYTECODE, signer)
       const gov = await govFactory.deploy(nft.address, manifesto, daoName, votingDelay, votingPeriod, votingThreshold, quorum)
@@ -94,8 +93,8 @@ export default function Deploy() {
       console.log('Gov contract deployed ✅')
 
       // Transfer ownership to the DAO
-      await nft.transferOwnership(gov.address)
-      await nft.deployTransaction.wait(1)
+      const ownershipTransfer = await nft.transferOwnership(gov.address)
+      const receipt = await ownershipTransfer.wait()
       console.log('\nNFT contract ownership transferred to', gov.address, '✅')
 
       // Redirect to result page
@@ -131,31 +130,18 @@ export default function Deploy() {
 
   const makeNftMetadata = async () => {
     let nftImageCid: any
+    console.log('plaintext:', plaintext)
+    console.log('fileName:', fileName)
+
     if (fileName) {
-      // function getAccessToken() {
-      //   return process.env.WEB3STORAGE_TOKEN
-      // }
-      // function makeStorageClient() {
-      //   return new Web3Storage({ token: getAccessToken() || '' })
-      // }
-      // const dir = './page/'
-      // async function getFiles(file) {
-      //   const File = await getFilesFromPath(file)
-      //   return File
-      // }
-      // async function storeFiles(files) {
-      //   const client = makeStorageClient()
-      //   const add = await client.put(files, { wrapWithDirectory: false })
-      //   return add
-      // }
-      // const cid = await storeFiles(await getFiles(dir))
-      // console.log('✅ cid:', cid)
-      // console.log('✅ url:', 'https://' + cid + '.ipfs.w3s.link')
-      nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
+      // nftImageCid = await UploadUserData(plaintext, fileName)
+      // console.log('nftImageCid:', nftImageCid)
+      nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
+      // nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
     } else {
-      nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
+      nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
     }
-    console.log(nftImageCid)
+    console.log('nftImageCid:', nftImageCid)
 
     const metadata = {
       name: nftName,
@@ -189,30 +175,31 @@ export default function Deploy() {
       ],
     }
 
-    // console.log('metadata:', metadata)
+    console.log('metadata:', metadata)
 
-    // return UploadData(JSON.stringify(metadata), 'metadata.json')
+    return UploadData(metadata, 'metadata.json')
   }
 
   const handleFileChange = (event: any) => {
-    if (event) {
-      console.log('handleFileChange:', event)
-      const file = event
-      setFileName(file.name)
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = (event) => {
-        const plaintext = event.target?.result as string
-        setPlaintext(plaintext)
-      }
-      reader.onerror = (error) => {
-        console.log('File Input Error: ', error)
-      }
-    } else {
-      console.log('event:', event)
-      const file = event
-      setFileName(file.name)
-      setPlaintext(file)
+    console.log('handleFileChange:', event)
+    const file = event
+    setFileName(file.name)
+
+    // event.target.files[0]
+
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      // const plaintext = event.target?.readAsText as string
+      // console.log('plaintext (handleFileChange)', plaintext)
+      console.log('event.target?.result', event.target?.result)
+      setPlaintext(event.target?.result)
+    }
+    // setPlaintext(event.target.files[0])
+    console.log('event.target.files[0]', event.target)
+
+    reader.onerror = (error) => {
+      console.log('File Input Error: ', error)
     }
   }
 
@@ -246,16 +233,16 @@ export default function Deploy() {
           <FormLabel>First members wallet adresses</FormLabel>
           <Input value={firstMembers} onChange={(e) => setFirstMembers(e.target.value)} placeholder={firstMembers} />
           <FormHelperText>These wallets will receive the membership NFT.</FormHelperText>
-          <br />
+          {/*<br />
 
-          <FormLabel>DAO Membership NFT image</FormLabel>
+           <FormLabel>DAO Membership NFT image</FormLabel>
           <input
             className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             id="file_input"
             type="file"
             style={{ minWidth: '400px', width: '100%' }}
             onChange={(e) => handleFileChange(e.target.files[0])}
-          />
+          /> */}
 
           {!showAdvanced && (
             <>
