@@ -9,6 +9,7 @@ import { UploadFile } from '../components/layout/UploadFile'
 import { UploadData } from '../components/layout/UploadData'
 import { UploadUserData } from '../components/layout/UploadUserData'
 import { useRouter } from 'next/router'
+import { LinkComponent } from '../components/layout/LinkComponent'
 
 export default function Deploy() {
   const [loading, setLoading] = useState(false)
@@ -177,15 +178,28 @@ export default function Deploy() {
         <Heading as="h2">Deploy your DAO</Heading>
         <br />{' '}
         {chain ? (
-          <p>
-            <i>
-              You&apos;re about to deploy your own DAO to <strong>{chain.name}</strong>. This means you&apos;ll deploy <strong>two</strong> Solidity
-              contracts: a membership NFT contract (ERC-721) and a Governor contract. Once deployed, you&apos;ll be able to add it in Tally.
-            </i>
-          </p>
+          <>
+            <p>
+              <i>
+                You&apos;re about to deploy your own DAO to <strong>{chain.name}</strong>. This means you&apos;ll deploy <strong>two</strong> Solidity
+                contracts: a membership NFT contract (ERC-721) and a Governor contract. Once deployed, you&apos;ll be able to add it in Tally.
+              </i>{' '}
+            </p>
+            <br />
+          </>
         ) : (
-          <p style={{ color: 'red' }}>Please connect your wallet.</p>
+          <>
+            <p style={{ color: 'red' }}>Please connect your wallet.</p>
+            <br />
+          </>
         )}
+        <p>
+          Feel free to{' '}
+          <LinkComponent href="https://w3hc.github.io/gov-docs/deployment.html#deployment">
+            <strong>read the docs</strong>
+          </LinkComponent>{' '}
+          to learn more about what&apos;s required to deploy.
+        </p>
         <br />
         <FormControl>
           <FormLabel>DAO Name</FormLabel>
