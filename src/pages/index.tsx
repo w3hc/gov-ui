@@ -1,147 +1,206 @@
-import { Heading, Button, Badge } from '@chakra-ui/react'
-// import ExternalLinkIcon from '@chakra-ui/icon'
-import { PhoneIcon, AddIcon, WarningIcon } from '@chakra-ui/icons'
+import { Heading, Button, FormControl, FormLabel, Textarea, Input, FormHelperText, useToast } from '@chakra-ui/react'
+import { ArrowDownIcon, ArrowUpIcon } from '@chakra-ui/icons'
 import { Head } from '../components/layout/Head'
-import Image from 'next/image'
-import { LinkComponent } from '../components/layout/LinkComponent'
-import { useState, useEffect, useCallback } from 'react'
-import { useFeeData, useSigner, useAccount, useBalance, useNetwork, useProvider } from 'wagmi'
-import { ethers } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI } from '../../src/utils/config'
+import { useState, useEffect } from 'react'
+import { useSigner, useProvider, useNetwork, useAccount } from 'wagmi'
+import { ethers, ContractFactory } from 'ethers'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, NFT_ABI, NFT_BYTECODE, GOV_ABI, GOV_BYTECODE } from '../utils/config'
+import { UploadFile } from '../components/layout/UploadFile'
+import { UploadData } from '../components/layout/UploadData'
+import { UploadUserData } from '../components/layout/UploadUserData'
 
-export default function Home() {
-  const [name, setName] = useState<string>('')
-  const [block, setBlock] = useState(0)
-  const [manifesto, setManifesto] = useState('')
-  const [manifestoLink, setManifestoLink] = useState('')
-  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([
-    {
-      id: '12345678',
-      link: 'http://link.com',
-      title: '',
-      state: 0,
-    },
-  ])
-  const [initialized, setInitialized] = useState(false)
-  const proposalState = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
-  const baseUrl = '/proposal/'
+import { useRouter } from 'next/router'
+// import { Web3Storage, getFilesFromPath } from 'web3.storage'
+// import * as dotenv from 'dotenv'
+// dotenv.config()
+
+export default function Deploy() {
+  const [loading, setLoading] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [daoName, setDaoName] = useState('Thistles Collective')
+  const [missionStatement, setMissionStatement] = useState('We want to protect the thistles.')
+  const [firstMembers, setFirstMembers] = useState<any>(['0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'])
+  const [fileName, setFileName] = useState(null)
+  const [votingPeriod, setVotingPeriod] = useState('10000')
+  const [votingDelay, setVotingDelay] = useState('1')
+  const [votingThreshold, setVotingThreshold] = useState('1')
+  const [quorum, setQuorum] = useState('20')
+  const [nftName, setNftName] = useState(daoName + ' Membership NFT')
+  const [nftSymbol, setNftSymbol] = useState('THISTLES')
+  const [nftAttributes, setNftAttributes] = useState('1')
+  const [plaintext, setPlaintext] = useState(null)
+
+  const router = useRouter()
+  const { data: signer, isError, isLoading } = useSigner()
+  const { chain } = useNetwork()
 
   const { address, isConnecting, isDisconnected } = useAccount()
 
-  const { data: signer } = useSigner()
-  const {
-    data: bal,
-    isError,
-    isLoading,
-  } = useBalance({
-    address: address,
-  })
-  const network = useNetwork()
-  const provider = useProvider()
-
-  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
+  const toast = useToast()
 
   useEffect(() => {
-    getBlock()
-    getName()
-    getManifesto()
-  }, [])
+    console.log('chain:', chain)
+    if (chain !== undefined) {
+      console.log('initialized')
 
-  const getName = useCallback(async () => {
-    const name = await gov.name()
-    if (name === '') {
-      setName('unset')
-    } else {
-      setName(name)
-    }
-  }, [])
-
-  const getBlock = useCallback(async () => {
-    const blockNumber = await provider.getBlockNumber()
-    setBlock(blockNumber)
-  }, [])
-
-  const getManifesto = useCallback(async () => {
-    const manifesto = await gov.manifesto()
-    // console.log('manifesto:', manifesto)
-    if (manifesto === '') {
-      setManifesto('unset')
-      setManifestoLink('https://bafybeihmgfg2gmm23ozur3ylmkxgwkyr5dlpruivv3wjeujrdktxihqe3a.ipfs.w3s.link/manifesto.md')
-    } else {
-      console.log('manifesto:', manifesto)
-
-      setManifesto(manifesto)
-      setManifestoLink('https://' + manifesto + '.ipfs.w3s.link')
-    }
-  }, [])
-
-  const getState = async (proposalId) => {
-    return await gov.state(proposalId)
-  }
-
-  const getProposals = useCallback(async () => {
-    if (block > 1) {
-      const proposals = await gov.queryFilter('ProposalCreated' as any, 5702215, block)
-      try {
-        let i: number = 0
-        let proposalsRaw = proposal
-        if (proposals[0].args != undefined) {
-          for (i = 93; i < Number(proposals.length); i++) {
-            // console.log('proposals[i]:', proposals[i].args[8])
-            proposalsRaw.push(
-              ...[
-                {
-                  id: String(proposals[i].args?.proposalId),
-                  link: baseUrl + String(proposals[i].args?.proposalId),
-                  title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
-                  state: await getState(proposals[i].args?.proposalId),
-                },
-              ]
-            )
-          }
-          delete proposal[0]
-          setProposal(proposalsRaw)
-          setInitialized(true)
-        }
-      } catch (error) {
-        console.log('error:', error)
+      if (chain.id !== 421613) {
+        // console.log('switchNetwork:', switchNetwork?.name)
       }
     }
-  }, [block, proposal])
+  }, [chain])
 
-  useEffect(() => {
-    getProposals()
-  }, [getProposals, proposal])
+  const deploy = async (e: any) => {
+    e.preventDefault()
 
-  function Item(props) {
-    return (
-      <>
-        <div className="">
-          <div>
-            <strong>
-              <a style={{ color: '#45a2f8' }} href={props.link}>
-                {props.title}
-              </a>
-            </strong>{' '}
-            <Badge ml="1" fontSize="0.5em" colorScheme="purple" variant="solid">
-              {proposalState[props.state]}
-            </Badge>
-          </div>
-        </div>
-      </>
-    )
+    try {
+      setLoading(true)
+      console.log('Deployment started...')
+      console.log('daoName:', daoName)
+      console.log('missionStatement:', missionStatement)
+      console.log('firstMembers:', firstMembers)
+      console.log('fileName:', fileName)
+      console.log('votingPeriod:', votingPeriod)
+      console.log('votingDelay:', votingDelay)
+      console.log('votingThreshold:', votingThreshold)
+      console.log('quorum:', quorum)
+      console.log('nftName:', nftName)
+      console.log('nftSymbol:', nftSymbol)
+      console.log('nftAttributes:', nftAttributes)
+
+      const uri = await makeNftMetadata()
+
+      // Deploy the NFT contract
+      // const uri = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
+      const nftFactory = new ContractFactory(NFT_ABI, NFT_BYTECODE, signer)
+      const nft = await nftFactory.deploy([address, '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'], uri)
+      console.log('tx:', nft.deployTransaction)
+      console.log('NFT contract address:', nft.address)
+      await nft.deployTransaction.wait(1)
+      console.log('NFT contract deployed ✅')
+
+      // Deploy the Gov contract
+
+      // "#Thistles CollectiveManifesto ## Statement of intent**We want to protect the thistles.**"
+      const manifestoContent = '# ' + daoName + ' Manifesto ## Statement of intent ' + '**' + missionStatement + '**'
+
+      const manifesto = UploadData(manifestoContent, 'manifesto.md')
+
+      const govFactory = new ContractFactory(GOV_ABI, GOV_BYTECODE, signer)
+      const gov = await govFactory.deploy(nft.address, manifesto, daoName, votingDelay, votingPeriod, votingThreshold, quorum)
+      console.log('Gov deployment tx:', gov.deployTransaction)
+      console.log('Gov contract address:', gov.address)
+      await gov.deployTransaction.wait(1)
+      console.log('Gov contract deployed ✅')
+
+      // Transfer ownership to the DAO
+      const ownershipTransfer = await nft.transferOwnership(gov.address)
+      const receipt = await ownershipTransfer.wait()
+      console.log('\nNFT contract ownership transferred to', gov.address, '✅')
+
+      // Redirect to result page
+      toast({
+        title: 'Success!',
+        description: 'Your DAO is deployed at ' + nft.address,
+        status: 'success',
+        duration: 20000,
+        isClosable: true,
+      })
+      // const targetURL = '/' + gov.address
+      // router.push(targetURL)
+      setLoading(false)
+    } catch (e) {
+      console.log('error:', e)
+      console.log('e.message:', e.message)
+      toast({
+        title: 'Tx failed',
+        description: e.message,
+        status: 'error',
+        duration: 9000,
+        isClosable: true,
+      })
+      setLoading(false)
+    }
   }
 
-  function List() {
-    return (
-      <div>
-        {initialized === true ? (
-          proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
-        ) : (
-          <Image width="100" height="100" alt="loader" src="./reggae-loader.svg" />
-        )}
-      </div>
-    )
+  const handleDaoNameChange = (newName: any) => {
+    setNftName(newName + ' Membership NFT')
+    setDaoName(newName)
+    setNftSymbol(newName.substring(0, 3).toUpperCase())
+  }
+
+  const makeNftMetadata = async () => {
+    let nftImageCid: any
+    console.log('plaintext:', plaintext)
+    console.log('fileName:', fileName)
+
+    if (fileName) {
+      // nftImageCid = await UploadUserData(plaintext, fileName)
+      // console.log('nftImageCid:', nftImageCid)
+      nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
+      // nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
+    } else {
+      nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
+    }
+    console.log('nftImageCid:', nftImageCid)
+
+    const metadata = {
+      name: nftName,
+      description: 'The owner of this NFT has a right to vote on the test DAO proposals.',
+      image: nftImageCid,
+      attributes: [
+        {
+          trait_type: 'Participation rate (%)',
+          value: 'unset',
+        },
+        {
+          trait_type: 'Contribs',
+          value: 'unset',
+        },
+        {
+          trait_type: 'DAO',
+          value: 'unset',
+        },
+        {
+          trait_type: 'Nickname',
+          value: 'unset',
+        },
+        {
+          trait_type: 'Role',
+          value: 'unset',
+        },
+        {
+          trait_type: 'Tally URL',
+          value: 'unset',
+        },
+      ],
+    }
+
+    console.log('metadata:', metadata)
+
+    return UploadData(metadata, 'metadata.json')
+  }
+
+  const handleFileChange = (event: any) => {
+    console.log('handleFileChange:', event)
+    const file = event
+    setFileName(file.name)
+
+    // event.target.files[0]
+
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      // const plaintext = event.target?.readAsText as string
+      // console.log('plaintext (handleFileChange)', plaintext)
+      console.log('event.target?.result', event.target?.result)
+      setPlaintext(event.target?.result)
+    }
+    // setPlaintext(event.target.files[0])
+    console.log('event.target.files[0]', event.target)
+
+    reader.onerror = (error) => {
+      console.log('File Input Error: ', error)
+    }
   }
 
   return (
@@ -149,36 +208,105 @@ export default function Home() {
       <Head />
 
       <main>
-        <Heading as="h2">{name}</Heading>
+        <Heading as="h2">Deploy your DAO</Heading>
         <br />
         <p>
-          Gov contract address:{' '}
-          <strong>
-            <a
-              style={{ color: '#45a2f8' }}
-              target="_blank"
-              rel="noopener noreferrer"
-              href={'https://goerli.arbiscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
-              {GOV_CONTRACT_ADDRESS}
-            </a>
-          </strong>
+          {' '}
+          {chain && (
+            <i>
+              You&apos;re about to deploy your own DAO to <strong>{chain.name}</strong>. This means you&apos;ll deploy <strong>two</strong> Solidity
+              contracts: a membership NFT contract (ERC-721) and a Governor contract. Once deployed, you&apos;ll be able to add it in Tally.
+            </i>
+          )}
         </p>
         <br />
 
-        <br />
-        <p>
-          Manifesto CID: <a href={manifestoLink}> {manifesto}</a>
-        </p>
-        <br />
-        <LinkComponent href="/push">
-          <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            New proposal
-          </Button>
+        <FormControl>
+          <FormLabel>DAO Name</FormLabel>
+          <Input value={daoName} onChange={(e) => handleDaoNameChange(e.target.value)} placeholder="Butterfly Collective" />
           <br />
-        </LinkComponent>
+          <br />
+          <FormLabel>Mission statement</FormLabel>
+          <Textarea value={missionStatement} onChange={(e) => setMissionStatement(e.target.value)} placeholder={missionStatement} />
+          <br />
+          <br />
+          <FormLabel>First members wallet adresses</FormLabel>
+          <Input value={firstMembers} onChange={(e) => setFirstMembers(e.target.value)} placeholder={firstMembers} />
+          <FormHelperText>These wallets will receive the membership NFT.</FormHelperText>
+          {/*<br />
+
+           <FormLabel>DAO Membership NFT image</FormLabel>
+          <input
+            className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+            id="file_input"
+            type="file"
+            style={{ minWidth: '400px', width: '100%' }}
+            onChange={(e) => handleFileChange(e.target.files[0])}
+          /> */}
+
+          {!showAdvanced && (
+            <>
+              <br />
+              <br />
+              <Button rightIcon={<ArrowDownIcon />} colorScheme="red" size="xs" onClick={() => setShowAdvanced(!showAdvanced)}>
+                Advanced
+              </Button>
+            </>
+          )}
+
+          {showAdvanced && (
+            <>
+              <br />
+              <br />
+
+              <FormLabel>Voting period</FormLabel>
+              <Input value={votingPeriod} onChange={(e) => setVotingPeriod(e.target.value)} placeholder={votingPeriod} />
+              <br />
+              <br />
+              <FormLabel>Voting delay</FormLabel>
+              <Input value={votingDelay} onChange={(e) => setVotingDelay(e.target.value)} placeholder={votingDelay} />
+              <br />
+              <br />
+              <FormLabel>Voting threshold</FormLabel>
+              <Input value={votingThreshold} onChange={(e) => setVotingThreshold(e.target.value)} placeholder={votingThreshold} />
+              <br />
+              <br />
+              <FormLabel>Quorum</FormLabel>
+              <Input value={quorum} onChange={(e) => setQuorum(e.target.value)} placeholder={quorum} />
+              <br />
+              <br />
+              <FormLabel>NFT name</FormLabel>
+              <Input value={nftName} onChange={(e) => setNftName(e.target.value)} placeholder={nftName} />
+              <FormHelperText>What&apos;s the name of the membership NFT?</FormHelperText>
+              <br />
+              <FormLabel>NFT symbol</FormLabel>
+              <Input value={nftSymbol} onChange={(e) => setNftSymbol(e.target.value)} placeholder={nftSymbol} />
+              <FormHelperText>What&apos;s the symbol of the membership NFT?</FormHelperText>
+              <br />
+              {/* <FormLabel>Contribs (NFT attributes)</FormLabel>
+              <Input value={nftAttributes} onChange={(e) => setNftAttributes(e.target.value)} placeholder={nftAttributes} />
+              <FormHelperText>Only one attribute on this version. The membership NFT metadata can be edited in the future.</FormHelperText> */}
+              {showAdvanced && (
+                <>
+                  <br />
+                  <Button rightIcon={<ArrowUpIcon />} colorScheme="red" size="xs" onClick={() => setShowAdvanced(!showAdvanced)}>
+                    Hide details
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </FormControl>
         <br />
-        <List />
-        <br />
+        {!loading ? (
+          <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
+            Deploy
+          </Button>
+        ) : (
+          <Button isLoading loadingText="Deploying..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
+            Deploy
+          </Button>
+        )}
       </main>
     </>
   )
