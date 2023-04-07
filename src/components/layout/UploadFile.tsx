@@ -19,7 +19,7 @@ export const UploadFile = async (selectedFile: any, fileName: any) => {
       const put = await client.put([selectedFile], { wrapWithDirectory: true })
       return put
     } catch (error) {
-      console.error('error:', error)
+      console.error('error (storeFile):', error)
       return null
     }
   }

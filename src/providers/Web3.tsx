@@ -14,7 +14,7 @@ export const { provider, webSocketProvider, chains } = configureChains(ETH_CHAIN
 const client = createClient(
   getDefaultClient({
     appName: SITE_NAME,
-    autoConnect: true,
+    // autoConnect: true,
     infuraId,
     provider,
     webSocketProvider,
