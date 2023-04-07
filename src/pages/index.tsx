@@ -136,10 +136,10 @@ export default function Deploy() {
     if (fileName) {
       // nftImageCid = await UploadUserData(plaintext, fileName)
       // console.log('nftImageCid:', nftImageCid)
-      nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
-      // nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
+      // nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
+      nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
     } else {
-      nftImageCid = 'https://bafybeieff3v6gj373ctmj6ccasoaaosc2v435paybp4yrk7d6tti73j43m.ipfs.w3s.link/aztec.png'
+      nftImageCid = 'https://bafybeichjaz2dxyvsinz2nx4ho4dmx3qkgvtkitymaeh7jsguhrpbknsru.ipfs.w3s.link/thistle-black-pixel.jpg'
     }
     console.log('nftImageCid:', nftImageCid)
 
@@ -209,18 +209,18 @@ export default function Deploy() {
 
       <main>
         <Heading as="h2">Deploy your DAO</Heading>
-        <br />
-        <p>
-          {' '}
-          {chain && (
+        <br />{' '}
+        {chain ? (
+          <p>
             <i>
               You&apos;re about to deploy your own DAO to <strong>{chain.name}</strong>. This means you&apos;ll deploy <strong>two</strong> Solidity
               contracts: a membership NFT contract (ERC-721) and a Governor contract. Once deployed, you&apos;ll be able to add it in Tally.
             </i>
-          )}
-        </p>
+          </p>
+        ) : (
+          <p style={{ color: 'red' }}>Please connect your wallet.</p>
+        )}
         <br />
-
         <FormControl>
           <FormLabel>DAO Name</FormLabel>
           <Input value={daoName} onChange={(e) => handleDaoNameChange(e.target.value)} placeholder="Butterfly Collective" />
