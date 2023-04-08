@@ -1,4 +1,4 @@
-import { Heading, Button, FormControl, FormLabel, Textarea, Input, FormHelperText, useToast } from '@chakra-ui/react'
+import { Heading, Button, FormControl, FormLabel, Textarea, Input, FormHelperText, useToast, UnorderedList, ListItem } from '@chakra-ui/react'
 import { ArrowDownIcon, ArrowUpIcon } from '@chakra-ui/icons'
 import { Head } from '../components/layout/Head'
 import { useState, useEffect } from 'react'
@@ -10,10 +10,12 @@ import { UploadData } from '../components/layout/UploadData'
 import { UploadUserData } from '../components/layout/UploadUserData'
 import { useRouter } from 'next/router'
 import { LinkComponent } from '../components/layout/LinkComponent'
+import { ExternalLinkIcon } from '@chakra-ui/icons'
 
 export default function Deploy() {
   const [loading, setLoading] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [isDeployed, setIsDeployed] = useState('')
   const [daoName, setDaoName] = useState('Thistles Collective')
   const [missionStatement, setMissionStatement] = useState('We want to protect the thistles.')
   const [firstMembers, setFirstMembers] = useState<any>(['0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'])
@@ -26,6 +28,7 @@ export default function Deploy() {
   const [nftSymbol, setNftSymbol] = useState('THISTLES')
   const [nftAttributes, setNftAttributes] = useState('1')
   const [plaintext, setPlaintext] = useState(null)
+  const [daoInfo, setDaoInfo] = useState({ govAddress: '', govBlock: '', nftAddress: '', nftBlock: '' })
 
   const router = useRouter()
   const { data: signer, isError, isLoading } = useSigner()
@@ -53,6 +56,8 @@ export default function Deploy() {
 
       const uri = await makeNftMetadata()
 
+      console.log('chain:', chain)
+
       // Deploy the NFT contract
       const nftFactory = new ContractFactory(NFT_ABI, NFT_BYTECODE, signer)
       const nft = await nftFactory.deploy([address, '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'], uri)
@@ -60,6 +65,8 @@ export default function Deploy() {
       console.log('NFT contract address:', nft.address)
       await nft.deployTransaction.wait(1)
       console.log('NFT contract deployed ✅')
+      // const nftBlock = await ethers.providers.getTransactionReceipt(nft.deployTransaction.hash)
+      // console.log('\nBlock number:', nftBlock.blockNumber)
 
       // Deploy the Gov contract
       const manifestoContent = '# ' + daoName + ' Manifesto ## Statement of intent ' + '**' + missionStatement + '**'
@@ -74,7 +81,7 @@ export default function Deploy() {
       // Transfer ownership to the DAO
       const ownershipTransfer = await nft.transferOwnership(gov.address)
       const receipt = await ownershipTransfer.wait()
-      console.log('\nNFT contract ownership transferred to', gov.address, '✅')
+      console.log('\nNFT contract ownership transferred to the DAO', '✅')
       toast({
         title: 'Success!',
         description: 'Your DAO is deployed at ' + nft.address,
@@ -83,10 +90,8 @@ export default function Deploy() {
         isClosable: true,
       })
       setLoading(false)
-
-      // TODO: Redirect to result page
-      // const targetURL = '/' + gov.address
-      // router.push(targetURL)
+      setIsDeployed(gov.address)
+      setDaoInfo({ govAddress: gov.address, govBlock: '888888', nftAddress: nft.address, nftBlock: '888888' })
     } catch (e) {
       console.log('error:', e)
       console.log('e.message:', e.message)
@@ -175,45 +180,73 @@ export default function Deploy() {
       <Head />
 
       <main>
-        <Heading as="h2">Deploy your DAO</Heading>
-        <br />{' '}
-        {chain ? (
+        {isDeployed !== '' ? (
           <>
-            <p>
-              <i>
-                You&apos;re about to deploy your own DAO to <strong>{chain.name}</strong>. This means you&apos;ll deploy <strong>two</strong> Solidity
-                contracts: a membership NFT contract (ERC-721) and a Governor contract. Once deployed, you&apos;ll be able to add it in Tally.
-              </i>{' '}
-            </p>
+            <Heading as="h3">Your DAO info</Heading>
             <br />
+            <UnorderedList>
+              <ListItem>
+                Governor address: <strong>{daoInfo.govAddress}</strong> (on {chain.name})
+              </ListItem>
+              <ListItem>
+                Deployment block number: <strong>{daoInfo.govBlock}</strong>
+              </ListItem>
+              <ListItem>
+                NFT contract address: <strong>{daoInfo.nftAddress}</strong>
+              </ListItem>
+              <ListItem>
+                NFT contract deployment block number: <strong>{daoInfo.nftBlock}</strong>
+              </ListItem>
+            </UnorderedList>
+            <br />
+            <LinkComponent href="https://www.tally.xyz/add-a-dao">
+              <Button mt={4} colorScheme="blue" variant="outline" type="submit">
+                Add your DAO to Tally &nbsp; <ExternalLinkIcon />
+              </Button>
+            </LinkComponent>
           </>
         ) : (
           <>
-            <p style={{ color: 'red' }}>Please connect your wallet.</p>
+            <Heading as="h2">Deploy your DAO</Heading>
+            <br />{' '}
+            {chain ? (
+              <>
+                <p>
+                  <i>
+                    You&apos;re about to deploy your own DAO to <strong>{chain.name}</strong>. This means you&apos;ll deploy <strong>two</strong>{' '}
+                    Solidity contracts: a membership NFT contract (ERC-721) and a Governor contract. Once deployed, you&apos;ll be able to add it in
+                    Tally.
+                  </i>{' '}
+                </p>
+                <br />
+              </>
+            ) : (
+              <>
+                <p style={{ color: 'red' }}>Please connect your wallet.</p>
+                <br />
+              </>
+            )}
+            <p>
+              Feel free to{' '}
+              <LinkComponent href="https://w3hc.github.io/gov-docs/deployment.html#deployment">
+                <strong>read the docs</strong>
+              </LinkComponent>{' '}
+              to learn more about what&apos;s required to deploy.
+            </p>
             <br />
-          </>
-        )}
-        <p>
-          Feel free to{' '}
-          <LinkComponent href="https://w3hc.github.io/gov-docs/deployment.html#deployment">
-            <strong>read the docs</strong>
-          </LinkComponent>{' '}
-          to learn more about what&apos;s required to deploy.
-        </p>
-        <br />
-        <FormControl>
-          <FormLabel>DAO Name</FormLabel>
-          <Input value={daoName} onChange={(e) => handleDaoNameChange(e.target.value)} placeholder="Butterfly Collective" />
-          <br />
-          <br />
-          <FormLabel>Mission statement</FormLabel>
-          <Textarea value={missionStatement} onChange={(e) => setMissionStatement(e.target.value)} placeholder={missionStatement} />
-          <br />
-          <br />
-          <FormLabel>First members wallet adresses</FormLabel>
-          <Input value={firstMembers} onChange={(e) => setFirstMembers(e.target.value)} placeholder={firstMembers} />
-          <FormHelperText>These wallets will receive the membership NFT.</FormHelperText>
-          {/*<br />
+            <FormControl>
+              <FormLabel>DAO Name</FormLabel>
+              <Input value={daoName} onChange={(e) => handleDaoNameChange(e.target.value)} placeholder="Butterfly Collective" />
+              <br />
+              <br />
+              <FormLabel>Mission statement</FormLabel>
+              <Textarea value={missionStatement} onChange={(e) => setMissionStatement(e.target.value)} placeholder={missionStatement} />
+              <br />
+              <br />
+              <FormLabel>First members wallet adresses</FormLabel>
+              <Input value={firstMembers} onChange={(e) => setFirstMembers(e.target.value)} placeholder={firstMembers} />
+              <FormHelperText>These wallets will receive the membership NFT.</FormHelperText>
+              {/*<br />
 
           <FormLabel>DAO Membership NFT image</FormLabel>
           <input
@@ -224,68 +257,70 @@ export default function Deploy() {
             onChange={(e) => handleFileChange(e.target.files[0])}
           /> */}
 
-          {!showAdvanced && (
-            <>
-              <br />
-              <br />
-              <Button rightIcon={<ArrowDownIcon />} colorScheme="red" size="xs" onClick={() => setShowAdvanced(!showAdvanced)}>
-                Advanced
-              </Button>
-            </>
-          )}
-
-          {showAdvanced && (
-            <>
-              <br />
-              <br />
-
-              <FormLabel>Voting period</FormLabel>
-              <Input value={votingPeriod} onChange={(e) => setVotingPeriod(e.target.value)} placeholder={votingPeriod} />
-              <br />
-              <br />
-              <FormLabel>Voting delay</FormLabel>
-              <Input value={votingDelay} onChange={(e) => setVotingDelay(e.target.value)} placeholder={votingDelay} />
-              <br />
-              <br />
-              <FormLabel>Voting threshold</FormLabel>
-              <Input value={votingThreshold} onChange={(e) => setVotingThreshold(e.target.value)} placeholder={votingThreshold} />
-              <br />
-              <br />
-              <FormLabel>Quorum</FormLabel>
-              <Input value={quorum} onChange={(e) => setQuorum(e.target.value)} placeholder={quorum} />
-              <br />
-              <br />
-              <FormLabel>NFT name</FormLabel>
-              <Input value={nftName} onChange={(e) => setNftName(e.target.value)} placeholder={nftName} />
-              <FormHelperText>What&apos;s the name of the membership NFT?</FormHelperText>
-              <br />
-              <FormLabel>NFT symbol</FormLabel>
-              <Input value={nftSymbol} onChange={(e) => setNftSymbol(e.target.value)} placeholder={nftSymbol} />
-              <FormHelperText>What&apos;s the symbol of the membership NFT?</FormHelperText>
-              <br />
-              {/* <FormLabel>Contribs (NFT attributes)</FormLabel>
-              <Input value={nftAttributes} onChange={(e) => setNftAttributes(e.target.value)} placeholder={nftAttributes} />
-              <FormHelperText>Only one attribute on this version. The membership NFT metadata can be edited in the future.</FormHelperText> */}
-              {showAdvanced && (
+              {!showAdvanced && (
                 <>
                   <br />
-                  <Button rightIcon={<ArrowUpIcon />} colorScheme="red" size="xs" onClick={() => setShowAdvanced(!showAdvanced)}>
-                    Hide details
+                  <br />
+                  <Button rightIcon={<ArrowDownIcon />} colorScheme="red" size="xs" onClick={() => setShowAdvanced(!showAdvanced)}>
+                    Advanced
                   </Button>
                 </>
               )}
-            </>
-          )}
-        </FormControl>
-        <br />
-        {!loading ? (
-          <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
-            Deploy
-          </Button>
-        ) : (
-          <Button isLoading loadingText="Deploying..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
-            Deploy
-          </Button>
+
+              {showAdvanced && (
+                <>
+                  <br />
+                  <br />
+
+                  <FormLabel>Voting period</FormLabel>
+                  <Input value={votingPeriod} onChange={(e) => setVotingPeriod(e.target.value)} placeholder={votingPeriod} />
+                  <br />
+                  <br />
+                  <FormLabel>Voting delay</FormLabel>
+                  <Input value={votingDelay} onChange={(e) => setVotingDelay(e.target.value)} placeholder={votingDelay} />
+                  <br />
+                  <br />
+                  <FormLabel>Voting threshold</FormLabel>
+                  <Input value={votingThreshold} onChange={(e) => setVotingThreshold(e.target.value)} placeholder={votingThreshold} />
+                  <br />
+                  <br />
+                  <FormLabel>Quorum</FormLabel>
+                  <Input value={quorum} onChange={(e) => setQuorum(e.target.value)} placeholder={quorum} />
+                  <br />
+                  <br />
+                  <FormLabel>NFT name</FormLabel>
+                  <Input value={nftName} onChange={(e) => setNftName(e.target.value)} placeholder={nftName} />
+                  <FormHelperText>What&apos;s the name of the membership NFT?</FormHelperText>
+                  <br />
+                  <FormLabel>NFT symbol</FormLabel>
+                  <Input value={nftSymbol} onChange={(e) => setNftSymbol(e.target.value)} placeholder={nftSymbol} />
+                  <FormHelperText>What&apos;s the symbol of the membership NFT?</FormHelperText>
+                  <br />
+                  {/* <FormLabel>Contribs (NFT attributes)</FormLabel>
+              <Input value={nftAttributes} onChange={(e) => setNftAttributes(e.target.value)} placeholder={nftAttributes} />
+              <FormHelperText>Only one attribute on this version. The membership NFT metadata can be edited in the future.</FormHelperText> */}
+                  {showAdvanced && (
+                    <>
+                      <br />
+                      <Button rightIcon={<ArrowUpIcon />} colorScheme="red" size="xs" onClick={() => setShowAdvanced(!showAdvanced)}>
+                        Hide details
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+            </FormControl>
+            <br />
+            {!loading ? (
+              <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
+                Deploy
+              </Button>
+            ) : (
+              <Button isLoading loadingText="Deploying..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
+                Deploy
+              </Button>
+            )}
+          </>
         )}
       </main>
     </>
