@@ -18,7 +18,7 @@ export default function Deploy() {
   const [isDeployed, setIsDeployed] = useState('')
   const [daoName, setDaoName] = useState('Thistles Collective')
   const [missionStatement, setMissionStatement] = useState('We want to protect the thistles.')
-  const [firstMembers, setFirstMembers] = useState<any>(['0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'])
+
   const [fileName, setFileName] = useState(null)
   const [votingPeriod, setVotingPeriod] = useState('10000')
   const [votingDelay, setVotingDelay] = useState('1')
@@ -28,13 +28,21 @@ export default function Deploy() {
   const [nftSymbol, setNftSymbol] = useState('THISTLES')
   const [nftAttributes, setNftAttributes] = useState('1')
   const [plaintext, setPlaintext] = useState(null)
-  const [daoInfo, setDaoInfo] = useState({ govAddress: '', govBlock: '', nftAddress: '', nftBlock: '' })
+  const [daoInfo, setDaoInfo] = useState({ govAddress: '', govBlock: 0, nftAddress: '', nftBlock: 0 })
 
   const router = useRouter()
   const { data: signer, isError, isLoading } = useSigner()
   const { chain } = useNetwork()
-  const { address, isConnecting, isDisconnected } = useAccount()
   const toast = useToast()
+  const { address, isConnecting, isDisconnected } = useAccount()
+  const [firstMembers, setFirstMembers] = useState<any>([
+    address,
+    '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977',
+    '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C',
+  ])
+  function App() {
+    const provider = useProvider()
+  }
 
   const deploy = async (e: any) => {
     e.preventDefault()
@@ -60,13 +68,13 @@ export default function Deploy() {
 
       // Deploy the NFT contract
       const nftFactory = new ContractFactory(NFT_ABI, NFT_BYTECODE, signer)
-      const nft = await nftFactory.deploy([address, '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977', '0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'], uri)
+      const nft = await nftFactory.deploy(firstMembers, uri)
       console.log('tx:', nft.deployTransaction)
       console.log('NFT contract address:', nft.address)
-      await nft.deployTransaction.wait(1)
+      const nftDeployment = await nft.deployTransaction.wait(1)
       console.log('NFT contract deployed ✅')
-      // const nftBlock = await ethers.providers.getTransactionReceipt(nft.deployTransaction.hash)
-      // console.log('\nBlock number:', nftBlock.blockNumber)
+      console.log('nft:', nft)
+      console.log('nft.deployTransaction:', nft.deployTransaction)
 
       // Deploy the Gov contract
       const manifestoContent = '# ' + daoName + ' Manifesto ## Statement of intent ' + '**' + missionStatement + '**'
@@ -75,7 +83,7 @@ export default function Deploy() {
       const gov = await govFactory.deploy(nft.address, manifesto, daoName, votingDelay, votingPeriod, votingThreshold, quorum)
       console.log('Gov deployment tx:', gov.deployTransaction)
       console.log('Gov contract address:', gov.address)
-      await gov.deployTransaction.wait(1)
+      const govDeployment = await gov.deployTransaction.wait(1)
       console.log('Gov contract deployed ✅')
 
       // Transfer ownership to the DAO
@@ -91,7 +99,12 @@ export default function Deploy() {
       })
       setLoading(false)
       setIsDeployed(gov.address)
-      setDaoInfo({ govAddress: gov.address, govBlock: '888888', nftAddress: nft.address, nftBlock: '888888' })
+      setDaoInfo({
+        govAddress: gov.address,
+        govBlock: govDeployment.blockNumber,
+        nftAddress: nft.address,
+        nftBlock: nftDeployment.blockNumber,
+      })
     } catch (e) {
       console.log('error:', e)
       console.log('e.message:', e.message)
@@ -182,20 +195,42 @@ export default function Deploy() {
       <main>
         {isDeployed !== '' ? (
           <>
-            <Heading as="h3">Your DAO info</Heading>
+            <Heading as="h3">{daoName}</Heading>
             <br />
+            <p>
+              <strong>Governor</strong>
+            </p>
+            <br />
+
             <UnorderedList>
               <ListItem>
-                Governor address: <strong>{daoInfo.govAddress}</strong> (on {chain.name})
+                Governor address: <strong>{daoInfo.govAddress}</strong>
               </ListItem>
               <ListItem>
-                Deployment block number: <strong>{daoInfo.govBlock}</strong>
+                Network: <strong>{chain.name}</strong>
               </ListItem>
               <ListItem>
-                NFT contract address: <strong>{daoInfo.nftAddress}</strong>
+                Type: <strong>Open Zeppelin Governor</strong>
               </ListItem>
               <ListItem>
-                NFT contract deployment block number: <strong>{daoInfo.nftBlock}</strong>
+                Start Block: <strong>{daoInfo.govBlock}</strong>
+              </ListItem>
+            </UnorderedList>
+            <br />
+            <p>
+              <strong>Token</strong>
+            </p>
+            <br />
+
+            <UnorderedList>
+              <ListItem>
+                Token address: <strong>{daoInfo.nftAddress}</strong>
+              </ListItem>
+              <ListItem>
+                Type / DAO Standard: <strong>ERC721</strong>
+              </ListItem>
+              <ListItem>
+                Start Block: <strong>{daoInfo.nftBlock}</strong>
               </ListItem>
             </UnorderedList>
             <br />
