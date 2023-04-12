@@ -16,7 +16,7 @@ import {
 
 export const SITE_NAME = 'Gov'
 export const APP_VERSION = 'v0.9.0-beta'
-export const SITE_DESCRIPTION = 'A UI for Gov'
+export const SITE_DESCRIPTION = 'Deploy your DAO in a few seconds'
 export const SITE_URL = 'https://w3hc.org'
 export const THEME_INITIAL_COLOR = 'dark'
 export const THEME_COLOR_SCHEME: ThemingProps['colorScheme'] = 'gray'
