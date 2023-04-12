@@ -195,11 +195,13 @@ export default function Deploy() {
       <main>
         {isDeployed !== '' ? (
           <>
-            <Heading as="h3">{daoName}</Heading>
+            <Heading as="h3" size="lg">
+              {daoName}
+            </Heading>
             <br />
-            <p>
-              <strong>Governor</strong>
-            </p>
+            <Heading as="h4" size="md">
+              Governor
+            </Heading>
             <br />
 
             <UnorderedList>
@@ -217,9 +219,9 @@ export default function Deploy() {
               </ListItem>
             </UnorderedList>
             <br />
-            <p>
-              <strong>Token</strong>
-            </p>
+            <Heading as="h4" size="md">
+              Token
+            </Heading>
             <br />
 
             <UnorderedList>
