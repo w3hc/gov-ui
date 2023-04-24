@@ -5,9 +5,6 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'export',
-  experimental: {
-    appDir: true,
-  },
 }
 
 module.exports = nextConfig
