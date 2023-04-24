@@ -12,7 +12,7 @@ import { useRouter } from 'next/router'
 import { LinkComponent } from '../components/layout/LinkComponent'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 
-export default function Deploy() {
+export default function Deploy({ deploy }) {
   const [loading, setLoading] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [isDeployed, setIsDeployed] = useState('')
@@ -44,7 +44,7 @@ export default function Deploy() {
     const provider = useProvider()
   }
 
-  const deploy = async (e: any) => {
+  const deployDao = async (e: any) => {
     e.preventDefault()
 
     try {
@@ -349,11 +349,11 @@ export default function Deploy() {
             </FormControl>
             <br />
             {!loading ? (
-              <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
+              <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deployDao}>
                 Deploy
               </Button>
             ) : (
-              <Button isLoading loadingText="Deploying..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deploy}>
+              <Button isLoading loadingText="Deploying..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={deployDao}>
                 Deploy
               </Button>
             )}
@@ -362,4 +362,14 @@ export default function Deploy() {
       </main>
     </>
   )
+}
+
+export async function getStaticProps() {
+  const res = await fetch('https://.../deploy')
+  const deploy = await res.json()
+  return {
+    props: {
+      deploy,
+    },
+  }
 }
