@@ -11,8 +11,9 @@ import { UploadUserData } from '../components/layout/UploadUserData'
 import { useRouter } from 'next/router'
 import { LinkComponent } from '../components/layout/LinkComponent'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
+import Link from 'next/link'
 
-export default function Deploy({ deploy }) {
+export default function Index() {
   const [loading, setLoading] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [isDeployed, setIsDeployed] = useState('')
@@ -332,7 +333,10 @@ export default function Deploy({ deploy }) {
                   <FormLabel>NFT symbol</FormLabel>
                   <Input value={nftSymbol} onChange={(e) => setNftSymbol(e.target.value)} placeholder={nftSymbol} />
                   <FormHelperText>What&apos;s the symbol of the membership NFT?</FormHelperText>
-                  <br />
+                  {/* <br /> */}
+                  <Link hidden href="/deploy">
+                    Deploy
+                  </Link>
                   {/* <FormLabel>Contribs (NFT attributes)</FormLabel>
               <Input value={nftAttributes} onChange={(e) => setNftAttributes(e.target.value)} placeholder={nftAttributes} />
               <FormHelperText>Only one attribute on this version. The membership NFT metadata can be edited in the future.</FormHelperText> */}
