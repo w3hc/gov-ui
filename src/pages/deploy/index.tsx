@@ -363,3 +363,13 @@ export default function Deploy() {
     </>
   )
 }
+
+export async function getStaticProps() {
+  const res = await fetch('./deploy')
+  const deploy = await res.json()
+  return {
+    props: {
+      deploy,
+    },
+  }
+}

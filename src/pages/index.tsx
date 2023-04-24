@@ -363,13 +363,3 @@ export default function Deploy({ deploy }) {
     </>
   )
 }
-
-export async function getStaticProps() {
-  const res = await fetch('https://gov-ui.on.fleek.co/deploy')
-  const deploy = await res.json()
-  return {
-    props: {
-      deploy,
-    },
-  }
-}
