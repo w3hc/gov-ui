@@ -66,6 +66,18 @@ export default function Deploy() {
 
       console.log('chain:', chain)
 
+      if (chain === undefined) {
+        toast({
+          title: 'Not connected',
+          description: 'Please connect your wallet.',
+          status: 'error',
+          duration: 9000,
+          isClosable: true,
+        })
+        setLoading(false)
+        return
+      }
+
       // Deploy the NFT contract
       const nftFactory = new ContractFactory(NFT_ABI, NFT_BYTECODE, signer)
       const nft = await nftFactory.deploy(firstMembers, uri)
