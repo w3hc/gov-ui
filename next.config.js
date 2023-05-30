@@ -10,9 +10,7 @@ const nextConfig = {
     return {
       '/': { page: '/' },
       '/deploy': { page: '/deploy' },
-      '/proposal': { page: '/proposal' },
       '/push': { page: '/push' },
-      '/view': { page: '/view' },
     }
   },
 }
