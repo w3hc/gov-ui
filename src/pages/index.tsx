@@ -143,7 +143,7 @@ export default function Home() {
         {initialized === true ? (
           proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
-          <Image width="100" height="100" alt="loader" src="./reggae-loader.svg" />
+          <Image width="200" height="200" alt="loader" src="./reggae-loader.svg" />
         )}
       </div>
     )
@@ -156,38 +156,47 @@ export default function Home() {
       <main>
         <>
           <Heading as="h2">{name}</Heading>
-          <br />
-          <p>
-            DAO contract address:{' '}
-            <strong>
-              <a
-                style={{ color: '#45a2f8' }}
-                target="_blank"
-                rel="noopener noreferrer"
-                href={'https://goerli.arbiscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
-                {GOV_CONTRACT_ADDRESS}
-              </a>
-            </strong>
-          </p>
-          <p>
-            Manifesto:{' '}
-            <strong>
-              <a style={{ color: '#45a2f8' }} target="_blank" rel="noopener noreferrer" href={manifestoLink}>
-                {manifesto}
-              </a>
-            </strong>
-          </p>
-          <br />
-          <LinkComponent href="/push">
-            <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-              New proposal
-            </Button>
-            <br />
-          </LinkComponent>
-          <br />
-          <List />
-          <br />{' '}
         </>
+        <br />
+
+        {isDisconnected ? (
+          <>
+            <br />
+            <p>Please connect your wallet.</p>
+          </>
+        ) : (
+          <>
+            <p>
+              DAO contract address:{' '}
+              <strong>
+                <a
+                  style={{ color: '#45a2f8' }}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={'https://goerli.arbiscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
+                  {GOV_CONTRACT_ADDRESS}
+                </a>
+              </strong>
+            </p>
+            <p>
+              Manifesto:{' '}
+              <strong>
+                <a style={{ color: '#45a2f8' }} target="_blank" rel="noopener noreferrer" href={manifestoLink}>
+                  {manifesto}
+                </a>
+              </strong>
+            </p>
+            <br />
+            <List />
+            <br />{' '}
+            <LinkComponent href="/push">
+              <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                New proposal
+              </Button>
+              <br />
+            </LinkComponent>
+          </>
+        )}
       </main>
     </>
   )
