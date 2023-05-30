@@ -110,14 +110,13 @@ export default function Home() {
       console.log('chain !== undefined')
 
       if (chain.id !== 421613) {
-        // console.log('switchNetwork:', switchNetwork?.name)
       } else {
         getBlock()
         getName()
         getManifesto()
       }
     }
-  }, [chain, getBlock, getName])
+  }, [chain, getBlock, getName, getManifesto])
 
   function Item(props) {
     return (
@@ -159,7 +158,7 @@ export default function Home() {
           <Heading as="h2">{name}</Heading>
           <br />
           <p>
-            Gov contract address:{' '}
+            DAO contract address:{' '}
             <strong>
               <a
                 style={{ color: '#45a2f8' }}
@@ -189,9 +188,6 @@ export default function Home() {
           <List />
           <br />{' '}
         </>
-        <Button colorScheme="blue" variant="outline" onClick={getManifesto}>
-          Manifesto
-        </Button>
       </main>
     </>
   )
