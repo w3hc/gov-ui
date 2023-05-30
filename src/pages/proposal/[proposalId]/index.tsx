@@ -73,8 +73,8 @@ export default function Create() {
       const buyListing = await medusaClient.buyListing(uri, buyerPublicKey)
       console.log('tx hash:', 'https://goerli.arbiscan.io/tx/' + buyListing.hash)
       console.log('Waiting for 5 confirmations...')
-      await buyListing.wait(5)
-      console.log('buyListing.blockNumber:', buyListing.blockNumber)
+      const receipt = await buyListing.wait(5)
+      console.log('buyListing.blockNumber:', receipt.blockNumber)
 
       // get requestId from url
       const requestId = await medusaClient.requests(uri)
