@@ -1,18 +1,5 @@
 import { ThemingProps } from '@chakra-ui/react'
-import {
-  mainnet,
-  goerli,
-  polygon,
-  polygonMumbai,
-  bsc,
-  arbitrum,
-  arbitrumGoerli,
-  optimism,
-  optimismGoerli,
-  avalanche,
-  avalancheFuji,
-  gnosis,
-} from '@wagmi/chains'
+import { arbitrumGoerli } from '@wagmi/chains'
 
 export const SITE_NAME = 'Gov'
 export const APP_VERSION = 'v0.9.0-beta'
@@ -28,20 +15,7 @@ export const THEME_CONFIG = {
 export const SOCIAL_TWITTER = 'W3HC'
 export const SOCIAL_GITHUB = 'w3hc/nexth'
 
-export const ETH_CHAINS = [
-  mainnet,
-  goerli,
-  polygon,
-  polygonMumbai,
-  bsc,
-  arbitrum,
-  arbitrumGoerli,
-  optimism,
-  optimismGoerli,
-  avalanche,
-  avalancheFuji,
-  gnosis,
-]
+export const ETH_CHAINS = [arbitrumGoerli]
 export const infuraId = process.env.NEXT_PUBLIC_INFURA_ID
 export const GOV_CONTRACT_ADDRESS = '0x17BccCC8E7c0DC62453a508988b61850744612F3'
 export const GOV_CONTRACT_ABI = <const>[
