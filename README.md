@@ -1,8 +1,15 @@
 # Gov UI
 
-Deploy your DAO ([Gov](https://github.com/w3hc/gov)) in a few seconds.
+An interface for your DAO.
 
-Live at [https://gov-ui.on.fleek.co/](https://gov-ui.on.fleek.co/)
+The goal is to provide an interface that's easy to deploy. Ideally 1 click for Gov Solidity contracts, 1 click for this interface.
+
+Live at **[https://gov-ui.on.fleek.co/](https://gov-ui.on.fleek.co/)**
+
+See also:
+
+- [Solidity contracts](https://github.com/w3hc/gov)
+- [Documentation](https://w3hc.github.io/gov-docs/)
 
 ## Install
 
@@ -23,6 +30,10 @@ Add your own keys in your `.env` file, then:
 ```sh
 npm run dev
 ```
+
+## Contribute
+
+See the [Gov contracts, UI, and docs](https://github.com/orgs/w3hc/projects/8/views/6) project to learn about the current development. Some issues are marked `good first issue`: they can be a good start if you want to contribute to the project.
 
 ## Versions
 
