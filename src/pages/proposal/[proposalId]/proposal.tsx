@@ -17,7 +17,7 @@ import { useRouter } from 'next/router'
 import { Medusa } from '@medusa-network/medusa-sdk'
 import { Base64 } from 'js-base64'
 
-export default function Create() {
+export default function Proposal() {
   const router = useRouter()
   const proposalId = router.query.proposalId as string
   const tallyLink = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/' + proposalId
