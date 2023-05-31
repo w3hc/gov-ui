@@ -8,7 +8,7 @@ const nextConfig = {
   exportPathMap: function () {
     return {
       '/': { page: '/' },
-      '/deploy': { page: '/deploy' },
+      '/deploy': { page: '/deploy/deploy.tsx' },
       '/push': { page: '/push' },
       // '/proposal': { page: '/proposal' },
     }
