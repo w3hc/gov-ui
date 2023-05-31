@@ -2,6 +2,7 @@ import { Heading, Button, Badge } from '@chakra-ui/react'
 import { AddIcon } from '@chakra-ui/icons'
 import { Head } from '../components/layout/Head'
 import Image from 'next/image'
+import Link from 'next/link'
 import { LinkComponent } from '../components/layout/LinkComponent'
 import { useState, useEffect, useCallback } from 'react'
 import { useSigner, useAccount, useBalance, useNetwork, useProvider } from 'wagmi'
@@ -124,9 +125,9 @@ export default function Home() {
         <div className="">
           <div>
             <strong>
-              <a style={{ color: '#45a2f8' }} href={props.link}>
+              <Link style={{ color: '#45a2f8' }} href={props.link}>
                 {props.title}
-              </a>
+              </Link>
             </strong>{' '}
             <Badge ml="1" fontSize="0.5em" colorScheme="purple" variant="solid">
               {proposalState[props.state]}
