@@ -143,7 +143,7 @@ export default function Home() {
         {initialized === true ? (
           proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
-          <Image width="200" height="200" alt="loader" src="./reggae-loader.svg" />
+          <Image priority width="200" height="200" alt="loader" src="./reggae-loader.svg" />
         )}
       </div>
     )
