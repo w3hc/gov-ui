@@ -126,7 +126,7 @@ export default function Create() {
             PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
           }
         } else {
-          PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
+          PROPOSAL_DESCRIPTION = '' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
         }
       } else {
         PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
