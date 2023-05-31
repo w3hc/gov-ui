@@ -11,7 +11,7 @@ const nextConfig = {
       '/deploy': { page: '/deploy' },
       '/push': { page: '/push' },
       '/proposal/[proposalId]': { page: '/proposal/[proposalId]' },
-      '/proposal': { page: '/proposal/[proposalId]' },
+      '/proposal': { page: '/proposal' },
     }
   },
 }
