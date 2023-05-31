@@ -1,4 +1,4 @@
-import { Web3Storage } from 'web3.storage'
+import { Web3Storage, getFilesFromPath } from 'web3.storage'
 
 export const UploadFile = async (selectedFile: any, fileName: any) => {
   console.log('uploding your file...')
@@ -13,15 +13,15 @@ export const UploadFile = async (selectedFile: any, fileName: any) => {
     return new Web3Storage({ token: getAccessToken() || '' })
   }
 
-  // async function getFiles(file: any) {
-  //   const File = await getFilesFromPath(file)
-  //   return File
-  // }
+  async function getFiles(file: any) {
+    const File = await getFilesFromPath(file)
+    return File
+  }
 
   async function storeFile(files: any) {
     try {
       const client = makeStorageClient()
-      const put = await client.put(files)
+      const put = await client.put([files])
       return put
     } catch (error) {
       console.error('error (storeFile):', error)
@@ -29,16 +29,14 @@ export const UploadFile = async (selectedFile: any, fileName: any) => {
     }
   }
 
-  const cid = await storeFile(fileName)
+  let cid = null
+  try {
+    cid = await storeFile(selectedFile)
+  } catch (error) {
+    console.error('upload error:', error)
+  }
 
-  // let cid = null
-  // try {
-  //   cid = await storeFile(selectedFile)
-  // } catch (error) {
-  //   console.error('upload error:', error)
-  // }
-
-  // console.log('✅ cid:', cid)
-  // console.log('✅ uri:', 'https://' + cid + '.ipfs.w3s.link' + '/' + fileName)
+  console.log('cid:', cid)
+  console.log('uri:', 'https://' + cid + '.ipfs.w3s.link' + '/' + fileName)
   return 'https://' + cid + '.ipfs.w3s.link' + '/' + fileName
 }

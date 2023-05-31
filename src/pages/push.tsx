@@ -28,7 +28,7 @@ export default function Create() {
   const [description, setDescription] = useState(
     'Desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc desc...'
   )
-  const [encryptionRequested, setEncryptionRequested] = useState(true)
+  const [encryptionRequested, setEncryptionRequested] = useState(false)
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState(null)
 
@@ -126,7 +126,7 @@ export default function Create() {
             PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
           }
         } else {
-          PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
+          PROPOSAL_DESCRIPTION = '' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
         }
       } else {
         PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
@@ -216,9 +216,7 @@ export default function Create() {
             onChange={(e) => handleFileChange(e.target.files[0])}
           />
           <LockIcon w={3} h={3} color="red.500" />{' '}
-          <Checkbox defaultChecked onChange={(e) => setEncryptionRequested(e.target.checked)}>
-            Only accessible to DAO members
-          </Checkbox>
+          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox>
           <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText>
           <br />
           {!loading ? (
