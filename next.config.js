@@ -10,7 +10,7 @@ const nextConfig = {
       '/': { page: '/' },
       '/deploy': { page: '/deploy' },
       '/push': { page: '/push' },
-      '/proposal/[proposalId]': { page: '/proposal' },
+      '/proposal/:proposalId': { page: '/proposal' },
     }
   },
 }
