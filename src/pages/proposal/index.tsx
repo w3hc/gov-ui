@@ -1,6 +1,6 @@
 import { Heading, Button, Badge } from '@chakra-ui/react'
 import { LockIcon } from '@chakra-ui/icons'
-import { Head } from '../../../components/layout/Head'
+import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect, useCallback } from 'react'
 import { useSigner, useProvider } from 'wagmi'
@@ -12,7 +12,7 @@ import {
   MEDUSA_ORACLE_CONTRACT_ADDRESS,
   MEDUSA_CLIENT_APP_CONTRACT_ADDRESS,
   meduasaClientAbi,
-} from '../../../utils/config'
+} from '../../utils/config'
 import { useRouter } from 'next/router'
 import { Medusa } from '@medusa-network/medusa-sdk'
 import { Base64 } from 'js-base64'
