@@ -1,6 +1,6 @@
 import { Heading, Button, Badge } from '@chakra-ui/react'
 import { LockIcon } from '@chakra-ui/icons'
-import { Head } from '../../../components/layout/Head'
+import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect, useCallback } from 'react'
 import { useSigner, useProvider } from 'wagmi'
@@ -12,14 +12,15 @@ import {
   MEDUSA_ORACLE_CONTRACT_ADDRESS,
   MEDUSA_CLIENT_APP_CONTRACT_ADDRESS,
   meduasaClientAbi,
-} from '../../../utils/config'
+} from '../../utils/config'
 import { useRouter } from 'next/router'
 import { Medusa } from '@medusa-network/medusa-sdk'
 import { Base64 } from 'js-base64'
 
-export default function Create() {
+export default function Proposal() {
   const router = useRouter()
-  const proposalId = router.query.proposalId as string
+  const proposalId = router.asPath.split('/')[2]
+
   const tallyLink = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/' + proposalId
 
   const [block, setBlock] = useState(0)
@@ -116,6 +117,10 @@ export default function Create() {
   }
 
   const getProposalData = useCallback(async () => {
+    console.log('getProposalData started')
+    console.log('proposalId:', proposalId)
+
+    setLoading(true)
     getBlock()
 
     if (block > 1) {
@@ -132,6 +137,7 @@ export default function Create() {
               setTitle(proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')))
               setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n'), proposals[i].args[8].indexOf('[')))
               setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
+              console.log(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
               await getState(proposals[i].args?.proposalId)
               if (proposals[i].args[8].substring(proposals[i].args[8].indexOf(')') + 2) === 'encrypted') {
                 setIsEncrypted(true)
@@ -147,6 +153,8 @@ export default function Create() {
         console.error('error:', error)
       }
     }
+    setLoading(false)
+    console.log('getProposalData ended')
   }, [block])
 
   useEffect(() => {

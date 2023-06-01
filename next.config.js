@@ -4,13 +4,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: 'export',
   trailingSlash: true,
   exportPathMap: function () {
     return {
       '/': { page: '/' },
       '/deploy': { page: '/deploy' },
       '/push': { page: '/push' },
+      '/proposal/:proposalId': { page: '/proposal' },
     }
   },
 }
