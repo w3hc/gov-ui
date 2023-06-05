@@ -125,7 +125,7 @@ export default function Home() {
         <div className="">
           <div>
             <strong>
-              <Link style={{ color: '#45a2f8' }} href={props.link}>
+              <Link style={{ color: '#45a2f8' }} target="blank" href={props.link}>
                 {props.title}
               </Link>
             </strong>{' '}

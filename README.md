@@ -4,7 +4,7 @@ An interface for your DAO.
 
 The goal is to provide an interface that's easy to deploy. Ideally 1 click for Gov Solidity contracts, 1 click for this interface.
 
-Live at **[https://gov-ui.on.fleek.co/](https://gov-ui.on.fleek.co/)**
+Live at **[https://gov-ui.netlify.app/](https://gov-ui.netlify.app/)**
 
 See also:
 
