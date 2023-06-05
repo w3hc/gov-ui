@@ -1,2 +1,2 @@
 /* /index.html  200
-/proposal/* /:proposalId  200
+/proposal/* /proposal/:proposalId  200
