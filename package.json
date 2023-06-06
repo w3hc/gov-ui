@@ -8,7 +8,8 @@
     "start": "next start",
     "export": "next export",
     "lint": "next lint --fix",
-    "prettier": "prettier './src' --write"
+    "prettier": "prettier './src' --write",
+    "fun": "git checkout main && git pull origin main && git checkout - && npm i && open \"http://localhost:3000\" && npm run dev"
   },
   "husky": {
     "hooks": {
