@@ -19,7 +19,7 @@ import { Base64 } from 'js-base64'
 
 export default function Proposal() {
   const router = useRouter()
-  const proposalId = router.asPath.split('/')[2]
+  const proposalId = router.query.proposalId
 
   const tallyLink = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/' + proposalId
 
