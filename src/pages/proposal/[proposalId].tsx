@@ -19,7 +19,7 @@ import { Base64 } from 'js-base64'
 
 export default function Proposal() {
   const router = useRouter()
-  const proposalId = router.asPath.split('/')[2]
+  const proposalId = router.query.proposalId
 
   const tallyLink = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/' + proposalId
 
@@ -37,9 +37,57 @@ export default function Proposal() {
 
   const provider = useProvider()
   const { data: signer, isError, isLoading } = useSigner()
-  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
+  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
 
   const medusaClient = new ethers.Contract(MEDUSA_CLIENT_APP_CONTRACT_ADDRESS, meduasaClientAbi, signer)
+
+  const getProposalData = useCallback(async () => {
+    console.log('getProposalData started')
+    console.log('proposalId:', proposalId)
+
+    setLoading(true)
+    getBlock()
+
+    if (block > 1) {
+      const proposals = await gov.queryFilter('ProposalCreated' as any, 5702215, block)
+
+      try {
+        let i: number = 0
+
+        if (proposals[0].args != undefined) {
+          for (i; i < Number(proposals.length); i++) {
+            const id = String(proposals[i].args?.proposalId)
+
+            if (id == proposalId) {
+              setTitle(proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')))
+              setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n'), proposals[i].args[8].indexOf('[')))
+              setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
+              console.log(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
+              await getState(proposals[i].args?.proposalId)
+              if (proposals[i].args[8].substring(proposals[i].args[8].indexOf(')') + 2) === 'encrypted') {
+                setIsEncrypted(true)
+              } else {
+                setIsEncrypted(false)
+              }
+              setInitialized(true)
+              console.log('original description:', proposals[i].args[8])
+            }
+          }
+        }
+      } catch (error) {
+        console.error('error:', error)
+      }
+    }
+    setLoading(false)
+    console.log('getProposalData ended')
+  }, [block])
+
+  useEffect(() => {
+    getProposalData()
+    console.log('[init] uri:', uri)
+    console.log('[init] isEncrypted:', isEncrypted)
+    console.log('[init] initialized:', initialized)
+  }, [getProposalData])
 
   const getBlock = async () => {
     const blockNumber = await provider.getBlockNumber()
@@ -54,6 +102,18 @@ export default function Proposal() {
         {proposalState[state]}
       </Badge>
     )
+  }
+
+  const voteYes = async () => {
+    // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
+    // 0 = Against, 1 = For, 2 = Abstain
+    console.log('voting...')
+    await gov.castVote(proposalId, 1)
+  }
+
+  const voteNo = async () => {
+    console.log('voting...')
+    await gov.castVote(proposalId, 0)
   }
 
   const decrypt = async () => {
@@ -115,54 +175,6 @@ export default function Proposal() {
       }
     }
   }
-
-  const getProposalData = useCallback(async () => {
-    console.log('getProposalData started')
-    console.log('proposalId:', proposalId)
-
-    setLoading(true)
-    getBlock()
-
-    if (block > 1) {
-      const proposals = await gov.queryFilter('ProposalCreated' as any, 5702215, block)
-
-      try {
-        let i: number = 0
-
-        if (proposals[0].args != undefined) {
-          for (i; i < Number(proposals.length); i++) {
-            const id = String(proposals[i].args?.proposalId)
-
-            if (id == proposalId) {
-              setTitle(proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')))
-              setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n'), proposals[i].args[8].indexOf('[')))
-              setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
-              console.log(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
-              await getState(proposals[i].args?.proposalId)
-              if (proposals[i].args[8].substring(proposals[i].args[8].indexOf(')') + 2) === 'encrypted') {
-                setIsEncrypted(true)
-              } else {
-                setIsEncrypted(false)
-              }
-              setInitialized(true)
-              console.log('original description:', proposals[i].args[8])
-            }
-          }
-        }
-      } catch (error) {
-        console.error('error:', error)
-      }
-    }
-    setLoading(false)
-    console.log('getProposalData ended')
-  }, [block])
-
-  useEffect(() => {
-    getProposalData()
-    console.log('[init] uri:', uri)
-    console.log('[init] isEncrypted:', isEncrypted)
-    console.log('[init] initialized:', initialized)
-  }, [getProposalData])
 
   return (
     <>
@@ -267,6 +279,17 @@ export default function Proposal() {
               </div>
 
               <br />
+
+              {
+                <>
+                  <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
+                    Yes
+                  </Button>
+                  <Button colorScheme="red" variant="outline" onClick={voteNo}>
+                    No
+                  </Button>
+                </>
+              }
             </>
           ) : (
             <Image priority width="400" height="400" alt="loader" src="/reggae-loader.svg" />

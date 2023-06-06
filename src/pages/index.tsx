@@ -79,7 +79,7 @@ export default function Home() {
         let i: number = 0
         let proposalsRaw = proposal
         if (proposals[0].args != undefined) {
-          for (i = 93; i < Number(proposals.length); i++) {
+          for (i = 103; i < Number(proposals.length); i++) {
             proposalsRaw.push(
               ...[
                 {
