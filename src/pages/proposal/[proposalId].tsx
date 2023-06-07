@@ -26,6 +26,7 @@ export default function Proposal() {
   const [block, setBlock] = useState(0)
   const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState('')
+  const [stateBadge, setStateBadge] = useState<any>()
   const [state, setState] = useState<any>()
   const [description, setDescription] = useState('')
   const [uri, setUri] = useState(null)
@@ -34,6 +35,10 @@ export default function Proposal() {
   const [isDecrypted, setIsDecrypted] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const proposalState = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const [targets, setTargets] = useState<any>()
+  const [values, setValues] = useState<any>()
+  const [calldatas, setCalldatas] = useState<any>()
+  const [rawDescription, setRawDescription] = useState<any>()
 
   const provider = useProvider()
   const { data: signer, isError, isLoading } = useSigner()
@@ -69,6 +74,19 @@ export default function Proposal() {
               } else {
                 setIsEncrypted(false)
               }
+
+              console.log('proposals:', proposals)
+              // desc in execute: https://forum.openzeppelin.com/t/governor-hardhat-testing/15290/7
+              console.log('targets:', proposals[i].args[2][0])
+              console.log('values:', proposals[i].args[3][0])
+              console.log('calldatas:', proposals[i].args.calldatas)
+              console.log('description:', proposals[i].args[8])
+
+              setTargets(proposals[i].args[2][0])
+              setValues(proposals[i].args[3][0])
+              setCalldatas(proposals[i].args.calldatas)
+              setRawDescription(proposals[i].args[8])
+
               setInitialized(true)
               console.log('original description:', proposals[i].args[8])
             }
@@ -97,11 +115,12 @@ export default function Proposal() {
 
   const getState = async (proposalId) => {
     const state = await gov.state(proposalId)
-    setState(
+    setStateBadge(
       <Badge ml="1" fontSize="0.5em" colorScheme="purple" variant="solid">
         {proposalState[state]}
       </Badge>
     )
+    setState(proposalState[state])
   }
 
   const voteYes = async () => {
@@ -114,6 +133,30 @@ export default function Proposal() {
   const voteNo = async () => {
     console.log('voting...')
     await gov.castVote(proposalId, 0)
+  }
+
+  const execute = async () => {
+    // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-execute-address---uint256---bytes---bytes32-v
+    // execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) → uint256 proposalId
+    console.log('executing...')
+
+    try {
+      const targetsFormatted = [targets]
+      const valuesFormatted = [values]
+      const calldatasFormatted = ['0x']
+      const hashedDescription = ethers.utils.id(rawDescription)
+
+      console.log('targets:', targetsFormatted)
+      console.log('values:', valuesFormatted)
+      console.log('calldatas:', calldatasFormatted)
+      console.log('description:', description)
+      console.log('hashedDescription:', hashedDescription)
+
+      const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
+      await executeCall.wait(1)
+    } catch (e) {
+      console.log('error:', e)
+    }
   }
 
   const decrypt = async () => {
@@ -186,7 +229,7 @@ export default function Proposal() {
             <>
               <Heading as="h2">{title}</Heading>
               <p>
-                {state} |{' '}
+                {stateBadge} |{' '}
                 <a href={tallyLink} target="_blank" rel="noopener noreferrer" style={{ color: '#45a2f8' }}>
                   <strong> View on Tally</strong>
                 </a>
@@ -280,7 +323,15 @@ export default function Proposal() {
 
               <br />
 
-              {
+              {/* const proposalState = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'] */}
+
+              {state === 'Succeeded' ? (
+                <>
+                  <Button mr="5" colorScheme="red" variant="outline" onClick={execute}>
+                    Execute
+                  </Button>
+                </>
+              ) : (
                 <>
                   <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
                     Yes
@@ -289,7 +340,7 @@ export default function Proposal() {
                     No
                   </Button>
                 </>
-              }
+              )}
             </>
           ) : (
             <Image priority width="400" height="400" alt="loader" src="/reggae-loader.svg" />
