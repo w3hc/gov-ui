@@ -34,7 +34,8 @@ export default function Proposal() {
   const [decryptedFile, setDecryptedFile] = useState('')
   const [isDecrypted, setIsDecrypted] = useState(false)
   const [initialized, setInitialized] = useState(false)
-  const proposalState = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const stateColor = ['pink', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'green']
   const [targets, setTargets] = useState<any>()
   const [values, setValues] = useState<any>()
   const [calldatas, setCalldatas] = useState<any>()
@@ -116,11 +117,11 @@ export default function Proposal() {
   const getState = async (proposalId) => {
     const state = await gov.state(proposalId)
     setStateBadge(
-      <Badge ml="1" fontSize="0.5em" colorScheme="purple" variant="solid">
-        {proposalState[state]}
+      <Badge ml="1" fontSize="0.5em" colorScheme={stateColor[state]} variant="solid">
+        {stateText[state]}
       </Badge>
     )
-    setState(proposalState[state])
+    setState(stateText[state])
   }
 
   const voteYes = async () => {
