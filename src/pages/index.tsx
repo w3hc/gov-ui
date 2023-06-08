@@ -23,7 +23,8 @@ export default function Home() {
     },
   ])
   const [initialized, setInitialized] = useState(false)
-  const proposalState = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const stateColor = ['pink', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'green']
 
   const baseUrl = '/proposal/'
 
@@ -129,8 +130,8 @@ export default function Home() {
                 {props.title}
               </Link>
             </strong>{' '}
-            <Badge ml="1" fontSize="0.5em" colorScheme="purple" variant="solid">
-              {proposalState[props.state]}
+            <Badge ml="1" fontSize="0.5em" colorScheme={stateColor[props.state]} variant="solid">
+              {stateText[props.state]}
             </Badge>
           </div>
         </div>
