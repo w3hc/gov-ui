@@ -9,7 +9,7 @@ export function Seo() {
     <DefaultSeo
       title={SITE_NAME}
       defaultTitle={SITE_NAME}
-      titleTemplate={`%s | ${SITE_NAME}`}
+      titleTemplate={`%s`}
       description={SITE_DESCRIPTION}
       defaultOpenGraphImageWidth={1200}
       defaultOpenGraphImageHeight={630}

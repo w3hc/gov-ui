@@ -22,7 +22,7 @@ const baseUrl = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/'
 
 export default function Create() {
   const [loading, setLoading] = useState(false)
-  const [amount, setAmount] = useState('0.00001')
+  const [amount, setAmount] = useState('0.08')
   const [title, setTitle] = useState('One more cool contrib')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
   const [description, setDescription] = useState(
@@ -198,15 +198,13 @@ export default function Create() {
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="" />
           <br />
           <br />
-          <FormLabel>Amount (in ETH)</FormLabel>
+          <FormLabel>Amount (in AA)</FormLabel>
           <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
+          <FormHelperText>How much AA are you asking for?</FormHelperText>
           <br />
-          <br />
-          <FormLabel>
-            Target address <a>(mine)</a>
-          </FormLabel>
+          <FormLabel>Target address</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>How much ETH are you asking for?</FormHelperText>
+          <FormHelperText>Who should receive the money?</FormHelperText>
           <br />
           <FormLabel>File</FormLabel>
           <input
@@ -216,9 +214,10 @@ export default function Create() {
             style={{ minWidth: '400px', width: '100%' }}
             onChange={(e) => handleFileChange(e.target.files[0])}
           />
-          <LockIcon w={3} h={3} color="red.500" />{' '}
-          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox>
-          <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText>
+          {/* <LockIcon w={3} h={3} color="red.500" />{' '}
+          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
+          {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
+          <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText>
           <br />
           {!loading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>

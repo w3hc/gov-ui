@@ -1,7 +1,7 @@
 import { ThemingProps } from '@chakra-ui/react'
 import { Chain, optimismGoerli } from '@wagmi/chains'
 
-export const SITE_NAME = 'DontBeLate DAO'
+export const SITE_NAME = "Don't be late!"
 export const APP_VERSION = 'v0.1.0'
 export const SITE_DESCRIPTION = 'Submit proposals and vote'
 export const SITE_URL = 'https://w3hc.org'
