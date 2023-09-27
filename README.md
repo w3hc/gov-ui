@@ -19,7 +19,7 @@ npm i
 
 ## Run
 
-Create a `.env` on the model of `.env.example`:
+Create a `.env` on the model of `.env.template`:
 
 ```sh
 cp .env.example .env

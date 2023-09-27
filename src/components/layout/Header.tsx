@@ -16,7 +16,7 @@ export function Header(props: Props) {
     <Flex as="header" className={className} bg={useColorModeValue('gray.100', 'gray.900')} px={4} py={5} mb={8} alignItems="center">
       <LinkComponent href="/">
         <Heading as="h1" size="md">
-          #DontBeLate Collective
+          #DontBeLate
         </Heading>
       </LinkComponent>
 
