@@ -1,9 +1,9 @@
 import { ThemingProps } from '@chakra-ui/react'
-import { Chain } from '@wagmi/chains'
+import { Chain, optimismGoerli } from '@wagmi/chains'
 
-export const SITE_NAME = 'Gov'
-export const APP_VERSION = 'v0.9.0-beta'
-export const SITE_DESCRIPTION = 'Deploy your DAO in a few seconds'
+export const SITE_NAME = 'DontBeLate Collective'
+export const APP_VERSION = 'v0.1.0'
+export const SITE_DESCRIPTION = 'DontBeLate Collective'
 export const SITE_URL = 'https://w3hc.org'
 export const THEME_INITIAL_COLOR = 'dark'
 export const THEME_COLOR_SCHEME: ThemingProps['colorScheme'] = 'gray'
@@ -34,9 +34,11 @@ export const artheraTestnet: Chain = {
   },
 }
 
+// export const ETH_CHAINS = [optimismGoerli]
 export const ETH_CHAINS = [artheraTestnet]
 export const infuraId = process.env.NEXT_PUBLIC_INFURA_ID
-export const GOV_CONTRACT_ADDRESS = '0xdb804E5fA4A18505f546DC0437C37377b8544648'
+// export const GOV_CONTRACT_ADDRESS = '0x2c2f34D1Ca103269e180C7aE7212D323F84F4381'
+export const GOV_CONTRACT_ADDRESS = '0x7C466367ed73cC68d9Bc2113174A1795325aA693'
 export const GOV_CONTRACT_ABI = <const>[
   {
     inputs: [
@@ -83,6 +85,28 @@ export const GOV_CONTRACT_ABI = <const>[
     inputs: [],
     name: 'Empty',
     type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidShortString',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'string',
+        name: 'str',
+        type: 'string',
+      },
+    ],
+    name: 'StringTooLong',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [],
+    name: 'EIP712DomainChanged',
+    type: 'event',
   },
   {
     anonymous: false,
@@ -152,13 +176,13 @@ export const GOV_CONTRACT_ABI = <const>[
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'startBlock',
+        name: 'voteStart',
         type: 'uint256',
       },
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'endBlock',
+        name: 'voteEnd',
         type: 'uint256',
       },
       {
@@ -355,6 +379,19 @@ export const GOV_CONTRACT_ABI = <const>[
   },
   {
     inputs: [],
+    name: 'CLOCK_MODE',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'COUNTING_MODE',
     outputs: [
       {
@@ -377,6 +414,40 @@ export const GOV_CONTRACT_ABI = <const>[
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address[]',
+        name: 'targets',
+        type: 'address[]',
+      },
+      {
+        internalType: 'uint256[]',
+        name: 'values',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'bytes[]',
+        name: 'calldatas',
+        type: 'bytes[]',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'descriptionHash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'cancel',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -555,6 +626,62 @@ export const GOV_CONTRACT_ABI = <const>[
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'clock',
+    outputs: [
+      {
+        internalType: 'uint48',
+        name: '',
+        type: 'uint48',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'eip712Domain',
+    outputs: [
+      {
+        internalType: 'bytes1',
+        name: 'fields',
+        type: 'bytes1',
+      },
+      {
+        internalType: 'string',
+        name: 'name',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: 'version',
+        type: 'string',
+      },
+      {
+        internalType: 'uint256',
+        name: 'chainId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'verifyingContract',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'salt',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint256[]',
+        name: 'extensions',
+        type: 'uint256[]',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'address[]',
@@ -597,7 +724,7 @@ export const GOV_CONTRACT_ABI = <const>[
       },
       {
         internalType: 'uint256',
-        name: 'blockNumber',
+        name: 'timepoint',
         type: 'uint256',
       },
     ],
@@ -621,7 +748,7 @@ export const GOV_CONTRACT_ABI = <const>[
       },
       {
         internalType: 'uint256',
-        name: 'blockNumber',
+        name: 'timepoint',
         type: 'uint256',
       },
       {
@@ -864,6 +991,25 @@ export const GOV_CONTRACT_ABI = <const>[
         type: 'uint256',
       },
     ],
+    name: 'proposalProposer',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+    ],
     name: 'proposalSnapshot',
     outputs: [
       {
@@ -987,7 +1133,7 @@ export const GOV_CONTRACT_ABI = <const>[
     inputs: [
       {
         internalType: 'uint256',
-        name: 'blockNumber',
+        name: 'timepoint',
         type: 'uint256',
       },
     ],
@@ -1133,7 +1279,7 @@ export const GOV_CONTRACT_ABI = <const>[
     name: 'token',
     outputs: [
       {
-        internalType: 'contract IVotes',
+        internalType: 'contract IERC5805',
         name: '',
         type: 'address',
       },
@@ -1211,9 +1357,35 @@ export const nftAbi = <const>[
         name: '_uri',
         type: 'string',
       },
+      {
+        internalType: 'string',
+        name: '_name',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: '_symbol',
+        type: 'string',
+      },
     ],
     stateMutability: 'nonpayable',
     type: 'constructor',
+  },
+  {
+    inputs: [],
+    name: 'InvalidShortString',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'string',
+        name: 'str',
+        type: 'string',
+      },
+    ],
+    name: 'StringTooLong',
+    type: 'error',
   },
   {
     anonymous: false,
@@ -1269,6 +1441,25 @@ export const nftAbi = <const>[
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'uint256',
+        name: '_fromTokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: '_toTokenId',
+        type: 'uint256',
+      },
+    ],
+    name: 'BatchMetadataUpdate',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'address',
         name: 'delegator',
@@ -1317,6 +1508,25 @@ export const nftAbi = <const>[
   },
   {
     anonymous: false,
+    inputs: [],
+    name: 'EIP712DomainChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: '_tokenId',
+        type: 'uint256',
+      },
+    ],
+    name: 'MetadataUpdate',
+    type: 'event',
+  },
+  {
+    anonymous: false,
     inputs: [
       {
         indexed: true,
@@ -1358,6 +1568,19 @@ export const nftAbi = <const>[
     ],
     name: 'Transfer',
     type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'CLOCK_MODE',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
   },
   {
     inputs: [],
@@ -1420,6 +1643,19 @@ export const nftAbi = <const>[
     name: 'burn',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'clock',
+    outputs: [
+      {
+        internalType: 'uint48',
+        name: '',
+        type: 'uint48',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -1493,6 +1729,49 @@ export const nftAbi = <const>[
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'eip712Domain',
+    outputs: [
+      {
+        internalType: 'bytes1',
+        name: 'fields',
+        type: 'bytes1',
+      },
+      {
+        internalType: 'string',
+        name: 'name',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: 'version',
+        type: 'string',
+      },
+      {
+        internalType: 'uint256',
+        name: 'chainId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'verifyingContract',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'salt',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint256[]',
+        name: 'extensions',
+        type: 'uint256[]',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'uint256',
@@ -1515,7 +1794,7 @@ export const nftAbi = <const>[
     inputs: [
       {
         internalType: 'uint256',
-        name: 'blockNumber',
+        name: 'timepoint',
         type: 'uint256',
       },
     ],
@@ -1539,7 +1818,7 @@ export const nftAbi = <const>[
       },
       {
         internalType: 'uint256',
-        name: 'blockNumber',
+        name: 'timepoint',
         type: 'uint256',
       },
     ],

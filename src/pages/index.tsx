@@ -74,13 +74,19 @@ export default function Home() {
   }
 
   const getProposals = useCallback(async () => {
+    console.log('getProposals started')
     if (block > 1) {
-      const proposals = await gov.queryFilter('ProposalCreated' as any, 5702215, block)
+      console.log('if (block > 1)')
+
+      // const proposals = await gov.queryFilter('ProposalCreated' as any, 15146965, block)
+      const proposals = await gov.queryFilter('ProposalCreated' as any, 95771, block)
+
       try {
         let i: number = 0
         let proposalsRaw = proposal
+        console.log('proposals[0].args?.proposalId:', proposals[0])
         if (proposals[0].args != undefined) {
-          for (i = 103; i < Number(proposals.length); i++) {
+          for (i = 0; i < Number(proposals.length); i++) {
             proposalsRaw.push(
               ...[
                 {
@@ -100,23 +106,19 @@ export default function Home() {
         console.log('error:', error)
       }
     }
-  }, [block, proposal])
+  }, [block])
 
   useEffect(() => {
     getProposals()
-  }, [getProposals, proposal])
+  }, [getProposals])
 
   useEffect(() => {
     console.log('chain', chain)
     if (chain !== undefined) {
       console.log('chain !== undefined')
-
-      if (chain.id !== 421613) {
-      } else {
-        getBlock()
-        getName()
-        getManifesto()
-      }
+      getBlock()
+      getName()
+      getManifesto()
     }
   }, [chain, getBlock, getName, getManifesto])
 
@@ -128,6 +130,7 @@ export default function Home() {
             <strong>
               <Link style={{ color: '#45a2f8' }} target="blank" href={props.link}>
                 {props.title}
+                {/* {props.title ? props.title : 'yo'} */}
               </Link>
             </strong>{' '}
             <Badge ml="1" fontSize="0.5em" colorScheme={stateColor[props.state]} variant="solid">
@@ -175,7 +178,8 @@ export default function Home() {
                   style={{ color: '#45a2f8' }}
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={'https://goerli.arbiscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
+                  // href={'https://goerli.arbiscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
+                  href={'https://explorer-test.arthera.net/address/' + GOV_CONTRACT_ADDRESS}>
                   {GOV_CONTRACT_ADDRESS}
                 </a>
               </strong>

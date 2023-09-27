@@ -145,6 +145,7 @@ export default function Create() {
       console.log('encryptionRequested:', encryptionRequested)
 
       // call propose
+      console.log('caller address:', await signer.getAddress())
       const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
       console.log('Propose triggered')
       const proposeReceipt = await propose.wait(1)
