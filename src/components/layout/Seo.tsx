@@ -9,7 +9,7 @@ export function Seo() {
     <DefaultSeo
       title={SITE_NAME}
       defaultTitle={SITE_NAME}
-      titleTemplate={`%s`}
+      titleTemplate={`${SITE_NAME}`}
       description={SITE_DESCRIPTION}
       defaultOpenGraphImageWidth={1200}
       defaultOpenGraphImageHeight={630}
@@ -19,8 +19,8 @@ export function Seo() {
         url: origin,
         images: [
           {
-            url: `${origin}/thistle-black-pixel.jpg`,
-            alt: `${SITE_NAME} Open Graph Image`,
+            url: `https://bafybeiaswv3numcgmtcby6mgdlurmzisi5fzzujozyistx6ozqvutrdony.ipfs.w3s.link`,
+            alt: `preview-image`,
           },
         ],
       }}
