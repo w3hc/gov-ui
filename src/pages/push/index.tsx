@@ -4,14 +4,7 @@ import { Head } from '../../components/layout/Head'
 import { useState } from 'react'
 import { useSigner, useProvider } from 'wagmi'
 import { ethers } from 'ethers'
-import {
-  GOV_CONTRACT_ADDRESS,
-  GOV_CONTRACT_ABI,
-  TALLY_DAO_NAME,
-  MEDUSA_ORACLE_CONTRACT_ADDRESS,
-  MEDUSA_CLIENT_APP_CONTRACT_ADDRESS,
-  meduasaClientAbi,
-} from '../../utils/config'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, TALLY_DAO_NAME } from '../../utils/config'
 import { UploadFile } from '../../components/layout/UploadFile'
 import { UploadData } from '../../components/layout/UploadData'
 import { useRouter } from 'next/router'
@@ -43,64 +36,64 @@ export default function Create() {
     setLoading(true)
 
     console.log('submitProposal triggered')
-    console.log('file name:', name)
+    // console.log('file name:', name)
     console.log('encryptionRequested:', encryptionRequested)
 
     let fileToAddInDescription: string = ''
     let plaintextString = ''
 
-    if (encryptionRequested === true) {
-      try {
-        e.preventDefault()
+    // if (encryptionRequested === true) {
+    //   try {
+    //     e.preventDefault()
 
-        console.log('encrypt start //////////')
+    //     console.log('encrypt start //////////')
 
-        // Medusa init
-        console.log('signer:', signer)
+    //     // Medusa init
+    //     console.log('signer:', signer)
 
-        const medusa = await Medusa.init(MEDUSA_ORACLE_CONTRACT_ADDRESS, signer)
-        console.log('medusa:', medusa)
+    //     const medusa = await Medusa.init(MEDUSA_ORACLE_CONTRACT_ADDRESS, signer)
+    //     console.log('medusa:', medusa)
 
-        // prepare medusa client (https://github.com/w3hc/private-doc/blob/main/contracts/PrivateDoc.sol)
-        const medusaClient = new ethers.Contract(MEDUSA_CLIENT_APP_CONTRACT_ADDRESS, meduasaClientAbi, signer)
+    //     // prepare medusa client (https://github.com/w3hc/private-doc/blob/main/contracts/PrivateDoc.sol)
+    //     const medusaClient = new ethers.Contract(MEDUSA_CLIENT_APP_CONTRACT_ADDRESS, meduasaClientAbi, signer)
 
-        // get plaintextBytes
-        plaintextString = plaintext
-        console.log('plaintextString:', plaintextString)
-        const plaintextBytes = new TextEncoder().encode(plaintextString)
-        console.log('plaintextBytes:', plaintextBytes)
+    //     // get plaintextBytes
+    //     plaintextString = plaintext
+    //     console.log('plaintextString:', plaintextString)
+    //     const plaintextBytes = new TextEncoder().encode(plaintextString)
+    //     console.log('plaintextBytes:', plaintextBytes)
 
-        // medusa.encrypt
-        const { encryptedData, encryptedKey } = await medusa.encrypt(plaintextBytes, MEDUSA_CLIENT_APP_CONTRACT_ADDRESS)
+    //     // medusa.encrypt
+    //     const { encryptedData, encryptedKey } = await medusa.encrypt(plaintextBytes, MEDUSA_CLIENT_APP_CONTRACT_ADDRESS)
 
-        console.log('encryptedData:', encryptedData)
-        console.log('encryptedKey:', encryptedKey)
+    //     console.log('encryptedData:', encryptedData)
+    //     console.log('encryptedKey:', encryptedKey)
 
-        // to Base64
-        const encryptedDataBase64 = Base64.fromUint8Array(encryptedData)
+    //     // to Base64
+    //     const encryptedDataBase64 = Base64.fromUint8Array(encryptedData)
 
-        // upload (Web3.Storage)
-        const ipfsUrl = await UploadData(encryptedDataBase64, name)
-        console.log('ipfsUrl:', ipfsUrl)
-        fileToAddInDescription = ipfsUrl
+    //     // upload (Web3.Storage)
+    //     const ipfsUrl = await UploadData(encryptedDataBase64, name)
+    //     console.log('ipfsUrl:', ipfsUrl)
+    //     fileToAddInDescription = ipfsUrl
 
-        console.log('[before medusaCall] encryptedKey', encryptedKey)
+    //     console.log('[before medusaCall] encryptedKey', encryptedKey)
 
-        // medusa call
-        const medusaCall = await medusaClient.createListing(encryptedKey, ipfsUrl)
-        console.log('[after medusaCall] medusaCall:', medusaCall)
-        console.log('tx hash:', 'https://goerli.arbiscan.io/tx/' + medusaCall.hash)
-      } catch (e) {
-        console.log('error:', e)
-      }
-    } else {
-      console.log('[no encryption] plaintext:', plaintext)
-      console.log('[no encryption] name:', name)
+    //     // medusa call
+    //     const medusaCall = await medusaClient.createListing(encryptedKey, ipfsUrl)
+    //     console.log('[after medusaCall] medusaCall:', medusaCall)
+    //     console.log('tx hash:', 'https://goerli.arbiscan.io/tx/' + medusaCall.hash)
+    //   } catch (e) {
+    //     console.log('error:', e)
+    //   }
+    // } else {
+    //   console.log('[no encryption] plaintext:', plaintext)
+    //   console.log('[no encryption] name:', name)
 
-      // if encryption is not requested, upload the file to ipfs
-      fileToAddInDescription = await UploadFile(plaintext, name)
-      console.log('[no encryption] fileToAddInDescription:', fileToAddInDescription)
-    }
+    // if encryption is not requested, upload the file to ipfs
+    fileToAddInDescription = await UploadFile(plaintext, name)
+    // console.log('[no encryption] fileToAddInDescription:', fileToAddInDescription)
+    // }
 
     try {
       // prepare Gov
@@ -112,9 +105,9 @@ export default function Create() {
 
       // prepare proposal description
       let PROPOSAL_DESCRIPTION: string
-      console.log('fileToAddInDescription:', fileToAddInDescription)
-      console.log('encryptionRequested:', encryptionRequested)
-      console.log('plaintextString:', plaintextString)
+      // console.log('fileToAddInDescription:', fileToAddInDescription)
+      // console.log('encryptionRequested:', encryptionRequested)
+      // console.log('plaintextString:', plaintextString)
 
       if (fileToAddInDescription) {
         // won't work if no file attached
@@ -132,7 +125,7 @@ export default function Create() {
         PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
       }
 
-      console.log('PROPOSAL_DESCRIPTION:', PROPOSAL_DESCRIPTION)
+      // console.log('PROPOSAL_DESCRIPTION:', PROPOSAL_DESCRIPTION)
 
       // set targets and values
       const targets = [beneficiary]
@@ -151,7 +144,7 @@ export default function Create() {
       const proposeReceipt = await propose.wait(1)
       const proposalId = proposeReceipt.events![0].args!.proposalId.toString()
       console.log('proposalId:', proposalId)
-      console.log('Tally link:', baseUrl + proposalId)
+      // console.log('Tally link:', baseUrl + proposalId)
       const targetURL = '/proposal/' + proposalId
       setLoading(false)
       router.push(targetURL)

@@ -4,7 +4,7 @@ import { Chain, optimismGoerli } from '@wagmi/chains'
 export const SITE_NAME = "Don't be late!"
 export const APP_VERSION = 'v0.1.0'
 export const SITE_DESCRIPTION = 'Submit proposals and vote'
-export const SITE_URL = 'https://w3hc.org'
+export const SITE_URL = 'https://dontbelate.netlify.app/'
 export const THEME_INITIAL_COLOR = 'dark'
 export const THEME_COLOR_SCHEME: ThemingProps['colorScheme'] = 'gray'
 export const THEME_CONFIG = {
@@ -36,8 +36,10 @@ export const artheraTestnet: Chain = {
 
 // export const ETH_CHAINS = [optimismGoerli]
 export const ETH_CHAINS = [artheraTestnet]
-// export const GOV_CONTRACT_ADDRESS = '0x2c2f34D1Ca103269e180C7aE7212D323F84F4381'
-export const GOV_CONTRACT_ADDRESS = '0x7C466367ed73cC68d9Bc2113174A1795325aA693'
+// export const GOV_CONTRACT_ADDRESS = '0x2c2f34D1Ca103269e180C7aE7212D323F84F4381' // OP Goerli
+// export const GOV_CONTRACT_ADDRESS = '0x7C466367ed73cC68d9Bc2113174A1795325aA693' // Arthera #1
+export const GOV_CONTRACT_ADDRESS = '0x973b33a7Ff1F877372Bf53C54F629cD5a94f703C' // Arthera #1
+
 export const GOV_CONTRACT_ABI = <const>[
   {
     inputs: [
@@ -1366,6 +1368,16 @@ export const nftAbi = <const>[
         name: '_symbol',
         type: 'string',
       },
+      {
+        internalType: 'address',
+        name: '_imnotlate',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_wp',
+        type: 'address',
+      },
     ],
     stateMutability: 'nonpayable',
     type: 'constructor',
@@ -1453,6 +1465,25 @@ export const nftAbi = <const>[
       },
     ],
     name: 'BatchMetadataUpdate',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'wpTokenId',
+        type: 'uint256',
+      },
+    ],
+    name: 'Claimed',
     type: 'event',
   },
   {
@@ -1642,6 +1673,25 @@ export const nftAbi = <const>[
     name: 'burn',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    name: 'claimed',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -1865,6 +1915,19 @@ export const nftAbi = <const>[
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'imnotlate',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'address',
@@ -1886,6 +1949,19 @@ export const nftAbi = <const>[
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'to',
+        type: 'address',
+      },
+    ],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -2207,372 +2283,9 @@ export const nftAbi = <const>[
     stateMutability: 'nonpayable',
     type: 'function',
   },
-]
-
-export const meduasaClientAbi = <const>[
-  {
-    inputs: [
-      {
-        internalType: 'contract BN254EncryptionOracle',
-        name: '_oracle',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_nft',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
   {
     inputs: [],
-    name: 'CallbackNotAuthorized',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'ListingDoesNotExist',
-    type: 'error',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'uint256',
-        name: 'requestId',
-        type: 'uint256',
-      },
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random',
-            type: 'tuple',
-          },
-          {
-            internalType: 'uint256',
-            name: 'cipher',
-            type: 'uint256',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random2',
-            type: 'tuple',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'f',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'e',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct DleqProof',
-            name: 'dleq',
-            type: 'tuple',
-          },
-        ],
-        indexed: false,
-        internalType: 'struct Ciphertext',
-        name: 'ciphertext',
-        type: 'tuple',
-      },
-    ],
-    name: 'ListingDecryption',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'seller',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'uint256',
-        name: 'cipherId',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'string',
-        name: 'uri',
-        type: 'string',
-      },
-    ],
-    name: 'NewListing',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'seller',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'requestId',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'cipherId',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'string',
-        name: 'uri',
-        type: 'string',
-      },
-    ],
-    name: 'NewSale',
-    type: 'event',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'string',
-        name: '_uri',
-        type: 'string',
-      },
-      {
-        components: [
-          {
-            internalType: 'uint256',
-            name: 'x',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256',
-            name: 'y',
-            type: 'uint256',
-          },
-        ],
-        internalType: 'struct G1Point',
-        name: 'buyerPublicKey',
-        type: 'tuple',
-      },
-    ],
-    name: 'buyListing',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    name: 'ciphers',
-    outputs: [
-      {
-        components: [
-          {
-            internalType: 'uint256',
-            name: 'x',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256',
-            name: 'y',
-            type: 'uint256',
-          },
-        ],
-        internalType: 'struct G1Point',
-        name: 'random',
-        type: 'tuple',
-      },
-      {
-        internalType: 'uint256',
-        name: 'cipher',
-        type: 'uint256',
-      },
-      {
-        components: [
-          {
-            internalType: 'uint256',
-            name: 'x',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256',
-            name: 'y',
-            type: 'uint256',
-          },
-        ],
-        internalType: 'struct G1Point',
-        name: 'random2',
-        type: 'tuple',
-      },
-      {
-        components: [
-          {
-            internalType: 'uint256',
-            name: 'f',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256',
-            name: 'e',
-            type: 'uint256',
-          },
-        ],
-        internalType: 'struct DleqProof',
-        name: 'dleq',
-        type: 'tuple',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random',
-            type: 'tuple',
-          },
-          {
-            internalType: 'uint256',
-            name: 'cipher',
-            type: 'uint256',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random2',
-            type: 'tuple',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'f',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'e',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct DleqProof',
-            name: 'dleq',
-            type: 'tuple',
-          },
-        ],
-        internalType: 'struct Ciphertext',
-        name: 'cipher',
-        type: 'tuple',
-      },
-      {
-        internalType: 'string',
-        name: 'uri',
-        type: 'string',
-      },
-    ],
-    name: 'createListing',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'string',
-        name: '',
-        type: 'string',
-      },
-    ],
-    name: 'listings',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'nft',
+    name: 'wp',
     outputs: [
       {
         internalType: 'address',
@@ -2581,178 +2294,14 @@ export const meduasaClientAbi = <const>[
       },
     ],
     stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'oracle',
-    outputs: [
-      {
-        internalType: 'contract BN254EncryptionOracle',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'requestId',
-        type: 'uint256',
-      },
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random',
-            type: 'tuple',
-          },
-          {
-            internalType: 'uint256',
-            name: 'cipher',
-            type: 'uint256',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random2',
-            type: 'tuple',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'f',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'e',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct DleqProof',
-            name: 'dleq',
-            type: 'tuple',
-          },
-        ],
-        internalType: 'struct Ciphertext',
-        name: 'cipher',
-        type: 'tuple',
-      },
-    ],
-    name: 'oracleResult',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'dest',
-        type: 'address',
-      },
-    ],
-    name: 'payments',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'publicKey',
-    outputs: [
-      {
-        components: [
-          {
-            internalType: 'uint256',
-            name: 'x',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256',
-            name: 'y',
-            type: 'uint256',
-          },
-        ],
-        internalType: 'struct G1Point',
-        name: '',
-        type: 'tuple',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'string',
-        name: '',
-        type: 'string',
-      },
-    ],
-    name: 'requests',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address payable',
-        name: 'payee',
-        type: 'address',
-      },
-    ],
-    name: 'withdrawPayments',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
 ]
+
+export const imnotlateContractAddress = '0x159025f4A1FbA5e592317b2Ff988004f8582Ca78'
+export const wpContractAddress = '0xf14D471f25df3E4A28515703D978A87247f1018b'
 
 export const TALLY_DAO_NAME = 'abyss-gov'
-export const MEDUSA_CLIENT_APP_CONTRACT_ADDRESS = '0x0eEE41a9efC4aaCfAF68B647b7d0c61F45047010'
-export const MEDUSA_ORACLE_CONTRACT_ADDRESS = '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118'
 
 export const NFT_ABI = [
   {
