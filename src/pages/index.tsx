@@ -24,7 +24,7 @@ export default function Home() {
   ])
   const [initialized, setInitialized] = useState(false)
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
-  const stateColor = ['pink', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'green']
+  const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
   const [isMember, setIsMember] = useState(false)
 
   const baseUrl = '/proposal/'

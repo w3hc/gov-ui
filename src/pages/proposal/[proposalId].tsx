@@ -14,13 +14,14 @@ export default function Proposal() {
   const proposalId = router.query.proposalId
 
   const [initialized, setInitialized] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState('')
   const [stateBadge, setStateBadge] = useState<any>()
   const [state, setState] = useState<any>()
   const [description, setDescription] = useState('')
   const [uri, setUri] = useState(null)
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
-  const stateColor = ['pink', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'green']
+  const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
   const [targets, setTargets] = useState<any>()
   const [values, setValues] = useState<any>()
   const [calldatas, setCalldatas] = useState<any>()
@@ -206,7 +207,7 @@ export default function Proposal() {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-execute-address---uint256---bytes---bytes32-v
     // execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) → uint256 proposalId
     console.log('executing...')
-
+    setLoading(true)
     try {
       const targetsFormatted = [targets]
       const valuesFormatted = [values]
@@ -222,8 +223,11 @@ export default function Proposal() {
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
       const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
       await executeCall.wait(1)
+      setLoading(false)
     } catch (e) {
       console.log('error:', e)
+      setLoading(false)
+
       toast({
         title: 'Error',
         position: 'bottom',
@@ -278,9 +282,15 @@ export default function Proposal() {
             <>
               <br />
 
-              <Button size="xs" mt={5} colorScheme="red" variant="solid" onClick={execute}>
-                Execute
-              </Button>
+              {!loading ? (
+                <Button size="xs" mt={5} colorScheme="red" variant="solid" onClick={execute}>
+                  Execute
+                </Button>
+              ) : (
+                <Button isLoading loadingText="Executing..." size="xs" mt={5} colorScheme="red" variant="solid" onClick={execute}>
+                  Execute
+                </Button>
+              )}
             </>
           )}
         </>

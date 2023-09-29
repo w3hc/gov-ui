@@ -1,4 +1,4 @@
-import { Heading, Button, Text, Flex, useColorModeValue, useToast, Link } from '@chakra-ui/react'
+import { Heading, Button, Text, Flex, useColorModeValue, useToast, Link, Spacer, Box } from '@chakra-ui/react'
 import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -110,31 +110,37 @@ export default function Join() {
           )}
           <Flex as="header" py={5} mb={8} alignItems="center">
             {isHolderOfImnotlate === 1 && (
-              <Image
-                priority
-                width="100"
-                height="100"
-                alt="loader"
-                src="https://bafybeihaafblie2zrbb2y4dsagmyaw5txkqdznzv3ivzrtxliyhqqzhdka.ipfs.w3s.link/imnotlate"
-              />
+              <Box mr={5}>
+                <Image
+                  priority
+                  width="100"
+                  height="100"
+                  alt="loader"
+                  src="https://bafybeihaafblie2zrbb2y4dsagmyaw5txkqdznzv3ivzrtxliyhqqzhdka.ipfs.w3s.link/imnotlate"
+                />
+              </Box>
             )}
             {isHolderOfWP === 1 && (
-              <Image
-                priority
-                width="100"
-                height="100"
-                alt="loader"
-                src="https://bafybeidpfl2bdtt3xnedxdnxp7zmqb75gan2d45qiqlbbm5erdiiqyw5uq.ipfs.w3s.link/Arthera-White-Paper-NFT.png"
-              />
+              <Box mr={5}>
+                <Image
+                  priority
+                  width="100"
+                  height="100"
+                  alt="loader"
+                  src="https://bafybeidpfl2bdtt3xnedxdnxp7zmqb75gan2d45qiqlbbm5erdiiqyw5uq.ipfs.w3s.link/Arthera-White-Paper-NFT.png"
+                />{' '}
+              </Box>
             )}
             {isHolderOfDontbelate === 1 && (
-              <Image
-                priority
-                width="100"
-                height="100"
-                alt="loader"
-                src="https://bafybeiaswv3numcgmtcby6mgdlurmzisi5fzzujozyistx6ozqvutrdony.ipfs.w3s.link/arthera-logo.png"
-              />
+              <Box mr={5}>
+                <Image
+                  priority
+                  width="100"
+                  height="100"
+                  alt="loader"
+                  src="https://bafybeiaswv3numcgmtcby6mgdlurmzisi5fzzujozyistx6ozqvutrdony.ipfs.w3s.link/arthera-logo.png"
+                />{' '}
+              </Box>
             )}
           </Flex>
         </div>
