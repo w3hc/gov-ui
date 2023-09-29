@@ -15,7 +15,7 @@ const baseUrl = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/'
 
 export default function Create() {
   const [loading, setLoading] = useState(false)
-  const [amount, setAmount] = useState('0.08')
+  const [amount, setAmount] = useState('0')
   const [title, setTitle] = useState('One more cool contrib')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
   const [description, setDescription] = useState(
