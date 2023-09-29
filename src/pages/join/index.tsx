@@ -20,14 +20,17 @@ export default function Join() {
     try {
       const userAddress = await signer.getAddress()
       console.log('userAddress:', userAddress)
+
       const imnotlate = new ethers.Contract(imnotlateContractAddress, nftAbi, provider)
       const call = await imnotlate.balanceOf(userAddress)
       console.log('imnotlate:', Number(call))
-      setIsHolderOfImnotlate(Number(1))
+      setIsHolderOfImnotlate(Number(call))
+
       const wp = new ethers.Contract(wpContractAddress, nftAbi, provider)
       const call2 = await wp.balanceOf(userAddress)
       console.log('wp:', Number(call2))
-      setIsHolderOfWP(Number(1))
+      setIsHolderOfWP(Number(call2))
+
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
       const dontbelate = new ethers.Contract(await gov.token(), nftAbi, provider)
       const call3 = await dontbelate.balanceOf(userAddress)
