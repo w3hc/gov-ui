@@ -1,4 +1,4 @@
-import { Heading, Button, Text, Flex, useColorModeValue, useToast } from '@chakra-ui/react'
+import { Heading, Button, Text, Flex, useColorModeValue, useToast, Link } from '@chakra-ui/react'
 import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -94,7 +94,17 @@ export default function Join() {
           </Heading>
           <br />
           {!isHolderOfDontbelate ? (
-            <Text>To become a voting member, you must have 2 NFTs on your wallet: the Imnotlate NFT and the White Paper NFT.</Text>
+            <Text>
+              To become a voting member, you must hold both of these 2 NFTs on your wallet: the{' '}
+              <Link target="_blank" rel="noopener noreferrer" style={{ color: '#45a2f8' }} href="https://imnotlate.netlify.app/">
+                Imnotlate NFT
+              </Link>{' '}
+              and the{' '}
+              <Link target="_blank" rel="noopener noreferrer" style={{ color: '#45a2f8' }} href="https://whitepaper.arthera.net/">
+                White Paper NFT
+              </Link>
+              .
+            </Text>
           ) : (
             <Text></Text>
           )}
@@ -140,6 +150,24 @@ export default function Join() {
               </Button>
             )}
           </div>
+        )}
+        {isHolderOfDontbelate == 1 && (
+          <>
+            <Heading mb={5} fontSize={24}>
+              You&apos;re a member!
+            </Heading>
+            <Text>
+              As a member of this DAO, you can{' '}
+              <Link style={{ color: '#45a2f8' }} href="../push">
+                submit proposals
+              </Link>{' '}
+              and{' '}
+              <Link style={{ color: '#45a2f8' }} href="../">
+                vote
+              </Link>
+              .
+            </Text>
+          </>
         )}
       </main>
     </>

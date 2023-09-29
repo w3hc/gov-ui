@@ -151,7 +151,7 @@ export default function Proposal() {
         description: 'Thank you for voting this proposal.',
         status: 'success',
         variant: 'subtle',
-        duration: 2000,
+        duration: 5000,
         isClosable: true,
       })
     } catch (e) {
@@ -238,7 +238,7 @@ export default function Proposal() {
 
   return initialized ? (
     <>
-      <Head />
+      <Head title={title} />
       <main>
         <Heading as="h2">{title}</Heading>
         <p>

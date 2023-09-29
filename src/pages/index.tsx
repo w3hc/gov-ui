@@ -1,4 +1,4 @@
-import { Heading, Button, Badge } from '@chakra-ui/react'
+import { Heading, Button, Badge, Flex } from '@chakra-ui/react'
 import { AddIcon } from '@chakra-ui/icons'
 import { Head } from '../components/layout/Head'
 import Image from 'next/image'
@@ -7,7 +7,7 @@ import { LinkComponent } from '../components/layout/LinkComponent'
 import { useState, useEffect, useCallback } from 'react'
 import { useSigner, useAccount, useBalance, useNetwork, useProvider } from 'wagmi'
 import { ethers } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI } from '../utils/config'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi } from '../utils/config'
 
 export default function Home() {
   const [name, setName] = useState<string>('')
@@ -25,6 +25,7 @@ export default function Home() {
   const [initialized, setInitialized] = useState(false)
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['pink', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'green']
+  const [isMember, setIsMember] = useState(false)
 
   const baseUrl = '/proposal/'
 
@@ -108,9 +109,32 @@ export default function Home() {
     }
   }, [block])
 
+  const checkMembership = async () => {
+    try {
+      const userAddress = await signer.getAddress()
+      console.log('userAddress:', userAddress)
+
+      const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
+      const dontbelate = new ethers.Contract(await gov.token(), nftAbi, provider)
+      const call3 = await dontbelate.balanceOf(userAddress)
+      console.log('dontbelate:', Number(call3))
+      if (Number(call3) == 1) {
+        setIsMember(true)
+      } else {
+        setIsMember(false)
+      }
+    } catch (e) {
+      console.log('error:', e)
+    }
+  }
+
   useEffect(() => {
     getProposals()
   }, [getProposals])
+
+  useEffect(() => {
+    checkMembership()
+  }, [signer])
 
   useEffect(() => {
     console.log('chain', chain)
@@ -148,7 +172,7 @@ export default function Home() {
         {initialized === true ? (
           proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
-          <Image priority width="200" height="200" alt="loader" src="./reggae-loader.svg" />
+          <Image priority width="100" height="100" alt="loader" src="./reggae-loader.svg" />
         )}
       </div>
     )
@@ -164,10 +188,10 @@ export default function Home() {
         </>
         <br />
 
-        {isDisconnected ? (
+        {isDisconnected || !initialized ? (
           <>
             <br />
-            <p>Please connect your wallet.</p>
+            {isDisconnected ? <p>Please connect your wallet.</p> : <Image priority width="100" height="100" alt="loader" src="./reggae-loader.svg" />}
           </>
         ) : (
           <>
@@ -195,12 +219,22 @@ export default function Home() {
             <br />
             <List />
             <br />{' '}
-            <LinkComponent href="/push">
-              <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-                New proposal
-              </Button>
-              <br />
-            </LinkComponent>
+            <Flex as="header" py={5} mb={8} alignItems="center">
+              <LinkComponent href="/push">
+                <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                  New proposal
+                </Button>
+                <br />
+              </LinkComponent>
+              {isMember === false && (
+                <LinkComponent href="/join">
+                  <Button ml={5} colorScheme="blue" variant="outline">
+                    Become a member
+                  </Button>
+                  <br />
+                </LinkComponent>
+              )}
+            </Flex>
           </>
         )}
       </main>
