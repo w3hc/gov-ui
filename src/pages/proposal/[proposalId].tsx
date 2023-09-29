@@ -1,4 +1,4 @@
-import { Heading, Button, Badge } from '@chakra-ui/react'
+import { Heading, Button, Badge, useToast } from '@chakra-ui/react'
 import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -8,8 +8,9 @@ import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi } from '../../utils/conf
 import { useRouter } from 'next/router'
 
 export default function Proposal() {
-  //
   const router = useRouter()
+  const toast = useToast()
+
   const proposalId = router.query.proposalId
 
   const [initialized, setInitialized] = useState(false)
@@ -139,17 +140,66 @@ export default function Proposal() {
       console.log('error:', e)
     }
 
-    console.log('voting...')
-    const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
+    try {
+      console.log('voting...')
+      const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
 
-    await gov.castVote(router.query.proposalId, 1)
+      await gov.castVote(router.query.proposalId, 1)
+      toast({
+        title: 'Voted!',
+        position: 'bottom',
+        description: 'Thank you for voting this proposal.',
+        status: 'success',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+    } catch (e) {
+      console.log('error:', e)
+      toast({
+        title: 'Error',
+        position: 'bottom',
+        description: e.data.message,
+        status: 'info',
+        variant: 'subtle',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
   }
 
   const voteNo = async () => {
     console.log('voting...')
-    const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
-
-    await gov.castVote(proposalId, 0)
+    try {
+      const delegate = await delegateToMyself()
+      console.log('delegateToMyself():', delegate)
+    } catch (e) {
+      console.log('error:', e)
+    }
+    try {
+      const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
+      await gov.castVote(proposalId, 0)
+      toast({
+        title: 'Voted!',
+        position: 'bottom',
+        description: 'Thank you for voting this proposal.',
+        status: 'success',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+    } catch (e) {
+      console.log('error:', e)
+      toast({
+        title: 'Error',
+        position: 'bottom',
+        description: e.data.message,
+        status: 'info',
+        variant: 'subtle',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
   }
 
   const execute = async () => {
@@ -174,6 +224,15 @@ export default function Proposal() {
       await executeCall.wait(1)
     } catch (e) {
       console.log('error:', e)
+      toast({
+        title: 'Error',
+        position: 'bottom',
+        description: e.data.message,
+        status: 'info',
+        variant: 'subtle',
+        duration: 3000,
+        isClosable: true,
+      })
     }
   }
 

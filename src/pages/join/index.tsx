@@ -1,4 +1,4 @@
-import { Heading, Button, Text, Flex, useColorModeValue } from '@chakra-ui/react'
+import { Heading, Button, Text, Flex, useColorModeValue, useToast } from '@chakra-ui/react'
 import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -15,6 +15,7 @@ export default function Join() {
 
   const provider = useProvider()
   const { data: signer, isLoading } = useSigner()
+  const toast = useToast()
 
   const scanWallet = async () => {
     try {
@@ -35,7 +36,7 @@ export default function Join() {
       const dontbelate = new ethers.Contract(await gov.token(), nftAbi, provider)
       const call3 = await dontbelate.balanceOf(userAddress)
       console.log('dontbelate:', Number(call3))
-      setIsHolderOfDontbelate(Number(call3))
+      setIsHolderOfDontbelate(Number(0))
     } catch (e) {
       console.log('error:', e)
     }
@@ -50,9 +51,27 @@ export default function Join() {
       const call3 = await dontbelate.mint(userAddress)
       console.log('dontbelate:', call3)
       setLoading(false)
+      toast({
+        title: 'Mint successful',
+        position: 'bottom',
+        description: 'Welcome home!',
+        status: 'success',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
     } catch (e) {
       console.log('error:', e)
       setLoading(false)
+      toast({
+        title: 'Error',
+        position: 'bottom',
+        description: e.data.message,
+        status: 'info',
+        variant: 'subtle',
+        duration: 3000,
+        isClosable: true,
+      })
     }
   }
 
@@ -68,12 +87,18 @@ export default function Join() {
     <>
       <Head />
       <main>
-        <Heading as="h2">Welcome home!</Heading>
+        <Heading as="h2">Welcome!</Heading>
         <div>
           <Heading mt={5} fontSize={24}>
             Your NFTs
           </Heading>
-          <Flex as="header" px={4} py={5} mb={8} alignItems="center">
+          <br />
+          {!isHolderOfDontbelate ? (
+            <Text>To become a voting member, you must have 2 NFTs on your wallet: the Imnotlate NFT and the White Paper NFT.</Text>
+          ) : (
+            <Text></Text>
+          )}
+          <Flex as="header" py={5} mb={8} alignItems="center">
             {isHolderOfImnotlate === 1 && (
               <Image
                 priority
@@ -103,8 +128,7 @@ export default function Join() {
             )}
           </Flex>
         </div>
-        {/* {!isHolderOfDontbelate && ( */}
-        {isHolderOfDontbelate && (
+        {!isHolderOfDontbelate && (
           <div>
             {!loading ? (
               <Button colorScheme="blue" variant="outline" type="submit" onClick={mint}>
