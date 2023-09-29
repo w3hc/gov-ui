@@ -36,7 +36,7 @@ export default function Join() {
       const dontbelate = new ethers.Contract(await gov.token(), nftAbi, provider)
       const call3 = await dontbelate.balanceOf(userAddress)
       console.log('dontbelate:', Number(call3))
-      setIsHolderOfDontbelate(Number(0))
+      setIsHolderOfDontbelate(Number(call3))
     } catch (e) {
       console.log('error:', e)
     }
