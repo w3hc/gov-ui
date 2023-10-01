@@ -126,7 +126,8 @@ export default function Proposal() {
       const nftAddress = await gov.token()
       const nft = new ethers.Contract(nftAddress, nftAbi, signer)
       const delegate = await nft.delegate(delegateTo)
-      console.log('delegate:', delegateTo)
+      const receipt = await delegate.wait(1)
+      console.log('delegate receipt:', receipt)
       return true
     }
   }
