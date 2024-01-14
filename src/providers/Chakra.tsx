@@ -1,6 +1,6 @@
 import { ChakraProvider as ChakraUiProvider, extendTheme, withDefaultColorScheme } from '@chakra-ui/react'
 import { ReactNode } from 'react'
-import { THEME_COLOR_SCHEME, THEME_CONFIG } from '../utils/config'
+import { THEME_COLOR_SCHEME, THEME_CONFIG } from 'utils/config'
 
 interface Props {
   children: ReactNode

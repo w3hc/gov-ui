@@ -1,35 +1,35 @@
-import { configureChains, createClient, WagmiConfig } from 'wagmi'
+import { configureChains, WagmiConfig } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
-import { ConnectKitProvider, getDefaultClient } from 'connectkit'
-import { ETH_CHAINS, SITE_NAME, infuraId } from '../utils/config'
-import { useColorMode } from '@chakra-ui/react'
-import { ReactNode } from 'react'
+import { ETH_CHAINS, SITE_DESCRIPTION, SITE_NAME, SITE_URL, THEME_COLOR_SCHEME } from 'utils/config'
+import { ReactNode, useEffect, useState } from 'react'
+import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
 
 interface Props {
   children: ReactNode
 }
 
-export const { provider, webSocketProvider, chains } = configureChains(ETH_CHAINS, [publicProvider()])
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? ''
+if (!projectId) {
+  console.warn('You need to provide a NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID env variable')
+}
+const { chains } = configureChains(ETH_CHAINS, [publicProvider()])
 
-const client = createClient(
-  getDefaultClient({
-    appName: SITE_NAME,
-    autoConnect: true,
-    infuraId,
-    provider,
-    webSocketProvider,
-    chains,
-  })
-)
+const metadata = {
+  name: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  url: SITE_URL,
+  icons: ['https://avatars.githubusercontent.com/u/89189176'],
+}
+const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
+
+createWeb3Modal({ wagmiConfig, projectId, chains, themeVariables: { '--w3m-accent': THEME_COLOR_SCHEME } })
 
 export function Web3Provider(props: Props) {
-  const { colorMode } = useColorMode()
+  const [ready, setReady] = useState(false)
 
-  return (
-    <WagmiConfig client={client}>
-      <ConnectKitProvider theme="auto" mode={colorMode}>
-        {props.children}
-      </ConnectKitProvider>
-    </WagmiConfig>
-  )
+  useEffect(() => {
+    setReady(true)
+  }, [])
+
+  return <>{ready && <WagmiConfig config={wagmiConfig}>{props.children}</WagmiConfig>}</>
 }

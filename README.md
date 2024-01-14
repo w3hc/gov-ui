@@ -8,38 +8,57 @@ Live at **[https://gov-ui.netlify.app/](https://gov-ui.netlify.app/)**
 
 See also:
 
-- [Solidity contracts](https://github.com/w3hc/gov)
+- [Gov Solidity contracts](https://github.com/w3hc/gov)
 - [Documentation](https://w3hc.github.io/gov-docs/)
+- [Gov Deployer](https://github.com/w3hc/gov-deployer) (refactoring in progress)
 
 ## Install
 
-```sh
-npm i
+```bash
+pnpm install
 ```
 
 ## Run
 
-Create a `.env` on the model of `.env.example`:
+Create a `.env` on the model of `.env.template`:
 
 ```sh
-cp .env.example .env
+cp .env.template .env
 ```
 
 Add your own keys in your `.env` file, then:
 
-```sh
-npm run dev
+```bash
+pnpm dev
 ```
 
-## Contribute
+## Build
 
-See the [Gov contracts, UI, and docs](https://github.com/orgs/w3hc/projects/8/views/6) project to learn about the current development. Some issues are marked `good first issue`: they can be a good start if you want to contribute to the project.
+```bash
+pnpm build
+```
 
-## Versions
+## Includes
 
-- Node [v18.15.0](https://nodejs.org/uk/blog/release/v18.15.0/)
-- NPM [v9.5.0](https://github.com/npm/cli/releases/tag/v9.5.0)
+- [Next.js](https://nextjs.org/docs)
+- [Chakra UI](https://chakra-ui.com/)
+- [Ethers v6](https://docs.ethers.org/v6/)
+- [viem](https://viem.sh/)
+- [wagmi](https://wagmi.sh/)
+- [Web3Modal SDK from WalletConnect](https://docs.walletconnect.com/)
+- [Sign-In with Ethereum](https://www.login.xyz/)
+- [Gitcoin Passport](https://docs.passport.gitcoin.co/)
+- [usehooks-ts](https://usehooks-ts.com/)
+- [next-SEO](https://github.com/garmeeh/next-seo)
+- [TypeScript](https://www.typescriptlang.org/)
+- [eslint](https://eslint.org/)
+- [prettier](https://prettier.io/)
+- [Husky](https://typicode.github.io/husky/)
 
 ## Support
 
 You can contact me via [Element](https://matrix.to/#/@julienbrg:matrix.org), [Telegram](https://t.me/julienbrg), [Twitter](https://twitter.com/julienbrg), [Discord](https://discord.gg/uSxzJp3J76), or [LinkedIn](https://www.linkedin.com/in/julienberanger/).
+
+## Credits
+
+[Nexth](https://github.com/wslyvh/nexth/) boilerplate was built by [wslyvh](https://github.com/wslyvh) and [others](https://github.com/wslyvh/nexth/graphs/contributors).
