@@ -1,9 +1,9 @@
 import React from 'react'
 import { Flex, useColorModeValue, Spacer, Heading } from '@chakra-ui/react'
-import { SITE_NAME, APP_VERSION } from '../../utils/config'
+import { SITE_NAME } from 'utils/config'
 import { LinkComponent } from './LinkComponent'
 import { ThemeSwitcher } from './ThemeSwitcher'
-import { ConnectKitButton } from 'connectkit'
+import { PassportScore } from './PassportScore'
 
 interface Props {
   className?: string
@@ -16,14 +16,15 @@ export function Header(props: Props) {
     <Flex as="header" className={className} bg={useColorModeValue('gray.100', 'gray.900')} px={4} py={5} mb={8} alignItems="center">
       <LinkComponent href="/">
         <Heading as="h1" size="md">
-          Gov UI v0.1.0
+          {SITE_NAME}
         </Heading>
       </LinkComponent>
 
       <Spacer />
 
       <Flex alignItems="center" gap={4}>
-        <ConnectKitButton />
+        {/* <PassportScore /> */}
+        <w3m-button />
         <ThemeSwitcher />
       </Flex>
     </Flex>

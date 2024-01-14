@@ -2,7 +2,7 @@ import React from 'react'
 import { Flex, Text } from '@chakra-ui/react'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
 import { LinkComponent } from './LinkComponent'
-import { SITE_DESCRIPTION, SOCIAL_GITHUB, SOCIAL_TWITTER } from '../../utils/config'
+import { SITE_DESCRIPTION, SOCIAL_GITHUB, SOCIAL_TWITTER } from 'utils/config'
 
 interface Props {
   className?: string

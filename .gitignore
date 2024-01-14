@@ -18,7 +18,6 @@
 # misc
 .DS_Store
 *.pem
-NOTES.md
 
 # debug
 npm-debug.log*
@@ -28,7 +27,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
-.env
+.env*
+!.env.template
 
 # vercel
 .vercel
@@ -36,3 +36,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# hardhat
+contracts/node_modules
+contracts/.env
+contracts/coverage
+contracts/coverage.json
+contracts/typechain
+contracts/typechain-types
+
+contracts/cache
+contracts/artifacts
+
+# wagmi recommends to ignore their generated file
+# /src/abis.ts 
+
+# subgraph
+subgraph/node_modules
+subgraph/build
