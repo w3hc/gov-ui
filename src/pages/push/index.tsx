@@ -17,7 +17,6 @@ export default function Create() {
   const [title, setTitle] = useState('')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
   const [description, setDescription] = useState('')
-  const [whyJoin, setWhyJoin] = useState('')
   const [encryptionRequested, setEncryptionRequested] = useState(false)
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
@@ -35,7 +34,6 @@ export default function Create() {
     console.log('submitProposal triggered')
     // console.log('file name:', name)
     console.log('encryptionRequested:', encryptionRequested)
-    console.log('whyJoin:', whyJoin)
 
     let fileToAddInDescription: string = ''
     let plaintextString = ''
@@ -77,7 +75,7 @@ export default function Create() {
 
       // console.log('PROPOSAL_DESCRIPTION:', PROPOSAL_DESCRIPTION)
 
-      PROPOSAL_DESCRIPTION = PROPOSAL_DESCRIPTION + '\n\nWHYJOIN' + whyJoin
+      PROPOSAL_DESCRIPTION = PROPOSAL_DESCRIPTION
 
       // set targets and values
       const targets = [beneficiary]
