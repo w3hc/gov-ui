@@ -1,4 +1,4 @@
-import { Button, Badge, useToast, Text, Box } from '@chakra-ui/react'
+import { Button, Badge, useToast, Text, Box, chakra } from '@chakra-ui/react'
 import { Head } from '../../components/layout/Head'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -9,6 +9,16 @@ import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
+
+const CustomLink = chakra('a', {
+  baseStyle: {
+    color: 'blue.500', // Change the color as per your design
+    textDecoration: 'underline',
+    _hover: {
+      color: 'blue.700', // Change the hover color as per your design
+    },
+  },
+})
 
 export default function Proposal() {
   const router = useRouter()
@@ -85,9 +95,9 @@ export default function Proposal() {
 
           if (id == proposalId) {
             // console.log('full description:', proposals[i].args[8])
-            const inputString = proposals[i].args[8]
+            // const inputString = proposals[i].args[8]
 
-            const searchText = 'WHYJOIN'
+            // const searchText = 'WHYJOIN'
 
             // const startIndex = inputString.indexOf(searchText)
 
@@ -98,7 +108,7 @@ export default function Proposal() {
             //   // console.log('Text not found')
             // }
             setTitle(proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')))
-            setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n'), proposals[i].args[8].indexOf('[')))
+            setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n')))
             // console.log('uri:', proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
             setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
             // console.log(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
@@ -143,6 +153,9 @@ export default function Proposal() {
         switchNetwork?.(11155111)
       }
       getProposalData()
+      if (description) {
+        console.error('desc:', description)
+      }
     }
     init()
   }, [signer, proposalId])
@@ -350,7 +363,13 @@ export default function Proposal() {
         <div>
           <br />
           <HeadingComponent as="h4">Proposal description</HeadingComponent>
-          <ReactMarkdown>{description}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              a: CustomLink,
+            }}>
+            {description}
+          </ReactMarkdown>
+
           <br />
         </div>
 
