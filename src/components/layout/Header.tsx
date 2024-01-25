@@ -27,6 +27,10 @@ export function Header(props: Props) {
     setSelectedPage('Manifesto')
   }
 
+  const switchToErc20 = async () => {
+    setSelectedPage('ERC-20')
+  }
+
   return (
     <Flex as="header" className={className} bg={useColorModeValue('gray.100', 'gray.900')} px={4} py={5} mb={8} alignItems="center">
       <LinkComponent href="/">
@@ -63,6 +67,9 @@ export function Header(props: Props) {
             </LinkComponent>
             <LinkComponent href="/manifesto">
               <MenuItem onClick={switchToManifesto}>Manifesto</MenuItem>
+            </LinkComponent>
+            <LinkComponent href="/erc20">
+              <MenuItem onClick={switchToErc20}>ERC-20 transfer</MenuItem>
             </LinkComponent>
           </MenuList>
         </Menu>

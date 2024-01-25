@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useEthersSigner, useEthersProvider } from '../../hooks/ethersAdapter'
 import { ethers } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi } from '../../utils/config'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi, ERC20_CONTRACT_ABI, ERC20_CONTRACT_ADRESS } from '../../utils/config'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
@@ -219,7 +219,7 @@ export default function Proposal() {
       await gov.castVote(router.query.proposalId, 1)
       await getCurrentVotes(router.query.proposalId)
       setForVotes(forVotes + 1)
-
+      await getState(proposalId)
       toast({
         title: 'Voted!',
         position: 'bottom',
@@ -270,7 +270,7 @@ export default function Proposal() {
       await gov.castVote(router.query.proposalId, 0)
       await getCurrentVotes(router.query.proposalId)
       setAgainstVotes(againstVotes + 1)
-
+      await getState(proposalId)
       toast({
         title: 'Voted!',
         position: 'bottom',
@@ -295,22 +295,36 @@ export default function Proposal() {
     }
   }
 
+  // https://sepolia.etherscan.io/tx/0x63812724cf54f21c61d7f4457fea7f1e813fb8e145f8c3a4e582ddf2ed21f102
   const execute = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-execute-address---uint256---bytes---bytes32-v
     // execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) → uint256 proposalId
     console.log('executing...')
     setLoading(true)
     try {
+      const targets = ERC20_CONTRACT_ADRESS
+      const values = 0
+
+      // Prepare calldatas
+      const erc20 = new ethers.Contract(ERC20_CONTRACT_ADRESS, ERC20_CONTRACT_ABI, signer)
+      const transferFunctionData = erc20.interface.encodeFunctionData('transfer', [
+        '0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977',
+        ethers.parseEther('200'), // Adjust the amount as needed
+      ])
+
       const targetsFormatted = [targets]
       const valuesFormatted = [values]
-      const calldatasFormatted = ['0x']
+      const calldatasFormatted = [transferFunctionData]
       const hashedDescription = ethers.id(rawDescription)
 
-      // console.log('targets:', targetsFormatted)
-      // console.log('values:', valuesFormatted)
-      // console.log('calldatas:', calldatasFormatted)
-      // console.log('description:', description)
-      // console.log('hashedDescription:', hashedDescription)
+      console.log('targets:', targets)
+      console.log('targetsFormatted:', targetsFormatted)
+      console.log('values:', values)
+      console.log('valuesFormatted:', valuesFormatted)
+      console.log('transferFunctionData:', transferFunctionData)
+      console.log('calldatasFormatted:', calldatasFormatted)
+      console.log('description:', description)
+      console.log('hashedDescription:', hashedDescription)
 
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
       const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
@@ -324,7 +338,7 @@ export default function Proposal() {
       toast({
         title: 'Error',
         position: 'bottom',
-        description: e.data.message,
+        description: e?.data.message,
         status: 'info',
         variant: 'subtle',
         duration: 3000,
