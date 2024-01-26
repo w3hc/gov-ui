@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useEthersSigner, useEthersProvider } from '../../hooks/ethersAdapter'
 import { ethers } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi } from '../../utils/config'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi, ERC20_CONTRACT_ABI, ERC20_CONTRACT_ADRESS } from '../../utils/config'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
@@ -12,10 +12,10 @@ import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
 
 const CustomLink = chakra('a', {
   baseStyle: {
-    color: 'blue.500', // Change the color as per your design
+    color: 'blue.500',
     textDecoration: 'underline',
     _hover: {
-      color: 'blue.700', // Change the hover color as per your design
+      color: 'blue.700',
     },
   },
 })
@@ -42,7 +42,6 @@ export default function Proposal() {
   const [values, setValues] = useState<any>()
   const [calldatas, setCalldatas] = useState<any>()
   const [rawDescription, setRawDescription] = useState<any>()
-  // const [whyJoin, setWhyJoin] = useState('')
   const [forVotes, setForVotes] = useState<number>(0)
   const [againstVotes, setAgainstVotes] = useState<number>(0)
 
@@ -50,12 +49,8 @@ export default function Proposal() {
   const signer = useEthersSigner()
 
   const getState = async (proposalId: any) => {
-    // console.log('[getState] proposalId:', proposalId)
     const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
-
-    // console.log('[getState] gov:', gov)
     const state = await gov.state(proposalId)
-    // console.log('state:', state)
     setStateBadge(
       <Badge fontSize="0.5em" colorScheme={stateColor[state]} variant="solid">
         {stateText[state]}
@@ -67,24 +62,15 @@ export default function Proposal() {
   const getCurrentVotes = async (proposalId: any) => {
     const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
     const votes = await gov.proposalVotes(proposalId)
-    // console.log('votes for', Number(votes.forVotes))
-    // console.log('votes against', Number(votes.againstVotes))
     setForVotes(Number(votes.forVotes))
     setAgainstVotes(Number(votes.againstVotes))
   }
 
   const getProposalData = async () => {
-    // console.log('getProposalData started')
-
     const block = await provider.getBlockNumber()
 
     const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
     const proposals: any = await gov.queryFilter('ProposalCreated' as any, 5065858, block) // TODO: fix type casting
-
-    // console.log('block:', block)
-    // console.log('gov:', gov)
-    // console.log('provider:', provider)
-    // console.log('[getProposalData] proposalId:', proposalId)
 
     try {
       let i: number = 0
@@ -94,40 +80,20 @@ export default function Proposal() {
           const id = String(proposals[i].args?.proposalId)
 
           if (id == proposalId) {
-            // console.log('full description:', proposals[i].args[8])
-            // const inputString = proposals[i].args[8]
-
-            // const searchText = 'WHYJOIN'
-
-            // const startIndex = inputString.indexOf(searchText)
-
-            // if (startIndex !== -1) {
-            //   setWhyJoin(inputString.substring(startIndex + searchText.length))
-            //   // console.log(inputString.substring(startIndex + searchText.length))
-            // } else {
-            //   // console.log('Text not found')
-            // }
             setTitle(proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')))
             setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n')))
-            // console.log('uri:', proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
             setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
-            // console.log(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
+            setCalldatas(proposals[0].args[5])
+
             await getState(proposalId)
             await getCurrentVotes(proposalId)
 
-            // console.log('proposals:', proposals)
-            // desc in execute: https://forum.openzeppelin.com/t/governor-hardhat-testing/15290/7
-            // console.log('targets:', proposals[i].args[2][0])
-            // console.log('values:', proposals[i].args[3][0])
-            // console.log('calldatas:', proposals[i].args.calldatas)
-            // console.log('description:', proposals[i].args[8])
-
             setTargets(proposals[i].args[2][0])
             setValues(proposals[i].args[3][0])
-            setCalldatas(proposals[i].args.calldatas)
+
+            setCalldatas(proposals[i].args[5][0])
             setRawDescription(proposals[i].args[8])
             setInitialized(true)
-            // console.log('original description:', proposals[i].args[8])
           }
         }
       }
@@ -135,19 +101,10 @@ export default function Proposal() {
       console.error('error:', error)
       setInitialized(true)
     }
-
-    // console.log('getProposalData ended')
   }
-
-  // useEffect(() => {
-  //   console.log('DAO Contract address:', GOV_CONTRACT_ADDRESS)
-  //   // console.log('useEffect executed')
-  //   getProposalData()
-  // }, [proposalId])
 
   useEffect(() => {
     console.log('DAO Contract address:', GOV_CONTRACT_ADDRESS)
-    // console.log('useEffect executed')
     const init = async () => {
       if (chain?.id !== 11155111) {
         switchNetwork?.(11155111)
@@ -175,15 +132,12 @@ export default function Proposal() {
     if ((await hasDelegated()) === true) {
       return true
     } else {
-      // console.log('delegating to self...')
       const delegateTo = await signer?.getAddress()
-      // console.log('hello signer address:', await signer?.getAddress())
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
       const nftAddress = await gov.token()
       const nft = new ethers.Contract(nftAddress, nftAbi, signer)
       const delegate = await nft.delegate(delegateTo)
       const receippt = await delegate.wait(1)
-      // console.log('delegate receipt:', receippt)
       return true
     }
   }
@@ -207,7 +161,6 @@ export default function Proposal() {
 
     try {
       const delegate = await delegateToMyself()
-      // console.log('delegateToMyself():', delegate)
     } catch (e) {
       console.log('delegate error:', e)
     }
@@ -219,7 +172,7 @@ export default function Proposal() {
       await gov.castVote(router.query.proposalId, 1)
       await getCurrentVotes(router.query.proposalId)
       setForVotes(forVotes + 1)
-
+      await getState(proposalId)
       toast({
         title: 'Voted!',
         position: 'bottom',
@@ -261,7 +214,6 @@ export default function Proposal() {
 
     try {
       const delegate = await delegateToMyself()
-      // console.log('delegateToMyself():', delegate)
     } catch (e) {
       console.log('delegate error:', e)
     }
@@ -270,7 +222,7 @@ export default function Proposal() {
       await gov.castVote(router.query.proposalId, 0)
       await getCurrentVotes(router.query.proposalId)
       setAgainstVotes(againstVotes + 1)
-
+      await getState(proposalId)
       toast({
         title: 'Voted!',
         position: 'bottom',
@@ -296,21 +248,13 @@ export default function Proposal() {
   }
 
   const execute = async () => {
-    // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-execute-address---uint256---bytes---bytes32-v
-    // execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) → uint256 proposalId
     console.log('executing...')
     setLoading(true)
     try {
       const targetsFormatted = [targets]
       const valuesFormatted = [values]
-      const calldatasFormatted = ['0x']
+      const calldatasFormatted = [calldatas]
       const hashedDescription = ethers.id(rawDescription)
-
-      // console.log('targets:', targetsFormatted)
-      // console.log('values:', valuesFormatted)
-      // console.log('calldatas:', calldatasFormatted)
-      // console.log('description:', description)
-      // console.log('hashedDescription:', hashedDescription)
 
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
       const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
@@ -324,7 +268,7 @@ export default function Proposal() {
       toast({
         title: 'Error',
         position: 'bottom',
-        description: e.data.message,
+        description: e?.data.message,
         status: 'info',
         variant: 'subtle',
         duration: 3000,
@@ -337,28 +281,11 @@ export default function Proposal() {
     <>
       <Head title={title} />
       <main>
-        {/* {uri !== null && (
-          <>
-            {' '}
-            <Box borderRadius="lg" overflow="hidden">
-              <Image priority width="2000" height="400" alt={'project-banner'} src={uri} />
-            </Box>
-            <br />
-          </>
-        )} */}
         <HeadingComponent as="h2">{title}</HeadingComponent>
 
         <Text>
           {stateBadge} For: <strong>{forVotes}</strong> | Against: <strong>{againstVotes}</strong>
         </Text>
-
-        {/* <a
-            href={'https://explorer-test.arthera.net/address/' + GOV_CONTRACT_ADDRESS}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: '#45a2f8' }}>
-            <strong> View on the explorer</strong>
-          </a> */}
 
         <div>
           <br />
