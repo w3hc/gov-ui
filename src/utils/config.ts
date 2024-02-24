@@ -1324,6 +1324,7 @@ export const GOV_CONTRACT_ABI = <const>[
   },
 ]
 
+export const startBlock = 5065858
 export const ERC20_CONTRACT_ABI = [
   {
     inputs: [
