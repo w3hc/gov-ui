@@ -9,22 +9,20 @@ import { useRouter } from 'next/router'
 
 // const baseUrl = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/'
 
-export default function Erc20() {
+export default function AddMember() {
   const [loading, setLoading] = useState(false)
   const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState('Add a new member')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [targets, setTargets] = useState(ERC20_CONTRACT_ADRESS)
-  const [description, setDescription] = useState('')
+  const [targets, setTargets] = useState('')
+  const [description, setDescription] = useState("Let's add a new member!")
   const [encryptionRequested, setEncryptionRequested] = useState(false)
-  const [name, setName] = useState(null)
+  const [name, setName] = useState('')
   const [plaintext, setPlaintext] = useState('')
 
   const router = useRouter()
   const provider = useEthersProvider()
   const signer = useEthersSigner()
-
-  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
 
   const submitProposal = async (e: any) => {
     e.preventDefault()
@@ -45,11 +43,15 @@ export default function Erc20() {
     try {
       // prepare Gov
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
-      const erc20 = new ethers.Contract(ERC20_CONTRACT_ADRESS, ERC20_CONTRACT_ABI, signer)
+      const nftAddress = await gov.token()
+      const nft = new ethers.Contract(nftAddress, nftAbi, signer)
 
       // prepare calldatas
-      const erc20Transfer = erc20.interface.encodeFunctionData('transfer', [beneficiary, ethers.parseEther(String(amount))])
-      const calldatas = [erc20Transfer.toString()]
+      const safeMint = nft.interface.encodeFunctionData('safeMint', [
+        beneficiary,
+        'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
+      ])
+      const calldatas = [safeMint.toString()]
 
       // prepare proposal description
       let PROPOSAL_DESCRIPTION: string
@@ -91,7 +93,7 @@ export default function Erc20() {
 
       // call propose
       console.log('caller address:', await signer?.getAddress())
-      const propose = await gov.propose([targets], values, calldatas, PROPOSAL_DESCRIPTION)
+      const propose = await gov.propose([nftAddress], values, calldatas, PROPOSAL_DESCRIPTION)
       console.log('Propose triggered')
       const proposeReceipt: any = await propose.wait(1)
       const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber) // TODO: fix type casting
@@ -162,12 +164,14 @@ export default function Erc20() {
       <Head />
 
       <main>
-        <Heading as="h2">Request an ERC-20 transfer</Heading>
+        <br />
+
+        <Heading as="h2">Add a member</Heading>
         <br />
 
         <FormControl>
           <FormLabel>Name</FormLabel>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="" />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
           <br />
@@ -177,47 +181,18 @@ export default function Erc20() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-
-          <FormLabel>Amount (in EUR)</FormLabel>
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
-          <FormHelperText>How much EUR are you asking for?</FormHelperText>
-          <br />
-          <br />
-
-          <FormLabel>ERC-20 token contract address</FormLabel>
-          <Input value={targets} onChange={(e) => setTargets(e.target.value)} placeholder={targets} />
-          <FormHelperText>Which token you you like to transfer from the DAO to the beneficiary?</FormHelperText>
-          <br />
-          <br />
-
-          <FormLabel>Beneficiary</FormLabel>
+          <FormLabel>New member address</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>Who should receive the money?</FormHelperText>
+          <FormHelperText>The wallet address of the new member</FormHelperText>
           <br />
-          {/* <FormLabel>Banner image</FormLabel>
-          <FormHelperText>
-            Recommended format: <strong>1500x500</strong> (jpeg or png)
-          </FormHelperText> */}
-          <br />
-          {/* <input
-            className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-            id="file_input"
-            type="file"
-            style={{ minWidth: '400px', width: '100%' }}
-            onChange={(e: any) => handleFileChange(e.target.files[0])}
-          /> */}
-          {/* <LockIcon w={3} h={3} color="red.500" />{' '}
-          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
-          {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
-          {/* <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText> */}
-          <br />
+
           {!loading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Push
+              Submit proposal
             </Button>
           ) : (
-            <Button isLoading loadingText="Pushing..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Push
+            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
+              Submit proposal
             </Button>
           )}
         </FormControl>

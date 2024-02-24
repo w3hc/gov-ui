@@ -163,8 +163,6 @@ export default function Create() {
       <Head />
 
       <main>
-        <br />
-
         <Heading as="h2">Submit a proposal</Heading>
         <br />
 
@@ -174,12 +172,10 @@ export default function Create() {
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
           <br />
-          <br />
 
           <FormLabel>Description</FormLabel>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="" />
           <FormHelperText>Supports markdown.</FormHelperText>
-
           <br />
           <br />
 
@@ -187,15 +183,19 @@ export default function Create() {
           <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
           <FormHelperText>How much ETH are you asking for?</FormHelperText>
           <br />
+          <br />
+
           <FormLabel>Target address</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
           <FormHelperText>Who should receive the money?</FormHelperText>
           <br />
+          <br />
+
           {/* <FormLabel>Banner image</FormLabel>
           <FormHelperText>
             Recommended format: <strong>1500x500</strong> (jpeg or png)
           </FormHelperText> */}
-          <br />
+          {/* <br /> */}
           {/* <input
             className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             id="file_input"
@@ -207,7 +207,7 @@ export default function Create() {
           <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
           {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
           {/* <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText> */}
-          <br />
+          {/* <br /> */}
           {!loading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
               Push

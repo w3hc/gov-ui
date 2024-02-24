@@ -31,6 +31,10 @@ export function Header(props: Props) {
     setSelectedPage('ERC-20')
   }
 
+  const switchToAddMember = async () => {
+    setSelectedPage('New member')
+  }
+
   return (
     <Flex as="header" className={className} bg={useColorModeValue('gray.100', 'gray.900')} px={4} py={5} mb={8} alignItems="center">
       <LinkComponent href="/">
@@ -70,6 +74,9 @@ export function Header(props: Props) {
             </LinkComponent>
             <LinkComponent href="/erc20">
               <MenuItem onClick={switchToErc20}>ERC-20 transfer</MenuItem>
+            </LinkComponent>
+            <LinkComponent href="/add-member">
+              <MenuItem onClick={switchToAddMember}>Add a new member</MenuItem>
             </LinkComponent>
           </MenuList>
         </Menu>
