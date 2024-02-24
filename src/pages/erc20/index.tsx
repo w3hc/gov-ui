@@ -164,7 +164,7 @@ export default function Erc20() {
       <main>
         <br />
 
-        <Heading as="h2">Submit a proposal</Heading>
+        <Heading as="h2">Request an ERC-20 transfer</Heading>
         <br />
 
         <FormControl>
