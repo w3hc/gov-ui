@@ -8,7 +8,7 @@ import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
 import { ethers } from 'ethers'
 import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../utils/erc20'
 import { useEthersSigner, useEthersProvider } from '../hooks/ethersAdapter'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi } from '../utils/config'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, startBlock, nftAbi } from '../utils/config'
 import Image from 'next/image'
 
 export default function Home() {
@@ -97,7 +97,7 @@ export default function Home() {
     if (block > 1) {
       // console.log('if (block > 1)')
 
-      const proposals: any = await gov.queryFilter('ProposalCreated' as any, 5065858, block) // TODO: fix type casting
+      const proposals: any = await gov.queryFilter('ProposalCreated' as any, startBlock, block) // TODO: fix type casting
 
       try {
         let i: number = 0
@@ -252,7 +252,7 @@ export default function Home() {
 
       <main>
         <>
-          <Heading as="h2">{name}</Heading>
+          <HeadingComponent as="h2">{name}</HeadingComponent>
         </>
         <br />
         <p>
@@ -267,32 +267,38 @@ export default function Home() {
             </a>
           </strong>
         </p>
-        <p>
+        {/* <p>
           Manifesto:{' '}
           <strong>
             <a style={{ color: '#45a2f8' }} target="_blank" rel="noopener noreferrer" href={manifestoLink}>
               {manifesto}
             </a>
           </strong>
-        </p>
+        </p> */}
+        <br />
+        <HeadingComponent as="h3">Proposals</HeadingComponent>
         <br />
         <List />
         <br />{' '}
         <Flex as="header" py={5} mb={8} alignItems="center">
           <LinkComponent href="/push">
             <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-              New proposal
+              ETH transfer
             </Button>
             <br />
           </LinkComponent>
-          {isMember === false && (
-            <LinkComponent href="/join">
-              <Button ml={5} colorScheme="blue" variant="outline">
-                Become a member
-              </Button>
-              <br />
-            </LinkComponent>
-          )}
+          <LinkComponent href="/erc20">
+            <Button ml={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              ERC-20 transfer
+            </Button>
+            <br />
+          </LinkComponent>
+          <LinkComponent href="/add-member">
+            <Button ml={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              Add new member
+            </Button>
+            <br />
+          </LinkComponent>
         </Flex>
       </main>
     </>
