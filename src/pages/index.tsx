@@ -255,55 +255,45 @@ export default function Home() {
           <Heading as="h2">{name}</Heading>
         </>
         <br />
-
-        {isDisconnected || !initialized ? (
-          <>
+        <p>
+          DAO contract address:{' '}
+          <strong>
+            <a
+              style={{ color: '#45a2f8' }}
+              target="_blank"
+              rel="noopener noreferrer"
+              href={'https://sepolia.etherscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
+              {GOV_CONTRACT_ADDRESS}
+            </a>
+          </strong>
+        </p>
+        <p>
+          Manifesto:{' '}
+          <strong>
+            <a style={{ color: '#45a2f8' }} target="_blank" rel="noopener noreferrer" href={manifestoLink}>
+              {manifesto}
+            </a>
+          </strong>
+        </p>
+        <br />
+        <List />
+        <br />{' '}
+        <Flex as="header" py={5} mb={8} alignItems="center">
+          <LinkComponent href="/push">
+            <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              New proposal
+            </Button>
             <br />
-            {isDisconnected ? <p>Please connect your wallet.</p> : <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />}
-          </>
-        ) : (
-          <>
-            <p>
-              DAO contract address:{' '}
-              <strong>
-                <a
-                  style={{ color: '#45a2f8' }}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={'https://sepolia.etherscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
-                  {GOV_CONTRACT_ADDRESS}
-                </a>
-              </strong>
-            </p>
-            <p>
-              Manifesto:{' '}
-              <strong>
-                <a style={{ color: '#45a2f8' }} target="_blank" rel="noopener noreferrer" href={manifestoLink}>
-                  {manifesto}
-                </a>
-              </strong>
-            </p>
-            <br />
-            <List />
-            <br />{' '}
-            <Flex as="header" py={5} mb={8} alignItems="center">
-              <LinkComponent href="/push">
-                <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-                  New proposal
-                </Button>
-                <br />
-              </LinkComponent>
-              {isMember === false && (
-                <LinkComponent href="/join">
-                  <Button ml={5} colorScheme="blue" variant="outline">
-                    Become a member
-                  </Button>
-                  <br />
-                </LinkComponent>
-              )}
-            </Flex>
-          </>
-        )}
+          </LinkComponent>
+          {isMember === false && (
+            <LinkComponent href="/join">
+              <Button ml={5} colorScheme="blue" variant="outline">
+                Become a member
+              </Button>
+              <br />
+            </LinkComponent>
+          )}
+        </Flex>
       </main>
     </>
   )
