@@ -162,8 +162,6 @@ export default function Erc20() {
       <Head />
 
       <main>
-        <br />
-
         <Heading as="h2">Request an ERC-20 transfer</Heading>
         <br />
 
@@ -173,12 +171,10 @@ export default function Erc20() {
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
           <br />
-          <br />
 
           <FormLabel>Description</FormLabel>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="" />
           <FormHelperText>Supports markdown.</FormHelperText>
-
           <br />
           <br />
 
@@ -186,10 +182,14 @@ export default function Erc20() {
           <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
           <FormHelperText>How much EUR are you asking for?</FormHelperText>
           <br />
+          <br />
+
           <FormLabel>ERC-20 token contract address</FormLabel>
           <Input value={targets} onChange={(e) => setTargets(e.target.value)} placeholder={targets} />
           <FormHelperText>Which token you you like to transfer from the DAO to the beneficiary?</FormHelperText>
           <br />
+          <br />
+
           <FormLabel>Beneficiary</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
           <FormHelperText>Who should receive the money?</FormHelperText>
