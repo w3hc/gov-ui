@@ -277,29 +277,33 @@ export default function Home() {
         </p> */}
         <br />
         <HeadingComponent as="h3">Proposals</HeadingComponent>
-        <br />
         <List />
-        <br />{' '}
-        <Flex as="header" py={5} mb={8} alignItems="center">
-          <LinkComponent href="/push">
-            <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-              ETH transfer
-            </Button>
-            <br />
-          </LinkComponent>
-          <LinkComponent href="/erc20">
-            <Button ml={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-              ERC-20 transfer
-            </Button>
-            <br />
-          </LinkComponent>
-          <LinkComponent href="/add-member">
-            <Button ml={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-              Add new member
-            </Button>
-            <br />
-          </LinkComponent>
-        </Flex>
+        <br />
+        <br />
+        <LinkComponent href="/push">
+          <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            ETH transfer
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/erc20">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            ERC-20 transfer
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/add-member">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            Add a new member
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/ban-member">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            Ban a member
+          </Button>
+          <br />
+        </LinkComponent>
       </main>
     </>
   )

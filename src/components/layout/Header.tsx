@@ -16,7 +16,7 @@ export function Header(props: Props) {
   const [selectedPage, setSelectedPage] = useState('Explore')
 
   const switchToPropose = async () => {
-    setSelectedPage('Propose')
+    setSelectedPage('ETH transfer')
   }
 
   const switchToDelegate = async () => {
@@ -28,11 +28,15 @@ export function Header(props: Props) {
   }
 
   const switchToErc20 = async () => {
-    setSelectedPage('ERC-20')
+    setSelectedPage('ERC-20 transfer')
   }
 
   const switchToAddMember = async () => {
     setSelectedPage('New member')
+  }
+
+  const switchToBanMember = async () => {
+    setSelectedPage('Ban a member')
   }
 
   return (
@@ -63,20 +67,23 @@ export function Header(props: Props) {
             {selectedPage}
           </MenuButton>
           <MenuList>
-            <LinkComponent href="/delegate">
-              <MenuItem onClick={switchToDelegate}>Delegate</MenuItem>
-            </LinkComponent>
-            <LinkComponent href="/push">
-              <MenuItem onClick={switchToPropose}>Submit a proposal</MenuItem>
-            </LinkComponent>
             <LinkComponent href="/manifesto">
               <MenuItem onClick={switchToManifesto}>Manifesto</MenuItem>
+            </LinkComponent>
+            <LinkComponent href="/delegate">
+              <MenuItem onClick={switchToDelegate}>Delegate</MenuItem>
             </LinkComponent>
             <LinkComponent href="/erc20">
               <MenuItem onClick={switchToErc20}>ERC-20 transfer</MenuItem>
             </LinkComponent>
+            <LinkComponent href="/push">
+              <MenuItem onClick={switchToPropose}>ETH transfer</MenuItem>
+            </LinkComponent>
             <LinkComponent href="/add-member">
               <MenuItem onClick={switchToAddMember}>Add a new member</MenuItem>
+            </LinkComponent>
+            <LinkComponent href="/ban-member">
+              <MenuItem onClick={switchToBanMember}>Ban a member</MenuItem>
             </LinkComponent>
           </MenuList>
         </Menu>
