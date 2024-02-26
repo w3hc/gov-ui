@@ -1,31 +1,41 @@
-import { Heading, Button, Badge, FormControl, FormLabel, Textarea, ListItem, UnorderedList, Input, FormHelperText, Checkbox } from '@chakra-ui/react'
+import {
+  Heading,
+  Button,
+  Badge,
+  FormControl,
+  FormLabel,
+  Textarea,
+  ListItem,
+  UnorderedList,
+  Input,
+  FormHelperText,
+  Checkbox,
+  Text,
+} from '@chakra-ui/react'
 import { LockIcon } from '@chakra-ui/icons'
 import { Head } from '../../components/layout/Head'
 import { useState } from 'react'
 import { useEthersSigner, useEthersProvider } from '../../hooks/ethersAdapter'
 import { ethers } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi } from '../../utils/config'
-// import { UploadFile } from '../../components/layout/UploadFile'
-// import { UploadData } from '../../components/layout/UploadData'
+import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi, ERC20_CONTRACT_ABI, ERC20_CONTRACT_ADRESS } from '../../utils/config'
 import { useRouter } from 'next/router'
 
 // const baseUrl = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/'
 
-export default function Create() {
+export default function BanMember() {
   const [loading, setLoading] = useState(false)
   const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('')
-  const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [description, setDescription] = useState('')
+  const [title, setTitle] = useState('Ban a member')
+  const [beneficiary, setBeneficiary] = useState('0x8CCbFaAe6BC02a73BBe8d6d8017cC8313E4C90A7')
+  const [targets, setTargets] = useState('')
+  const [description, setDescription] = useState('We should ban this member.')
   const [encryptionRequested, setEncryptionRequested] = useState(false)
-  const [name, setName] = useState(null)
+  const [name, setName] = useState('')
   const [plaintext, setPlaintext] = useState('')
 
   const router = useRouter()
   const provider = useEthersProvider()
   const signer = useEthersSigner()
-
-  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
 
   const submitProposal = async (e: any) => {
     e.preventDefault()
@@ -46,10 +56,14 @@ export default function Create() {
     try {
       // prepare Gov
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
+      const nftAddress = await gov.token()
+      const nft = new ethers.Contract(nftAddress, nftAbi, signer)
+
+      const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
 
       // prepare calldatas
-      const call = '0x'
-      const calldatas = [call.toString()]
+      const govBurn = nft.interface.encodeFunctionData('govBurn', [tokenId])
+      const calldatas = [govBurn.toString()]
 
       // prepare proposal description
       let PROPOSAL_DESCRIPTION: string
@@ -78,8 +92,7 @@ export default function Create() {
       PROPOSAL_DESCRIPTION = PROPOSAL_DESCRIPTION
 
       // set targets and values
-      const targets = [beneficiary]
-      const values = [ethers.parseEther(amount)]
+      const values = [0]
 
       console.log(amount)
       console.log(description)
@@ -92,7 +105,7 @@ export default function Create() {
 
       // call propose
       console.log('caller address:', await signer?.getAddress())
-      const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
+      const propose = await gov.propose([nftAddress], values, calldatas, PROPOSAL_DESCRIPTION)
       console.log('Propose triggered')
       const proposeReceipt: any = await propose.wait(1)
       const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber) // TODO: fix type casting
@@ -163,12 +176,19 @@ export default function Create() {
       <Head />
 
       <main>
-        <Heading as="h2">ETH transfer</Heading>
+        <br />
+
+        <Heading as="h2">Ban a member</Heading>
+        <Text mt={3} fontSize="md">
+          Banning a member requires a majority. You can submit your proposal here.
+        </Text>
+
+        <br />
         <br />
 
         <FormControl>
-          <FormLabel>Name</FormLabel>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="" />
+          <FormLabel>Proposal name</FormLabel>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
           <br />
@@ -178,43 +198,18 @@ export default function Create() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-
-          <FormLabel>Amount (in ETH)</FormLabel>
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
-          <FormHelperText>How much ETH are you asking for?</FormHelperText>
-          <br />
-          <br />
-
-          <FormLabel>Target address</FormLabel>
+          <FormLabel>Wallet address of the member you want to ban</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>Who should receive the money?</FormHelperText>
-          <br />
+          <FormHelperText>The wallet address of the new member</FormHelperText>
           <br />
 
-          {/* <FormLabel>Banner image</FormLabel>
-          <FormHelperText>
-            Recommended format: <strong>1500x500</strong> (jpeg or png)
-          </FormHelperText> */}
-          {/* <br /> */}
-          {/* <input
-            className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-            id="file_input"
-            type="file"
-            style={{ minWidth: '400px', width: '100%' }}
-            onChange={(e: any) => handleFileChange(e.target.files[0])}
-          /> */}
-          {/* <LockIcon w={3} h={3} color="red.500" />{' '}
-          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
-          {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
-          {/* <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText> */}
-          {/* <br /> */}
           {!loading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Push
+              Submit proposal
             </Button>
           ) : (
-            <Button isLoading loadingText="Pushing..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Push
+            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
+              Submit proposal
             </Button>
           )}
         </FormControl>
