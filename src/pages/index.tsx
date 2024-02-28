@@ -304,6 +304,12 @@ export default function Home() {
           </Button>
           <br />
         </LinkComponent>
+        <LinkComponent href="/manifesto">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            Edit the manifesto
+          </Button>
+          <br />
+        </LinkComponent>
       </main>
     </>
   )

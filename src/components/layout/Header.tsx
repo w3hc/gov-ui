@@ -15,6 +15,10 @@ export function Header(props: Props) {
 
   const [selectedPage, setSelectedPage] = useState('Explore')
 
+  const switchToHome = async () => {
+    setSelectedPage('Explore')
+  }
+
   const switchToPropose = async () => {
     setSelectedPage('ETH transfer')
   }
@@ -67,6 +71,9 @@ export function Header(props: Props) {
             {selectedPage}
           </MenuButton>
           <MenuList>
+            <LinkComponent href="/">
+              <MenuItem onClick={switchToHome}>Home</MenuItem>
+            </LinkComponent>
             <LinkComponent href="/manifesto">
               <MenuItem onClick={switchToManifesto}>Manifesto</MenuItem>
             </LinkComponent>
