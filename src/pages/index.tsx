@@ -48,8 +48,8 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
-      if (chain?.id !== 11155111) {
-        switchNetwork?.(11155111)
+      if (chain?.id !== 11155420) {
+        switchNetwork?.(11155420)
       }
       getBlock()
       getName()

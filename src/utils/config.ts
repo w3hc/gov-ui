@@ -1,5 +1,5 @@
 import { ThemingProps } from '@chakra-ui/react'
-import { Chain, sepolia } from '@wagmi/core'
+import { Chain, optimismSepolia } from 'viem/chains'
 
 export const SITE_NAME = 'Gov UI'
 export const SITE_DESCRIPTION = 'Submit proposals and vote.' // Your description should be between 55 and 200 characters long, with a maximum of 300.
@@ -14,9 +14,9 @@ export const THEME_CONFIG = {
 export const SOCIAL_TWITTER = 'w3hc8'
 export const SOCIAL_GITHUB = 'w3hc/gov-ui'
 
-export const ETH_CHAINS = [sepolia]
+export const ETH_CHAINS = [optimismSepolia]
 
-export const GOV_CONTRACT_ADDRESS = '0x45177e284eB41eA02910a6A604B6383927f29460'
+export const GOV_CONTRACT_ADDRESS = '0x1Ee0e42f1Fe4Ac03a60F1387c29F9f6e317B2b85'
 
 export const GOV_CONTRACT_ABI = <const>[
   {
@@ -37,14 +37,14 @@ export const GOV_CONTRACT_ABI = <const>[
         type: 'string',
       },
       {
-        internalType: 'uint256',
+        internalType: 'uint48',
         name: '_votingDelay',
-        type: 'uint256',
+        type: 'uint48',
       },
       {
-        internalType: 'uint256',
+        internalType: 'uint32',
         name: '_votingPeriod',
-        type: 'uint256',
+        type: 'uint32',
       },
       {
         internalType: 'uint256',
@@ -62,12 +62,252 @@ export const GOV_CONTRACT_ABI = <const>[
   },
   {
     inputs: [],
-    name: 'Empty',
+    name: 'CheckpointUnorderedInsertion',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'FailedInnerCall',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'voter',
+        type: 'address',
+      },
+    ],
+    name: 'GovernorAlreadyCastVote',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorAlreadyQueuedProposal',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'GovernorDisabledDeposit',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'proposer',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'votes',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'threshold',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorInsufficientProposerVotes',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'targets',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'calldatas',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'values',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorInvalidProposalLength',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'quorumNumerator',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'quorumDenominator',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorInvalidQuorumFraction',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'voter',
+        type: 'address',
+      },
+    ],
+    name: 'GovernorInvalidSignature',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'GovernorInvalidVoteType',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'votingPeriod',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorInvalidVotingPeriod',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorNonexistentProposal',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+    ],
+    name: 'GovernorNotQueuedProposal',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'GovernorOnlyExecutor',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'GovernorOnlyProposer',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'GovernorQueueNotImplemented',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'proposer',
+        type: 'address',
+      },
+    ],
+    name: 'GovernorRestrictedProposer',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'enum IGovernor.ProposalState',
+        name: 'current',
+        type: 'uint8',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'expectedStates',
+        type: 'bytes32',
+      },
+    ],
+    name: 'GovernorUnexpectedProposalState',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'currentNonce',
+        type: 'uint256',
+      },
+    ],
+    name: 'InvalidAccountNonce',
     type: 'error',
   },
   {
     inputs: [],
     name: 'InvalidShortString',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'QueueEmpty',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'QueueFull',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint8',
+        name: 'bits',
+        type: 'uint8',
+      },
+      {
+        internalType: 'uint256',
+        name: 'value',
+        type: 'uint256',
+      },
+    ],
+    name: 'SafeCastOverflowedUintDowncast',
     type: 'error',
   },
   {
@@ -185,6 +425,25 @@ export const GOV_CONTRACT_ABI = <const>[
       },
     ],
     name: 'ProposalExecuted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'etaSeconds',
+        type: 'uint256',
+      },
+    ],
+    name: 'ProposalQueued',
     type: 'event',
   },
   {
@@ -466,19 +725,14 @@ export const GOV_CONTRACT_ABI = <const>[
         type: 'uint8',
       },
       {
-        internalType: 'uint8',
-        name: 'v',
-        type: 'uint8',
+        internalType: 'address',
+        name: 'voter',
+        type: 'address',
       },
       {
-        internalType: 'bytes32',
-        name: 'r',
-        type: 'bytes32',
-      },
-      {
-        internalType: 'bytes32',
-        name: 's',
-        type: 'bytes32',
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
       },
     ],
     name: 'castVoteBySig',
@@ -568,6 +822,11 @@ export const GOV_CONTRACT_ABI = <const>[
         type: 'uint8',
       },
       {
+        internalType: 'address',
+        name: 'voter',
+        type: 'address',
+      },
+      {
         internalType: 'string',
         name: 'reason',
         type: 'string',
@@ -578,19 +837,9 @@ export const GOV_CONTRACT_ABI = <const>[
         type: 'bytes',
       },
       {
-        internalType: 'uint8',
-        name: 'v',
-        type: 'uint8',
-      },
-      {
-        internalType: 'bytes32',
-        name: 'r',
-        type: 'bytes32',
-      },
-      {
-        internalType: 'bytes32',
-        name: 's',
-        type: 'bytes32',
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
       },
     ],
     name: 'castVoteWithReasonAndParamsBySig',
@@ -835,6 +1084,25 @@ export const GOV_CONTRACT_ABI = <const>[
     inputs: [
       {
         internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'nonces',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
         name: '',
         type: 'address',
       },
@@ -970,6 +1238,44 @@ export const GOV_CONTRACT_ABI = <const>[
         type: 'uint256',
       },
     ],
+    name: 'proposalEta',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    name: 'proposalNeedsQueuing',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'proposalId',
+        type: 'uint256',
+      },
+    ],
     name: 'proposalProposer',
     outputs: [
       {
@@ -1066,6 +1372,40 @@ export const GOV_CONTRACT_ABI = <const>[
       },
     ],
     name: 'propose',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address[]',
+        name: 'targets',
+        type: 'address[]',
+      },
+      {
+        internalType: 'uint256[]',
+        name: 'values',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'bytes[]',
+        name: 'calldatas',
+        type: 'bytes[]',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'descriptionHash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'queue',
     outputs: [
       {
         internalType: 'uint256',
@@ -1192,9 +1532,9 @@ export const GOV_CONTRACT_ABI = <const>[
   {
     inputs: [
       {
-        internalType: 'uint256',
+        internalType: 'uint48',
         name: 'newVotingDelay',
-        type: 'uint256',
+        type: 'uint48',
       },
     ],
     name: 'setVotingDelay',
@@ -1205,9 +1545,9 @@ export const GOV_CONTRACT_ABI = <const>[
   {
     inputs: [
       {
-        internalType: 'uint256',
+        internalType: 'uint32',
         name: 'newVotingPeriod',
-        type: 'uint256',
+        type: 'uint32',
       },
     ],
     name: 'setVotingPeriod',
@@ -1324,7 +1664,7 @@ export const GOV_CONTRACT_ABI = <const>[
   },
 ]
 
-export const startBlock = 5065858
+export const startBlock = 10130929
 export const ERC20_CONTRACT_ABI = [
   {
     inputs: [
@@ -1608,7 +1948,7 @@ export const ERC20_CONTRACT_ABI = [
     type: 'function',
   },
 ]
-export const ERC20_CONTRACT_ADRESS = '0xe6bcd785b90dc16d667b022cc871c046587d9ac5'
+export const ERC20_CONTRACT_ADRESS = '0xc899b622195eEc6d62335f4C488347B995dE3aEb'
 
 export const nftAbi = <const>[
   {
@@ -2480,6 +2820,11 @@ export const NFT_ABI = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: 'initialOwner',
+        type: 'address',
+      },
+      {
         internalType: 'address[]',
         name: '_firstMembers',
         type: 'address[]',
@@ -2505,7 +2850,238 @@ export const NFT_ABI = [
   },
   {
     inputs: [],
+    name: 'CheckpointUnorderedInsertion',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ECDSAInvalidSignature',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'length',
+        type: 'uint256',
+      },
+    ],
+    name: 'ECDSAInvalidSignatureLength',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32',
+      },
+    ],
+    name: 'ECDSAInvalidSignatureS',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'timepoint',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint48',
+        name: 'clock',
+        type: 'uint48',
+      },
+    ],
+    name: 'ERC5805FutureLookup',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ERC6372InconsistentClock',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ERC721EnumerableForbiddenBatchMint',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'ERC721IncorrectOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'operator',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+    ],
+    name: 'ERC721InsufficientApproval',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'approver',
+        type: 'address',
+      },
+    ],
+    name: 'ERC721InvalidApprover',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'operator',
+        type: 'address',
+      },
+    ],
+    name: 'ERC721InvalidOperator',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'ERC721InvalidOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'receiver',
+        type: 'address',
+      },
+    ],
+    name: 'ERC721InvalidReceiver',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
+      },
+    ],
+    name: 'ERC721InvalidSender',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
+    ],
+    name: 'ERC721NonexistentToken',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'index',
+        type: 'uint256',
+      },
+    ],
+    name: 'ERC721OutOfBoundsIndex',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'currentNonce',
+        type: 'uint256',
+      },
+    ],
+    name: 'InvalidAccountNonce',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'InvalidShortString',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableInvalidOwner',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint8',
+        name: 'bits',
+        type: 'uint8',
+      },
+      {
+        internalType: 'uint256',
+        name: 'value',
+        type: 'uint256',
+      },
+    ],
+    name: 'SafeCastOverflowedUintDowncast',
     type: 'error',
   },
   {
@@ -2517,6 +3093,17 @@ export const NFT_ABI = [
       },
     ],
     name: 'StringTooLong',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'expiry',
+        type: 'uint256',
+      },
+    ],
+    name: 'VotesExpiredSignature',
     type: 'error',
   },
   {
@@ -2625,13 +3212,13 @@ export const NFT_ABI = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'previousBalance',
+        name: 'previousVotes',
         type: 'uint256',
       },
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'newBalance',
+        name: 'newVotes',
         type: 'uint256',
       },
     ],
@@ -2712,19 +3299,6 @@ export const NFT_ABI = [
       },
     ],
     stateMutability: 'pure',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'DOMAIN_SEPARATOR',
-    outputs: [
-      {
-        internalType: 'bytes32',
-        name: '',
-        type: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
     type: 'function',
   },
   {
