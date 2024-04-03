@@ -1,4 +1,4 @@
-import { Heading, Button, Badge, Flex, useToast, Link } from '@chakra-ui/react'
+import { Heading, Button, Badge, Flex, useToast, Link, Box } from '@chakra-ui/react'
 import { AddIcon } from '@chakra-ui/icons'
 import { Head } from 'components/layout/Head'
 import { HeadingComponent } from 'components/layout/HeadingComponent'
@@ -48,8 +48,8 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
-      if (chain?.id !== 11155111) {
-        switchNetwork?.(11155111)
+      if (chain?.id !== 11155420) {
+        switchNetwork?.(11155420)
       }
       getBlock()
       getName()
@@ -93,13 +93,19 @@ export default function Home() {
   }
 
   const getProposals = useCallback(async () => {
-    // console.log('getProposals started')
+    console.log('getProposals started')
     if (block > 1) {
-      // console.log('if (block > 1)')
-
-      const proposals: any = await gov.queryFilter('ProposalCreated' as any, startBlock, block) // TODO: fix type casting
-
       try {
+        // console.log('if (block > 1)')
+        // console.log('check 1')
+
+        // console.log('gov:', gov)
+        console.log('block:', block)
+        console.log('startBlock:', startBlock)
+        console.log('block - startBlock:', block - startBlock)
+
+        const proposals: any = await gov.queryFilter('ProposalCreated' as any, startBlock, block)
+
         let i: number = 0
         let proposalsRaw = proposal
 
@@ -108,22 +114,36 @@ export default function Home() {
         // console.log((<EventLog>proposals[0]).args)
 
         // if (“args” in proposals[0]) { console.log(proposals[0]).args; }
+        // console.log('check 3: ' + proposals[0]?.args?.description)
 
         if (proposals[0].args != undefined) {
+          // console.log('hello')
+          // console.log('Number(proposals.length:', Number(proposals.length))
           for (i = 0; i < Number(proposals.length); i++) {
+            // console.log('iterations (in loop):', i)
+            // console.log('proposalsRaw:', proposalsRaw)
+            // console.log('proposals (in loop):', proposals)
+            // console.log('DESC:', proposals[i].args?.description)
+            console.log('proposals[i].args?.description:', proposals[i].args.description)
             proposalsRaw.push(
               ...[
                 {
-                  id: String(proposals[i].args?.proposalId),
-                  link: baseUrl + String(proposals[i].args?.proposalId),
-                  title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
-                  state: await getState(proposals[i].args?.proposalId),
+                  id: String(proposals[i]?.args[0]),
+                  link: baseUrl + String(proposals[i]?.args[0]),
+                  title: proposals[i].args?.description.substring(
+                    proposals[i].args?.description == '#' ? 2 : 2,
+                    proposals[i].args?.description.indexOf('\n')
+                  ),
+                  state: Number(await getState(proposals[i]?.args[0])),
                 },
               ]
             )
           }
           delete proposal[0]
           setProposal(proposalsRaw)
+          console.log('proposalsRaw:', proposalsRaw)
+          console.log('proposal:', proposal)
+          console.log('getProposals ended')
           setInitialized(true)
         }
       } catch (error) {
@@ -138,13 +158,9 @@ export default function Home() {
     }
     try {
       const userAddress = await signer?.getAddress()
-      // console.log('userAddress:', userAddress)
 
       const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
       const nftAddress = await gov.token()
-      // console.log('nftAddress:', nftAddress)
-      // console.log('nftAbi:', nftAbi)
-      // console.log('provider:', provider)
 
       const nft = new ethers.Contract(nftAddress, nftAbi, provider)
       const call3 = await nft.balanceOf(userAddress)
@@ -161,10 +177,6 @@ export default function Home() {
   useEffect(() => {
     getProposals()
   }, [getProposals])
-
-  // useEffect(() => {
-  //   checkMembership()
-  // }, [signer])
 
   // const mint = async () => {
   //   try {
@@ -218,17 +230,19 @@ export default function Home() {
     return (
       <>
         <div className="">
-          <div>
+          <Box mt={3} fontSize="lg">
+            {' '}
+            {/* You can adjust the value of fontSize to other Chakra UI size values (xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl, 8xl, 9xl) or use
+            custom values (e.g., "20px", "2rem") as per your requirements. */}
             <strong>
               <Link style={{ color: '#45a2f8' }} target="blank" href={props.link}>
                 {props.title}
-                {/* {props.title ? props.title : 'yo'} */}
               </Link>
             </strong>{' '}
             <Badge ml="1" fontSize="0.5em" colorScheme={stateColor[props.state]} variant="solid">
               {stateText[props.state]}
             </Badge>
-          </div>
+          </Box>
         </div>
       </>
     )
@@ -262,7 +276,7 @@ export default function Home() {
               style={{ color: '#45a2f8' }}
               target="_blank"
               rel="noopener noreferrer"
-              href={'https://sepolia.etherscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
+              href={'https://sepolia-optimism.etherscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
               {GOV_CONTRACT_ADDRESS}
             </a>
           </strong>

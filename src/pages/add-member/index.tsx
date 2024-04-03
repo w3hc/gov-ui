@@ -62,17 +62,17 @@ export default function AddMember() {
       if (fileToAddInDescription) {
         // won't work if no file attached
         if (plaintextString) {
-          PROPOSAL_DESCRIPTION = '' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
+          PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
           if (encryptionRequested) {
             PROPOSAL_DESCRIPTION += ' encrypted' /*+ (cipherId === null ? "没有" : cipherId)*/
           } else {
-            PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
+            PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + ''
           }
         } else {
-          PROPOSAL_DESCRIPTION = '' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
+          PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
         }
       } else {
-        PROPOSAL_DESCRIPTION = '' + title + '\n' + description + ''
+        PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + ''
       }
 
       // console.log('PROPOSAL_DESCRIPTION:', PROPOSAL_DESCRIPTION)

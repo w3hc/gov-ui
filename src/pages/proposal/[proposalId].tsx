@@ -106,8 +106,8 @@ export default function Proposal() {
   useEffect(() => {
     console.log('DAO Contract address:', GOV_CONTRACT_ADDRESS)
     const init = async () => {
-      if (chain?.id !== 11155111) {
-        switchNetwork?.(11155111)
+      if (chain?.id !== 11155420) {
+        switchNetwork?.(11155420)
       }
       getProposalData()
       if (description) {

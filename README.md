@@ -10,7 +10,7 @@ See also:
 
 - [Gov Solidity contracts](https://github.com/w3hc/gov)
 - [Documentation](https://w3hc.github.io/gov-docs/)
-- [Gov Deployer](https://github.com/w3hc/gov-deployer) (refactoring in progress)
+- [Gov Deployer](https://github.com/w3hc/gov-deployer)
 
 ## Install
 
@@ -38,6 +38,14 @@ pnpm dev
 pnpm build
 ```
 
+## Use as a template
+
+You can use this repo as a template for your own DAO.
+
+You can replace the `GOV_CONTRACT_ADDRESS` and `startBlock` in the [`config.ts`](https://github.com/w3hc/gov-ui/blob/main/src/utils/config.ts) file. Also, make sure the network id is correct everywhere in the app (in [`index.ts`](https://github.com/w3hc/gov-ui/blob/main/src/pages/index.tsx#L51), but also in [`proposal/\[proposalId\].tsx`](https://github.com/w3hc/gov-ui/blob/main/src/pages/proposal/%5BproposalId%5D.tsx#L109)).
+
+Feel free to [contact me](https://github.com/w3hc/gov-ui/tree/main?tab=readme-ov-file#support) if you need anything.
+
 ## Includes
 
 - [Next.js](https://nextjs.org/docs)
@@ -57,7 +65,7 @@ pnpm build
 
 ## Support
 
-You can contact me via [Element](https://matrix.to/#/@julienbrg:matrix.org), [Telegram](https://t.me/julienbrg), [Twitter](https://twitter.com/julienbrg), [Discord](https://discord.gg/uSxzJp3J76), or [LinkedIn](https://www.linkedin.com/in/julienberanger/).
+You can contact me via [Element](https://matrix.to/#/@julienbrg:matrix.org), [Farcaster](https://warpcast.com/julien-), [Telegram](https://t.me/julienbrg), [Twitter](https://twitter.com/julienbrg), [Discord](https://discordapp.com/users/julienbrg), or [LinkedIn](https://www.linkedin.com/in/julienberanger/).
 
 ## Credits
 
