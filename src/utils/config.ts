@@ -1,5 +1,5 @@
 import { ThemingProps } from '@chakra-ui/react'
-import { Chain, optimismSepolia } from 'viem/chains'
+import { optimismSepolia } from 'viem/chains'
 
 export const SITE_NAME = 'Gov UI'
 export const SITE_DESCRIPTION = 'Submit proposals and vote.' // Your description should be between 55 and 200 characters long, with a maximum of 300.
