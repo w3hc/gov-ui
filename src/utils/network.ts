@@ -1,4 +1,4 @@
 export function GetNetworkColor(chain?: string) {
-  if (chain === 'sepolia') return 'blue'
+  if (chain === 'optimism-sepolia') return 'red'
   return 'grey'
 }
