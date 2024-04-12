@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import NextLink from 'next/link'
 import { Link, useColorModeValue } from '@chakra-ui/react'
-import { THEME_COLOR_SCHEME } from 'utils/config'
+import { THEME_COLOR_SCHEME } from '../../utils/config'
 
 interface Props {
   href: string
