@@ -11,8 +11,8 @@ const endpoint = process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL || 'https://sepolia.ga
 
 const sepolia = {
   chainId: 11155111,
-  name: 'Sepolia',
-  chainName: 'Sepolia',
+  name: 'sepolia',
+  chainName: 'sepolia',
   currency: 'ETH',
   explorerUrl: 'https://sepolia.etherscan.io',
   rpcUrl: endpoint,
@@ -37,6 +37,7 @@ const metadata = {
 const ethersConfig = defaultConfig({
   metadata,
   enableEmail: true,
+  defaultChainId: 11155111,
 })
 
 createWeb3Modal({
