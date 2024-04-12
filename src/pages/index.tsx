@@ -7,6 +7,7 @@ import { LinkComponent } from '../components/layout/LinkComponent'
 import govContract from '../utils/Gov.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
+import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 
 export default function Home() {
@@ -57,16 +58,16 @@ export default function Home() {
     }
   }
 
-  const getName = async () => {
-    const ethersProvider = new BrowserProvider(walletProvider as any)
-    const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
-    const name = await gov.name()
-    if (name === '') {
-      return 'no name'
-    } else {
-      return name
-    }
-  }
+  // const getName = async () => {
+  //   const ethersProvider = new BrowserProvider(walletProvider as any)
+  //   const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
+  //   const name = await gov.name()
+  //   if (name === '') {
+  //     return 'no name'
+  //   } else {
+  //     return name
+  //   }
+  // }
 
   const getState = async (proposalId: any) => {
     const ethersProvider = new BrowserProvider(provider as any)
@@ -167,7 +168,7 @@ export default function Home() {
     console.log('init')
     if (provider) {
       makeProposalObject()
-      getName()
+      // getName()
     }
   }, [provider])
 
@@ -228,17 +229,38 @@ export default function Home() {
 
         <br />
         <br />
-        <Button
-          // mt={7}
-          colorScheme="blue"
-          variant="outline"
-          type="submit"
-          onClick={makeProposalObject}
-          isLoading={isLoading}
-          loadingText="Testing..."
-          spinnerPlacement="end">
-          Test
-        </Button>
+        <br />
+        <br />
+        <LinkComponent href="/push">
+          <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            ETH transfer
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/erc20">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            ERC-20 transfer
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/add-member">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            Add a new member
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/ban-member">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            Ban a member
+          </Button>
+          <br />
+        </LinkComponent>
+        <LinkComponent href="/manifesto">
+          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+            Edit the manifesto
+          </Button>
+          <br />
+        </LinkComponent>
       </main>
     </>
   )
