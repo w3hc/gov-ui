@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Heading, Button, Badge, Flex, useToast, Link, Box, Text } from '@chakra-ui/react'
+import { Button, Badge, useToast, Link, Box, Text, Wrap, WrapItem, Center } from '@chakra-ui/react'
 import { useState, useEffect, useCallback } from 'react'
-import { BrowserProvider, Eip1193Provider, parseEther } from 'ethers'
+import { BrowserProvider, parseEther } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
 import { LinkComponent } from '../components/layout/LinkComponent'
 import govContract from '../utils/Gov.json'
@@ -11,7 +11,7 @@ import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 
 export default function Home() {
-  const [initialized, setInitialized] = useState(false)
+  const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [txLink, setTxLink] = useState<string>()
   const [txHash, setTxHash] = useState<string>()
@@ -29,18 +29,18 @@ export default function Home() {
   ])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
-  const [isMember, setIsMember] = useState(false)
+  // const [isMember, setIsMember] = useState(false)
 
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
-  // const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
+  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const provider = walletProvider
   const toast = useToast()
 
   const baseUrl = '/proposal/'
 
   useEffect(() => {
-    console.log('DAO Contract address:', govContract.address)
+    console.log('chainId:', chainId)
   }, [])
 
   const getBal = async () => {
@@ -58,16 +58,16 @@ export default function Home() {
     }
   }
 
-  // const getName = async () => {
-  //   const ethersProvider = new BrowserProvider(walletProvider as any)
-  //   const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
-  //   const name = await gov.name()
-  //   if (name === '') {
-  //     return 'no name'
-  //   } else {
-  //     return name
-  //   }
-  // }
+  const getName = async () => {
+    const ethersProvider = new BrowserProvider(walletProvider as any)
+    const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
+    const name = await gov.name()
+    if (name === '') {
+      return 'no name'
+    } else {
+      return name
+    }
+  }
 
   const getState = async (proposalId: any) => {
     const ethersProvider = new BrowserProvider(provider as any)
@@ -86,91 +86,100 @@ export default function Home() {
     return receipt
   }
 
-  const makeProposalObject = useCallback(async () => {
+  const makeProposalObject = async () => {
     console.log('getProposals start')
     try {
+      if (initialized) {
+        console.log('already initialized')
+        setIsLoading(false)
+        return
+      }
       setIsLoading(true)
       console.log('provider:', provider)
       const ethersProvider = new BrowserProvider(provider as any)
       const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
-      if (!initialized) {
-        if (typeof gov.getProposalCreatedBlocks === 'function') {
-          const bal = (await getBal()) || 1
-          console.log('bal:', bal)
-          if (bal < 0.0000001) {
-            const faucet = await faucetTx()
-            console.log('faucet tx', faucet)
-          }
+      setProposal([])
 
-          const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
-          // console.log('proposals', proposalCreatedBlocks)
-          let proposalRaw = proposal
-          for (let i = 0; i < proposalCreatedBlocks.length; i++) {
-            const proposals = (await gov.queryFilter('ProposalCreated', proposalCreatedBlocks[i])) as any
-            if (proposalCreatedBlocks[1] === proposals[0].args[0]) {
-              setInitialized(true)
-              setIsLoading(false)
-              return
-            }
-            if (proposals.length > 0) {
-              // console.log(Number(proposalCreatedBlocks[i]), proposals[0].args[0])
-              proposalRaw.push(
-                ...[
-                  {
-                    id: String(proposals[0].args[0]),
-                    link: baseUrl + String(proposals[0].args[0]),
-                    title: proposals[0].args[8],
-                    state: Number(await getState(proposals[0].args[0])),
-                  },
-                ]
-              )
-            } else {
-              console.log('\nNo proposals found at block #' + Number(proposalCreatedBlocks[i]))
-            }
+      if (typeof gov.getProposalCreatedBlocks === 'function') {
+        // const bal = (await getBal()) || 1
+        // console.log('bal:', bal)
+        // if (bal < 0.0000001) {
+        //   const faucet = await faucetTx()
+        //   console.log('faucet tx', faucet)
+        // }
+
+        const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
+        console.log('proposalCreatedBlocks', proposalCreatedBlocks)
+        let proposalRaw = proposal
+        for (let i = 0; i < proposalCreatedBlocks.length; i++) {
+          const proposals = (await gov.queryFilter('ProposalCreated', proposalCreatedBlocks[i])) as any
+          if (proposalCreatedBlocks[1] === proposals[0].args[0]) {
+            setIsLoading(false)
+            return
           }
-          setProposal(proposalRaw)
-          console.log('proposal:', proposal)
-          console.log('getProposals executed ✅')
-          setInitialized(true)
-          setIsLoading(false)
-        } else {
-          console.error('getProposalCreatedBlocks method not available on this DAO contract')
-          setIsLoading(false)
-          toast({
-            title: 'Oh no!',
-            description: 'The getProposalCreatedBlocks method is NOT available on this contract',
-            status: 'error',
-            position: 'bottom',
-            variant: 'subtle',
-            duration: 9000,
-            isClosable: true,
-          })
+          if (proposals.length > 0) {
+            // console.log(Number(proposalCreatedBlocks[i]), proposals[0].args[0])
+            proposalRaw.push(
+              ...[
+                {
+                  id: String(proposals[0].args[0]),
+                  link: baseUrl + String(proposals[0].args[0]),
+                  title: proposals[0].args[8],
+                  state: Number(await getState(proposals[0].args[0])),
+                },
+              ]
+            )
+          } else {
+            console.log('\nNo proposals found at block #' + Number(proposalCreatedBlocks[i]))
+          }
         }
-      } else {
+        setProposal(proposalRaw)
+        console.log('proposal:', proposal)
+        console.log('getProposals executed ✅')
+        setInitialized(true)
         setIsLoading(false)
+      } else {
+        console.error('getProposalCreatedBlocks method not available on this DAO contract')
+        setInitialized(true)
+        setIsLoading(false)
+        toast({
+          title: 'Oh no!',
+          description: 'The getProposalCreatedBlocks method is NOT available on this contract',
+          status: 'error',
+          position: 'bottom',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
       }
-    } catch (e) {
+    } catch (error: any) {
       setIsLoading(false)
-      console.error('error:', e)
-      toast({
-        title: 'Woops',
-        description: 'Something went wrong...',
-        status: 'error',
-        position: 'bottom',
-        variant: 'subtle',
-        duration: 9000,
-        isClosable: true,
-      })
+      setInitialized(true)
+      console.error('error:', error)
+      if (!error.message.includes('could not decode result data')) {
+        toast({
+          title: 'Woops',
+          description: 'Something went wrong...',
+          status: 'error',
+          position: 'bottom',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
+      }
     }
-  }, [provider])
+  }
 
   useEffect(() => {
-    console.log('init')
-    if (provider) {
-      makeProposalObject()
-      // getName()
+    console.log('chainId:', chainId)
+    if (customProvider) {
+      console.log('we have a custom provider:', customProvider)
     }
-  }, [provider])
+    if (provider) {
+      console.log('useEffect start')
+      makeProposalObject()
+    }
+  }, [chainId])
 
   function Item(props: any) {
     return (
@@ -199,7 +208,7 @@ export default function Home() {
 
     return (
       <div>
-        {initialized === true ? (
+        {isLoading === false ? (
           filteredProposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
           <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
@@ -224,43 +233,65 @@ export default function Home() {
           </strong>
         </Text>
         <br />
-        <HeadingComponent as="h3">Proposals</HeadingComponent>
-        <List />
+        {isConnected ? (
+          <>
+            <HeadingComponent as="h3">Proposals</HeadingComponent>
+            <List />
 
-        <br />
-        <br />
-        <br />
-        <br />
-        <LinkComponent href="/push">
-          <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            ETH transfer
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/erc20">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            ERC-20 transfer
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/add-member">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            Add a new member
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/ban-member">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            Ban a member
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/manifesto">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            Edit the manifesto
-          </Button>
-          <br />
-        </LinkComponent>
+            <br />
+            <br />
+          </>
+        ) : (
+          <>
+            <br />
+            <br />
+
+            <Text fontSize="xl" color="#8c1c84">
+              <strong>Please login to view all the proposals.</strong>
+            </Text>
+
+            <br />
+            <br />
+          </>
+        )}
+
+        <Wrap>
+          <WrapItem>
+            <LinkComponent href="/erc20">
+              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                ERC-20 transfer
+              </Button>
+            </LinkComponent>
+          </WrapItem>
+          <WrapItem>
+            <LinkComponent href="/erc20">
+              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                ERC-20 transfer
+              </Button>
+            </LinkComponent>
+          </WrapItem>
+          <WrapItem>
+            <LinkComponent href="/add-member">
+              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                Add a new member
+              </Button>
+            </LinkComponent>
+          </WrapItem>
+          <WrapItem>
+            <LinkComponent href="/manifesto">
+              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                Edit the manifesto
+              </Button>
+            </LinkComponent>
+          </WrapItem>
+          <WrapItem>
+            <LinkComponent href="/ban-member">
+              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="red" variant="outline">
+                Ban a member
+              </Button>
+            </LinkComponent>
+          </WrapItem>
+        </Wrap>
       </main>
     </>
   )
