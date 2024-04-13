@@ -19,14 +19,7 @@ export default function Home() {
   const [block, setBlock] = useState(0)
   const [manifesto, setManifesto] = useState('')
   const [manifestoLink, setManifestoLink] = useState('')
-  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([
-    {
-      id: '88888',
-      link: 'http://link.com',
-      title: '88888',
-      state: 88888,
-    },
-  ])
+  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
   // const [isMember, setIsMember] = useState(false)
@@ -59,8 +52,8 @@ export default function Home() {
   }
 
   const getName = async () => {
-    const ethersProvider = new BrowserProvider(walletProvider as any)
-    const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
+    // const ethersProvider = new BrowserProvider(walletProvider as any)
+    const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
     const name = await gov.name()
     if (name === '') {
       return 'no name'
@@ -70,8 +63,8 @@ export default function Home() {
   }
 
   const getState = async (proposalId: any) => {
-    const ethersProvider = new BrowserProvider(provider as any)
-    const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
+    // const ethersProvider = new BrowserProvider(provider as any)
+    const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
     return await gov.state(proposalId)
   }
 
@@ -96,8 +89,8 @@ export default function Home() {
       }
       setIsLoading(true)
       console.log('provider:', provider)
-      const ethersProvider = new BrowserProvider(provider as any)
-      const gov = new ethers.Contract(govContract.address, govContract.abi, ethersProvider)
+      // const ethersProvider = new BrowserProvider(provider as any)
+      const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
       setProposal([])
 
       if (typeof gov.getProposalCreatedBlocks === 'function') {
@@ -112,6 +105,10 @@ export default function Home() {
         console.log('proposalCreatedBlocks', proposalCreatedBlocks)
         let proposalRaw = proposal
         for (let i = 0; i < proposalCreatedBlocks.length; i++) {
+          console.log('in my for loop')
+
+          /////////////////*******//////////////
+
           const proposals = (await gov.queryFilter('ProposalCreated', proposalCreatedBlocks[i])) as any
           if (proposalCreatedBlocks[1] === proposals[0].args[0]) {
             setIsLoading(false)
@@ -119,6 +116,12 @@ export default function Home() {
           }
           if (proposals.length > 0) {
             // console.log(Number(proposalCreatedBlocks[i]), proposals[0].args[0])
+            // console.log('proposalRaw[1]', proposalRaw[1]?.id)
+            // console.log('proposalRaw[2]', proposalRaw[2]?.id)
+            // if (proposalRaw[1]?.id === proposalRaw[2]?.id) {
+            //   console.log('caught')
+            //   return
+            // }
             proposalRaw.push(
               ...[
                 {
@@ -133,8 +136,13 @@ export default function Home() {
             console.log('\nNo proposals found at block #' + Number(proposalCreatedBlocks[i]))
           }
         }
-        setProposal(proposalRaw)
+
+        console.log('proposalRaw:', proposalRaw)
         console.log('proposal:', proposal)
+        // Remove duplicates based on the `id` property
+        const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+        setProposal(uniqueProposals)
+
         console.log('getProposals executed ✅')
         setInitialized(true)
         setIsLoading(false)
@@ -171,15 +179,18 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log('chainId:', chainId)
-    if (customProvider) {
-      console.log('we have a custom provider:', customProvider)
-    }
-    if (provider) {
-      console.log('useEffect start')
+    console.log('useEffect executed')
+    // if (customProvider) {
+    //   console.log('we have a custom provider:', customProvider)
+    // }
+    // if (provider) {
+    //   console.log('useEffect start')
+    //   makeProposalObject()
+    // }
+    if (!initialized) {
       makeProposalObject()
     }
-  }, [chainId])
+  }, [])
 
   function Item(props: any) {
     return (
@@ -203,13 +214,10 @@ export default function Home() {
   }
 
   function List() {
-    // Filter out the element with key 0
-    const filteredProposal = proposal.filter((p, index) => index !== 0)
-
     return (
       <div>
         {isLoading === false ? (
-          filteredProposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
+          proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
           <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
         )}
@@ -233,7 +241,7 @@ export default function Home() {
           </strong>
         </Text>
         <br />
-        {isConnected ? (
+        {initialized ? (
           <>
             <HeadingComponent as="h3">Proposals</HeadingComponent>
             <List />
@@ -243,12 +251,7 @@ export default function Home() {
           </>
         ) : (
           <>
-            <br />
-            <br />
-
-            <Text fontSize="xl" color="#8c1c84">
-              <strong>Please login to view all the proposals.</strong>
-            </Text>
+            <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
 
             <br />
             <br />
