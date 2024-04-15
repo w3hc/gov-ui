@@ -109,10 +109,10 @@ export default function Home() {
         console.log('yo')
         console.log('proposals[0].args[0]', proposals[0].args[0])
 
-        setTitle(proposals[0].args[8])
+        setTitle(proposals[i].args[8].substring(proposals[i].args[8] == '#' ? 2 : 2, proposals[i].args[8].indexOf('\n')))
         setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n')))
         setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
-        setCalldatas(proposals[0].args[5])
+        setCalldatas(proposals[i].args[5])
         await getState(proposalId)
         await getCurrentVotes(proposalId)
         setTargets(proposals[i].args[2][0])
