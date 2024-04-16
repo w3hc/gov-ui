@@ -335,7 +335,7 @@ export default function Home() {
         toast({
           title: 'Error',
           position: 'bottom',
-          description: e?.data.message,
+          description: e,
           status: 'info',
           variant: 'subtle',
           duration: 3000,
@@ -380,8 +380,6 @@ export default function Home() {
         )}
         {state === 'Succeeded' && (
           <>
-            <br />
-
             <Button
               size="xs"
               mt={5}
