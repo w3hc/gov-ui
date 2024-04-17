@@ -1,7 +1,7 @@
 import React from 'react'
 import { Flex, useColorModeValue, Spacer, Heading, MenuList, MenuItem, Menu, MenuButton, IconButton } from '@chakra-ui/react'
 import { AddIcon, ExternalLinkIcon, RepeatIcon, EditIcon, HamburgerIcon, ArrowBackIcon } from '@chakra-ui/icons'
-import { FaEthereum } from 'react-icons/fa'
+import { FaEthereum, FaEuroSign, FaHome } from 'react-icons/fa'
 import { GiReceiveMoney } from 'react-icons/gi'
 
 import { LinkComponent } from './LinkComponent'
@@ -20,13 +20,18 @@ export function Header(props: Props) {
         <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="outline" />
         <MenuList>
           <LinkComponent href="/">
-            <MenuItem fontSize="xl" icon={<FaEthereum />}>
+            <MenuItem fontSize="xl" icon={<FaHome />}>
               Home
             </MenuItem>
           </LinkComponent>
-          <LinkComponent href="/transfer-eth">
-            <MenuItem fontSize="xl" icon={<GiReceiveMoney />}>
-              Transfer ETH
+          <LinkComponent href="/request-eth">
+            <MenuItem fontSize="xl" icon={<FaEthereum />}>
+              Request ETH
+            </MenuItem>
+          </LinkComponent>
+          <LinkComponent href="/request-eur">
+            <MenuItem fontSize="xl" icon={<FaEuroSign />}>
+              Request EUR
             </MenuItem>
           </LinkComponent>
         </MenuList>

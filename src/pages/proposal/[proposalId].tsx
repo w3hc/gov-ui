@@ -24,7 +24,7 @@ const CustomLink = chakra('a', {
   },
 })
 
-export default function Home() {
+export default function Proposal() {
   const router = useRouter()
 
   const proposalId = router.query.proposalId
@@ -312,12 +312,13 @@ export default function Home() {
 
   const execute = async () => {
     console.log('executing...')
-    let signer
-    if (provider) {
-      setIsLoading(true)
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      try {
+    setIsLoading(true)
+    try {
+      let signer
+      if (provider) {
+        const ethersProvider = new BrowserProvider(provider)
+        signer = await ethersProvider.getSigner()
+
         const targetsFormatted = [targets]
         const valuesFormatted = [values]
         const calldatasFormatted = [calldatas]
@@ -328,20 +329,19 @@ export default function Home() {
         await executeCall.wait(1)
         getState(proposalId)
         setIsLoading(false)
-      } catch (e: any) {
-        console.log('execute error:', e)
-        setIsLoading(false)
-
-        toast({
-          title: 'Error',
-          position: 'bottom',
-          description: e,
-          status: 'info',
-          variant: 'subtle',
-          duration: 3000,
-          isClosable: true,
-        })
       }
+    } catch (e: any) {
+      console.log('execute error:', e)
+      setIsLoading(false)
+      toast({
+        title: 'Nasty Error',
+        position: 'bottom',
+        description: "This proposal can't be executed (and will never be).",
+        status: 'error',
+        variant: 'subtle',
+        duration: 3000,
+        isClosable: true,
+      })
     }
   }
   return initialized ? (

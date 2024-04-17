@@ -9,8 +9,9 @@ import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
+import { ERC20_CONTRACT_ADRESS } from '../../utils/config'
 
-export default function TransferEth() {
+export default function RequestEur() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [amount, setAmount] = useState('0')
   const [title, setTitle] = useState('')
@@ -18,6 +19,7 @@ export default function TransferEth() {
   const [description, setDescription] = useState('')
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
+  const [targets, setTargets] = useState(ERC20_CONTRACT_ADRESS)
 
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
@@ -134,7 +136,7 @@ export default function TransferEth() {
       <Head />
 
       <main>
-        <HeadingComponent as="h2">Transfer ETH</HeadingComponent>
+        <HeadingComponent as="h2">Request EUR</HeadingComponent>
         <br />
 
         <FormControl>
@@ -150,23 +152,27 @@ export default function TransferEth() {
           <br />
           <br />
 
-          <FormLabel>Amount (in ETH)</FormLabel>
+          <FormLabel>Amount (in EUR)</FormLabel>
           <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
-          <FormHelperText>How much ETH are you asking for?</FormHelperText>
+          <FormHelperText>How much EUR are you asking for?</FormHelperText>
           <br />
           <br />
 
-          <FormLabel>Target address</FormLabel>
+          <FormLabel>ERC-20 token contract address</FormLabel>
+          <Input value={targets} onChange={(e) => setTargets(e.target.value)} placeholder={targets} />
+          <FormHelperText>Which token you you like to transfer from the DAO to the beneficiary?</FormHelperText>
+          <br />
+          <br />
+
+          <FormLabel>Beneficiary</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
           <FormHelperText>Who should receive the money?</FormHelperText>
           <br />
-          <br />
-
           {/* <FormLabel>Banner image</FormLabel>
           <FormHelperText>
             Recommended format: <strong>1500x500</strong> (jpeg or png)
           </FormHelperText> */}
-          {/* <br /> */}
+          <br />
           {/* <input
             className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             id="file_input"
@@ -178,7 +184,7 @@ export default function TransferEth() {
           <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
           {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
           {/* <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText> */}
-          {/* <br /> */}
+          <br />
           {!isLoading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
               Push
