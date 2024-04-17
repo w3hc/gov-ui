@@ -1,8 +1,9 @@
 import React from 'react'
-import { Flex, useColorModeValue, Spacer, Heading } from '@chakra-ui/react'
+import { Flex, useColorModeValue, Spacer, Heading, MenuList, MenuItem, Menu, MenuButton, IconButton } from '@chakra-ui/react'
+import { AddIcon, ExternalLinkIcon, RepeatIcon, EditIcon, HamburgerIcon, ArrowBackIcon } from '@chakra-ui/icons'
+
 import { LinkComponent } from './LinkComponent'
 import { ThemeSwitcher } from './ThemeSwitcher'
-import { SITE_NAME } from '../../utils/config'
 
 interface Props {
   className?: string
@@ -13,11 +14,27 @@ export function Header(props: Props) {
 
   return (
     <Flex as="header" className={className} bg={useColorModeValue('gray.100', 'gray.900')} px={4} py={5} mb={8} alignItems="center">
-      <LinkComponent href="/">
-        <Heading as="h1" size="md">
-          {SITE_NAME}
-        </Heading>
-      </LinkComponent>
+      <Menu>
+        <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="outline" />
+        <MenuList>
+          <LinkComponent href="/">
+            <MenuItem icon={<ArrowBackIcon />}>Home</MenuItem>
+          </LinkComponent>
+          <LinkComponent href="/transfer-eth">
+            <MenuItem icon={<AddIcon />}>Submit a proposal</MenuItem>
+          </LinkComponent>
+
+          {/* <MenuItem icon={<ExternalLinkIcon />} command="⌘N">
+            New Window
+          </MenuItem>
+          <MenuItem icon={<RepeatIcon />} command="⌘⇧N">
+            Open Closed Tab
+          </MenuItem>
+          <MenuItem icon={<EditIcon />} command="⌘O">
+            Open File...
+          </MenuItem> */}
+        </MenuList>
+      </Menu>
 
       <Spacer />
 

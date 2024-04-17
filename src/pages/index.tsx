@@ -122,12 +122,19 @@ export default function Home() {
             //   console.log('caught')
             //   return
             // }
+            /*
+
+                    proposals[i].args?.description.substring(
+                    proposals[i].args?.description == '#' ? 2 : 2,
+                    proposals[i].args?.description.indexOf('\n')
+
+            */
             proposalRaw.push(
               ...[
                 {
                   id: String(proposals[0].args[0]),
                   link: baseUrl + String(proposals[0].args[0]),
-                  title: proposals[0].args[8],
+                  title: proposals[0].args[8].substring(proposals[0].args[8] == '#' ? 2 : 2, proposals[0].args[8].indexOf('\n')),
                   state: Number(await getState(proposals[0].args[0])),
                 },
               ]
