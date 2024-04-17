@@ -34,11 +34,11 @@ export function Header(props: Props) {
             </MenuItem>
           </LinkComponent>
 
-          {/* <LinkComponent href="/delegate">
+          <LinkComponent href="/delegate">
             <MenuItem fontSize="xl" icon={<GrValidate />}>
               Delegate
             </MenuItem>
-          </LinkComponent> */}
+          </LinkComponent>
           <LinkComponent href="/request-eth">
             <MenuItem fontSize="xl" icon={<FaEthereum />}>
               Request ETH
