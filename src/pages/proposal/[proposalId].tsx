@@ -209,7 +209,7 @@ export default function Proposal() {
         toast({
           title: 'Voted!',
           position: 'bottom',
-          description: 'Thank you for voting this proposal.',
+          description: 'Thank you for voting for this proposal.',
           status: 'success',
           variant: 'subtle',
           duration: 5000,
@@ -275,7 +275,7 @@ export default function Proposal() {
         toast({
           title: 'Voted!',
           position: 'bottom',
-          description: 'Thank you for voting this proposal.',
+          description: 'Thank you for voting against this proposal.',
           status: 'success',
           variant: 'subtle',
           duration: 5000,

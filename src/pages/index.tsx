@@ -15,7 +15,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [txLink, setTxLink] = useState<string>()
   const [txHash, setTxHash] = useState<string>()
-  const [name, setName] = useState<string>('')
+  const [name, setName] = useState<string>('Test DAO')
   const [block, setBlock] = useState(0)
   const [manifesto, setManifesto] = useState('')
   const [manifestoLink, setManifestoLink] = useState('')
@@ -235,7 +235,27 @@ export default function Home() {
   return (
     <>
       <main>
+        <Box borderRadius="lg" overflow="hidden">
+          <Image priority width="2000" height="2000" alt="dao-image" src="/huangshan.jpeg" />
+        </Box>
+        <Text fontSize={9}>
+          <i>
+            Photo:{' '}
+            <LinkComponent href="https://unsplash.com/photos/a-view-of-a-mountain-range-from-the-top-of-a-hill-pZDcvou8bRw">
+              Ruslan Kaptsan
+            </LinkComponent>
+          </i>
+        </Text>
+        <br />
+        <HeadingComponent as="h3">{name}</HeadingComponent>
+        <Text>The purpose of this DAO is to test Gov. </Text>
+        <br />
         <Text>
+          Using Gov, adding a new member typically requires a community vote, but in this version, you can become a member to try out features like
+          submitting a proposal, delegating your voting power to someone, and voting.
+        </Text>
+        <br />
+        <Text fontSize={12}>
           DAO contract address:{' '}
           <strong>
             <a
@@ -247,9 +267,16 @@ export default function Home() {
             </a>
           </strong>
         </Text>
-        <br />
+        <LinkComponent href="/join">
+          <Button mt={3} rightIcon={<AddIcon />} colorScheme="green" variant="outline" size="sm">
+            Join
+          </Button>
+        </LinkComponent>
+
         {initialized ? (
           <>
+            <br />
+            <br />
             <HeadingComponent as="h3">Proposals</HeadingComponent>
             <List />
 
@@ -268,35 +295,35 @@ export default function Home() {
         <Wrap>
           <WrapItem>
             <LinkComponent href="/erc20">
-              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
                 ERC-20 transfer
               </Button>
             </LinkComponent>
           </WrapItem>
           <WrapItem>
             <LinkComponent href="/erc20">
-              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
                 ERC-20 transfer
               </Button>
             </LinkComponent>
           </WrapItem>
           <WrapItem>
             <LinkComponent href="/add-member">
-              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
                 Add a new member
               </Button>
             </LinkComponent>
           </WrapItem>
           <WrapItem>
             <LinkComponent href="/manifesto">
-              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+              <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
                 Edit the manifesto
               </Button>
             </LinkComponent>
           </WrapItem>
           <WrapItem>
             <LinkComponent href="/ban-member">
-              <Button mt={5} mr={5} rightIcon={<AddIcon />} colorScheme="red" variant="outline">
+              <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="red" variant="outline">
                 Ban a member
               </Button>
             </LinkComponent>
