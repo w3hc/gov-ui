@@ -1,6 +1,8 @@
 import React from 'react'
 import { Flex, useColorModeValue, Spacer, Heading, MenuList, MenuItem, Menu, MenuButton, IconButton } from '@chakra-ui/react'
 import { AddIcon, ExternalLinkIcon, RepeatIcon, EditIcon, HamburgerIcon, ArrowBackIcon } from '@chakra-ui/icons'
+import { FaEthereum } from 'react-icons/fa'
+import { GiReceiveMoney } from 'react-icons/gi'
 
 import { LinkComponent } from './LinkComponent'
 import { ThemeSwitcher } from './ThemeSwitcher'
@@ -18,21 +20,15 @@ export function Header(props: Props) {
         <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="outline" />
         <MenuList>
           <LinkComponent href="/">
-            <MenuItem icon={<ArrowBackIcon />}>Home</MenuItem>
+            <MenuItem fontSize="xl" icon={<FaEthereum />}>
+              Home
+            </MenuItem>
           </LinkComponent>
           <LinkComponent href="/transfer-eth">
-            <MenuItem icon={<AddIcon />}>Submit a proposal</MenuItem>
+            <MenuItem fontSize="xl" icon={<GiReceiveMoney />}>
+              Transfer ETH
+            </MenuItem>
           </LinkComponent>
-
-          {/* <MenuItem icon={<ExternalLinkIcon />} command="⌘N">
-            New Window
-          </MenuItem>
-          <MenuItem icon={<RepeatIcon />} command="⌘⇧N">
-            Open Closed Tab
-          </MenuItem>
-          <MenuItem icon={<EditIcon />} command="⌘O">
-            Open File...
-          </MenuItem> */}
         </MenuList>
       </Menu>
 
