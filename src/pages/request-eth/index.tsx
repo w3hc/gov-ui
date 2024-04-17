@@ -13,9 +13,9 @@ import { useRouter } from 'next/router'
 export default function RequestEth() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState('Transfer 0.00001 ETH')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [description, setDescription] = useState('')
+  const [description, setDescription] = useState("Let's transfer 0.00001 ETH for this and that resaon!")
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
 

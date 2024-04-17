@@ -168,7 +168,7 @@ export default function Join() {
               Join
             </Button>
           ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit">
+            <Button isLoading loadingText="Joining..." mt={4} colorScheme="blue" variant="outline" type="submit">
               Join
             </Button>
           )}

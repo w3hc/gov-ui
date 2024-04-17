@@ -13,10 +13,10 @@ import { ERC20_CONTRACT_ADRESS } from '../../utils/config'
 
 export default function RequestEur() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('')
+  const [amount, setAmount] = useState('42')
+  const [title, setTitle] = useState('Transfer 42 EUR to Alice')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [description, setDescription] = useState('')
+  const [description, setDescription] = useState("Let's transfer 42 EUR to Alice for this and that reason.")
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
   const [targets, setTargets] = useState(ERC20_CONTRACT_ADRESS)

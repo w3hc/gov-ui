@@ -34,11 +34,11 @@ export function Header(props: Props) {
             </MenuItem>
           </LinkComponent>
 
-          <LinkComponent href="/delegate">
+          {/* <LinkComponent href="/delegate">
             <MenuItem fontSize="xl" icon={<GrValidate />}>
               Delegate
             </MenuItem>
-          </LinkComponent>
+          </LinkComponent> */}
           <LinkComponent href="/request-eth">
             <MenuItem fontSize="xl" icon={<FaEthereum />}>
               Request ETH
@@ -49,21 +49,21 @@ export function Header(props: Props) {
               Request EUR
             </MenuItem>
           </LinkComponent>
-          <LinkComponent href="/manifesto">
+          {/* <LinkComponent href="/manifesto">
             <MenuItem fontSize="xl" icon={<FaFeather />}>
               Edit manifesto
             </MenuItem>
-          </LinkComponent>
+          </LinkComponent> */}
           <LinkComponent href="/add-member">
             <MenuItem fontSize="xl" icon={<IoEnterOutline />}>
               Add a member
             </MenuItem>
           </LinkComponent>
-          <LinkComponent href="/ban-member">
+          {/* <LinkComponent href="/ban-member">
             <MenuItem fontSize="xl" icon={<IoExitOutline />}>
               Ban a member
             </MenuItem>
-          </LinkComponent>
+          </LinkComponent> */}
         </MenuList>
       </Menu>
 

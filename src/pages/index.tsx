@@ -109,11 +109,17 @@ export default function Home() {
 
           /////////////////*******//////////////
 
+          console.log('one')
+
           const proposals = (await gov.queryFilter('ProposalCreated', proposalCreatedBlocks[i])) as any
-          if (proposalCreatedBlocks[1] === proposals[0].args[0]) {
-            setIsLoading(false)
-            return
-          }
+          console.log('two')
+
+          // if (proposalCreatedBlocks[1] === proposals[0].args[0]) {
+          //   setIsLoading(false)
+          //   return
+          // }
+          console.log('three')
+
           if (proposals.length > 0) {
             // console.log(Number(proposalCreatedBlocks[i]), proposals[0].args[0])
             // console.log('proposalRaw[1]', proposalRaw[1]?.id)
@@ -129,6 +135,7 @@ export default function Home() {
                     proposals[i].args?.description.indexOf('\n')
 
             */
+            console.log('start')
             proposalRaw.push(
               ...[
                 {
@@ -139,6 +146,7 @@ export default function Home() {
                 },
               ]
             )
+            console.log('end')
           } else {
             console.log('\nNo proposals found at block #' + Number(proposalCreatedBlocks[i]))
           }
