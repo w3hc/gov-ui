@@ -30,7 +30,67 @@ export default function Join() {
   const toast = useToast()
   const router = useRouter()
 
+  const handleBalance = async () => {
+    console.log('handleBalance start')
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      const balance = await ethersProvider.getBalance(String(address))
+      const ethBalance = Number(ethers.formatEther(balance))
+      if (ethBalance < 0.0001) {
+        console.log('waiting for some ETH...')
+        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+        const specialSigner = new ethers.Wallet(pKey, customProvider)
+        const tx = await specialSigner.sendTransaction({
+          to: address,
+          value: ethers.parseEther('0.0001'),
+        })
+        const receipt = await tx.wait(1)
+        console.log('faucet tx:', receipt)
+      }
+    }
+  }
+
+  const handleMembership = async () => {
+    console.log('handleMembership start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nft.balanceOf(String(address)))
+      console.log('nftBal:', nftBal)
+      if (nftBal === 0) {
+        console.log('joining...')
+        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+        const safeMint = await nft.safeMint(address, uri)
+        const receipt = await safeMint.wait(1)
+        console.log('safeMint:', receipt)
+      }
+    }
+  }
+
+  const handleDelegation = async () => {
+    console.log('handleDelegation start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+      if (delegateTo != address) {
+        console.log('delegating...')
+        const delegate = await nft.delegate(address)
+        const delegateTx = await delegate.wait(1)
+        console.log('delegate tx:', delegateTx)
+      }
+    }
+  }
+
   const join = async (e: any) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    // Check if user is logged in
     if (!isConnected) {
       toast({
         title: 'Disconnected',
@@ -41,109 +101,49 @@ export default function Join() {
         duration: 2000,
         isClosable: true,
       })
+      setIsLoading(false)
       return
     }
-    e.preventDefault()
-    setIsLoading(true)
-    let signer
 
     try {
-      console.log('minting...')
-
+      console.log('submitting proposal...')
+      let signer
       if (provider) {
+        // make signer
         const ethersProvider = new BrowserProvider(provider)
         signer = await ethersProvider.getSigner()
-        console.log('signer:', signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
-        const nftBal = await nft.balanceOf(String(address))
-        console.log('nftBal:', nftBal)
-        if (nftBal > 0) {
-          toast({
-            title: 'NFT detected',
-            position: 'bottom',
-            description: 'You already own a membership NFT.',
-            status: 'info',
-            variant: 'subtle',
-            duration: 2000,
-            isClosable: true,
-          })
-          setShowButtons(true)
-          setIsLoading(false)
-          return
-        }
+        // If user has not enough ETH, we send some
+        await handleBalance()
 
-        await delegateToMyself()
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
 
-        // call propose
-        console.log('caller address:', await signer?.getAddress())
+        // Check if user is delegated
+        await handleDelegation()
 
-        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-
-        const safeMint = await nft.safeMint(beneficiary, uri)
-        const safeMintReceipt: any = await safeMint.wait(1)
-
-        console.log('safeMintReceipt:', safeMintReceipt)
-        // const targetURL = '/proposal/' + proposalId
-        // router.push(targetURL)
         setShowButtons(true)
+        setIsLoading(false)
+      } else {
+        console.log('provider unset')
+        setIsLoading(false)
+        return
       }
       setIsLoading(false)
+      console.log('proposal submitted')
     } catch (e) {
+      console.log('error submitting proposal:', e)
+      toast({
+        title: "Can't propose",
+        position: 'bottom',
+        description: "You can't submit this kind of proposal.",
+        status: 'info',
+        variant: 'subtle',
+        duration: 9000,
+        isClosable: true,
+      })
       setIsLoading(false)
-      console.log('delegate error:', e)
     }
-  }
-
-  //   const handleFileChange = (event: any) => {
-  //     console.log('handleFileChange:', event)
-  //     const file = event
-  //     setName(file.name)
-  //     const reader = new FileReader()
-  //     reader.readAsDataURL(file)
-  //     reader.onload = (event) => {
-  //       const plaintext = String(event.target?.result)
-  //       setPlaintext(plaintext)
-  //     }
-  //     reader.onerror = (error) => {
-  //       console.log('File Input Error: ', error)
-  //     }
-  //   }
-
-  const hasDelegated = async () => {
-    console.log('hasDelegated start')
-    let signer: any
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const delegateTo = await signer?.getAddress()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegate = await nft.delegates(await signer?.getAddress())
-      if (delegate === delegateTo) {
-        return true
-      }
-      console.log('hasDelegated done')
-    }
-  }
-
-  const delegateToMyself = async () => {
-    console.log('delegateToMyself start')
-
-    if ((await hasDelegated()) === true) {
-      return true
-    } else {
-      let signer: any
-      if (provider) {
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        const delegateTo = await signer?.getAddress()
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-        const delegate = await nft.delegate(delegateTo)
-        await delegate.wait(1)
-        return true
-      }
-    }
-    console.log('delegateToMyself done')
   }
 
   return (
@@ -151,43 +151,39 @@ export default function Join() {
       <Head />
 
       <main>
+        <HeadingComponent as="h2">Become a member</HeadingComponent>
+        <br />
+
         <Box borderRadius="lg" overflow="hidden">
           <Image priority width="2000" height="2000" alt="dao-image" src="/warning-sign.gif" />
         </Box>
         <br />
-        <HeadingComponent as="h2">Become a member</HeadingComponent>
 
-        <FormControl>
-          <FormLabel>New member address</FormLabel>
-          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
-          <br />
-
-          {!isLoading ? (
-            <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={join}>
-              Join
-            </Button>
-          ) : (
-            <Button isLoading loadingText="Joining..." mt={4} colorScheme="blue" variant="outline" type="submit">
-              Join
-            </Button>
-          )}
-        </FormControl>
+        {!isLoading ? (
+          <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={join}>
+            Join
+          </Button>
+        ) : (
+          <Button isLoading loadingText="Joining..." mt={4} colorScheme="blue" variant="outline" type="submit">
+            Join
+          </Button>
+        )}
+        <br />
         <br />
         {showButtons && (
           <>
             <Wrap>
               <WrapItem>
-                <LinkComponent href="/erc20">
+                <LinkComponent href="/request-eth">
                   <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-                    ERC-20 transfer
+                    Request ETH
                   </Button>
                 </LinkComponent>
               </WrapItem>
               <WrapItem>
-                <LinkComponent href="/erc20">
+                <LinkComponent href="/request-eur">
                   <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-                    ERC-20 transfer
+                    Request EUR
                   </Button>
                 </LinkComponent>
               </WrapItem>
@@ -215,6 +211,11 @@ export default function Join() {
             </Wrap>
           </>
         )}
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   )

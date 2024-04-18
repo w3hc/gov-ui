@@ -4,47 +4,34 @@ import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
 import { Head } from '../../components/layout/Head'
-import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
-import { useRouter } from 'next/router'
 
 export default function Delegate() {
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
+
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('Transfer 0.00001 ETH')
-  const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [description, setDescription] = useState("Let's transfer 0.00001 ETH for this and that resaon!")
-  const [name, setName] = useState(null)
-  const [plaintext, setPlaintext] = useState('')
   const [loadingDelegateToSelf, setLoadingDelegateToSelf] = useState(false)
   const [currentDelegate, setCurrentDelegate] = useState(false)
   const [isDelegatedToSelf, setIsDelegatedToSelf] = useState(true)
-  const [targetAddress, setTargetAddress] = useState('')
-  const [initialized, setInitialized] = useState(true)
+  const [targetAddress, setTargetAddress] = useState(String(address))
 
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const provider = walletProvider
   const toast = useToast()
-  const router = useRouter()
 
   const checkCurrentDelegate = async () => {
-    let signer: any
+    console.log('checkCurrentDelegate')
+
     if (provider) {
       const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      console.log('signer:', signer)
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegate = await nft.delegate(address)
-      console.log('delegate:', delegate)
-      const receipt = await delegate.wait(1)
-
-      setCurrentDelegate(delegate)
-      console.log('delegate:', delegate)
-      if (delegate === address) {
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, ethersProvider)
+      const getDelegate = await nft.delegates(address)
+      setCurrentDelegate(getDelegate)
+      console.log('getDelegate:', getDelegate)
+      if (getDelegate === address) {
         setIsDelegatedToSelf(true)
       } else {
         setIsDelegatedToSelf(false)
@@ -52,156 +39,190 @@ export default function Delegate() {
     }
   }
 
-  const delegate = async () => {
-    setIsLoading(true)
-    try {
-      if (!targetAddress) {
-        toast({
-          title: 'Missing target address',
-          position: 'bottom',
-          description: 'Please select the wallet address of the member you want to delegate your vote to.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 5000,
-          isClosable: true,
-        })
-        return
-      }
-      let signer: any
-      if (provider) {
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        console.log('signer:', signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-        const delegate = await nft.delegate(targetAddress)
-        console.log('delegate:', delegate)
-        const receipt = await delegate.wait(1)
-        console.log('receipt:', receipt)
-        checkCurrentDelegate()
-        toast({
-          title: 'Done!',
-          position: 'bottom',
-          description: 'Thank you for delegating your vote.',
-          status: 'success',
-          variant: 'subtle',
-          duration: 3000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-      }
-    } catch (e: any) {
-      console.log(e)
-      setIsLoading(false)
-
-      toast({
-        title: 'Error',
-        position: 'bottom',
-        description: e,
-        status: 'info',
-        variant: 'subtle',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
-
-  const delegateToSelf = async () => {
-    setLoadingDelegateToSelf(true)
-    let signer: any
-
-    try {
-      if (provider) {
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        console.log('signer:', signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-
-        const delegate = await nft.delegate(address)
-        console.log('delegate:', delegate)
-        setLoadingDelegateToSelf(false)
-        toast({
-          title: 'Done!',
-          position: 'bottom',
-          description: 'Thank you for delegating your vote to yourself.',
-          status: 'success',
-          variant: 'subtle',
-          duration: 3000,
-          isClosable: true,
-        })
-      }
-    } catch (e: any) {
-      console.log(e)
-      setLoadingDelegateToSelf(false)
-
-      toast({
-        title: 'Error',
-        position: 'bottom',
-        description: e,
-        status: 'info',
-        variant: 'subtle',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
-
   useEffect(() => {
     const init = async () => {
       checkCurrentDelegate()
-      setInitialized(true)
     }
     init()
-  }, [])
+  }, [loadingDelegateToSelf, isLoading])
 
-  //   const handleFileChange = (event: any) => {
-  //     console.log('handleFileChange:', event)
-  //     const file = event
-  //     setName(file.name)
-  //     const reader = new FileReader()
-  //     reader.readAsDataURL(file)
-  //     reader.onload = (event) => {
-  //       const plaintext = String(event.target?.result)
-  //       setPlaintext(plaintext)
-  //     }
-  //     reader.onerror = (error) => {
-  //       console.log('File Input Error: ', error)
-  //     }
-  //   }
-
-  const hasDelegated = async () => {
-    console.log('hasDelegated start')
-    let signer: any
+  const handleBalance = async () => {
+    console.log('handleBalance start')
     if (provider) {
       const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const delegateTo = await signer?.getAddress()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegate = await nft.delegates(await signer?.getAddress())
-      if (delegate === delegateTo) {
-        return true
+      const balance = await ethersProvider.getBalance(String(address))
+      const ethBalance = Number(ethers.formatEther(balance))
+      if (ethBalance < 0.0001) {
+        console.log('waiting for some ETH...')
+        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+        const specialSigner = new ethers.Wallet(pKey, customProvider)
+        const tx = await specialSigner.sendTransaction({
+          to: address,
+          value: ethers.parseEther('0.0001'),
+        })
+        const receipt = await tx.wait(1)
+        console.log('faucet tx:', receipt)
       }
-      console.log('hasDelegated done')
     }
   }
 
-  const delegateToMyself = async () => {
-    console.log('delegateToMyself start')
-
-    if ((await hasDelegated()) === true) {
-      return true
-    } else {
-      let signer: any
-      if (provider) {
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        const delegateTo = await signer?.getAddress()
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-        const delegate = await nft.delegate(delegateTo)
-        await delegate.wait(1)
-        return true
+  const handleMembership = async () => {
+    console.log('handleMembership start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nft.balanceOf(String(address)))
+      console.log('nftBal:', nftBal)
+      if (nftBal === 0) {
+        console.log('joining...')
+        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+        const safeMint = await nft.safeMint(address, uri)
+        const receipt = await safeMint.wait(1)
+        console.log('safeMint:', receipt)
       }
     }
-    console.log('delegateToMyself done')
+  }
+
+  const handleDelegation = async () => {
+    console.log('handleDelegation start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+      if (delegateTo != address) {
+        setLoadingDelegateToSelf(true)
+        console.log('delegating...')
+        const delegate = await nft.delegate(address)
+        const delegateTx = await delegate.wait(1)
+        console.log('delegate tx:', delegateTx)
+        setLoadingDelegateToSelf(true)
+      }
+    }
+  }
+
+  const delegate = async (e: any) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    // Check if user is logged in
+    if (!isConnected) {
+      toast({
+        title: 'Disconnected',
+        position: 'bottom',
+        description: 'Please connect your wallet first.',
+        status: 'info',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      console.log('submitting proposal...')
+      let signer
+      if (provider) {
+        // make signer
+        const ethersProvider = new BrowserProvider(provider)
+        signer = await ethersProvider.getSigner()
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
+
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
+
+        // Check if user is delegated
+        console.log('delegating...')
+        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+        const delegate = await nft.delegate(targetAddress)
+        const delegateTx = await delegate.wait(1)
+        console.log('delegate tx:', delegateTx)
+
+        setIsLoading(false)
+      } else {
+        console.log('provider unset')
+        setIsLoading(false)
+        return
+      }
+      setIsLoading(false)
+      console.log('proposal submitted')
+    } catch (e) {
+      console.log('error submitting proposal:', e)
+      toast({
+        title: "Can't propose",
+        position: 'bottom',
+        description: "You can't submit this kind of proposal.",
+        status: 'info',
+        variant: 'subtle',
+        duration: 9000,
+        isClosable: true,
+      })
+      setIsLoading(false)
+    }
+  }
+
+  const delegateToSelf = async (e: any) => {
+    e.preventDefault()
+
+    // Check if user is logged in
+    if (!isConnected) {
+      toast({
+        title: 'Disconnected',
+        position: 'bottom',
+        description: 'Please connect your wallet first.',
+        status: 'info',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+      setLoadingDelegateToSelf(false)
+      return
+    }
+
+    try {
+      console.log('submitting proposal...')
+      let signer
+      if (provider) {
+        // make signer
+        const ethersProvider = new BrowserProvider(provider)
+        signer = await ethersProvider.getSigner()
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
+
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
+
+        // Check if user is delegated
+        await handleDelegation()
+
+        setLoadingDelegateToSelf(false)
+      } else {
+        console.log('provider unset')
+        setLoadingDelegateToSelf(false)
+        return
+      }
+      setLoadingDelegateToSelf(false)
+      console.log('proposal submitted')
+    } catch (e) {
+      console.log('error submitting proposal:', e)
+      toast({
+        title: "Can't propose",
+        position: 'bottom',
+        description: "You can't submit this kind of proposal.",
+        status: 'info',
+        variant: 'subtle',
+        duration: 9000,
+        isClosable: true,
+      })
+      setLoadingDelegateToSelf(false)
+    }
   }
 
   return (
@@ -218,7 +239,8 @@ export default function Delegate() {
           </Text>
         ) : (
           <Text>
-            You&apos;ve delegated to <strong>{currentDelegate ? currentDelegate : ''}</strong>
+            You&apos;ve delegated to <strong>{currentDelegate ? currentDelegate : ''}</strong>. If you feel like you may not be willing to vote on a
+            regular basis, you can delegate to someone who will vote on your behalf. You can take it back anytime you want.
           </Text>
         )}
         <br />
@@ -234,7 +256,7 @@ export default function Delegate() {
                 Delegate
               </Button>
             ) : (
-              <Button isLoading loadingText="Delegating..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={delegate}>
+              <Button isLoading loadingText="Delegating..." mt={4} colorScheme="blue" variant="outline" type="submit">
                 Delegate
               </Button>
             )}
@@ -243,20 +265,17 @@ export default function Delegate() {
                 Delegate to myself
               </Button>
             ) : (
-              <Button
-                ml={5}
-                isLoading
-                loadingText="Delegating to myself..."
-                mt={4}
-                colorScheme="blue"
-                variant="outline"
-                type="submit"
-                onClick={delegateToSelf}>
+              <Button ml={5} isLoading loadingText="Delegating to myself..." mt={4} colorScheme="blue" variant="outline" type="submit">
                 Delegate to myself
               </Button>
             )}
           </Flex>
         </FormControl>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   )

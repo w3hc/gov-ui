@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textarea } from '@chakra-ui/react'
-import { useState } from 'react'
+import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Text, Textarea } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
 import { Head } from '../../components/layout/Head'
@@ -9,18 +9,16 @@ import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
-import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../../utils/erc20'
+import ReactMarkdown from 'react-markdown'
 
-export default function AddMember() {
+export default function Manifesto() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
 
+  const [manifesto, setManifesto] = useState('')
+  const [newManifesto, setNewManifesto] = useState('https://bafkreifnnreoxxgkhty7v2w3qwiie6cfxpv3vcco2xldekfvbiem3nm6dm.ipfs.w3s.link/ ')
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('XYZ as a new member')
-  const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('XYZ as a new member')
-  const [name, setName] = useState(null)
-  const [plaintext, setPlaintext] = useState('')
+  const [title, setTitle] = useState('Manifesto update')
+  const [description, setDescription] = useState("Let's update the manifesto.")
 
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
@@ -28,8 +26,28 @@ export default function AddMember() {
   const toast = useToast()
   const router = useRouter()
 
+  useEffect(() => {
+    getManifesto()
+  }, [])
+
+  const getManifesto = async () => {
+    let signer: any
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      console.log('signer:', signer)
+      const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+      const manifesto = await gov.manifesto()
+      console.log('manifesto CID:', manifesto)
+      const manifestoContent = await (await fetch(manifesto)).text()
+      console.log('manifestoContent:', manifestoContent.substring(manifestoContent.indexOf('\n')))
+      setManifesto(manifestoContent)
+    }
+  }
+
   const handleBalance = async () => {
     console.log('handleBalance start')
+    let signer
     if (provider) {
       const ethersProvider = new BrowserProvider(provider)
       const balance = await ethersProvider.getBalance(String(address))
@@ -120,16 +138,12 @@ export default function AddMember() {
         // Check if user is delegated
         await handleDelegation()
 
-        // Load contracts
+        // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
         // Prep call
-        const safeMint = nft.interface.encodeFunctionData('safeMint', [
-          beneficiary,
-          'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
-        ])
-        const call = [safeMint.toString()]
+        const setManifesto = gov.interface.encodeFunctionData('setManifesto', [newManifesto])
+        const call = [setManifesto.toString()]
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
         const targets = [nftContract.address]
@@ -175,11 +189,21 @@ export default function AddMember() {
       <Head />
 
       <main>
-        <HeadingComponent as="h2">Add a member</HeadingComponent>
+        <br />
+        <HeadingComponent as="h2">Manifesto</HeadingComponent>
+        <br />
+        <Text>
+          <ReactMarkdown>{manifesto}</ReactMarkdown>
+        </Text>
+        <br />
+        <br />
+        <br />
+
+        <HeadingComponent as="h3">Update the manifesto</HeadingComponent>
         <br />
 
         <FormControl>
-          <FormLabel>Name</FormLabel>
+          <FormLabel>Name of the proposal</FormLabel>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
@@ -190,9 +214,9 @@ export default function AddMember() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-          <FormLabel>New member address</FormLabel>
-          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
+          <FormLabel>New Manifesto URL</FormLabel>
+          <Input value={newManifesto} onChange={(e) => setNewManifesto(e.target.value)} placeholder={newManifesto} />
+          <FormHelperText>The URL of the newly edited manifesto</FormHelperText>
           <br />
 
           {!isLoading ? (
@@ -205,6 +229,12 @@ export default function AddMember() {
             </Button>
           )}
         </FormControl>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   )

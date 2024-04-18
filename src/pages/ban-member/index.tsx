@@ -9,18 +9,14 @@ import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
-import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../../utils/erc20'
 
-export default function AddMember() {
+export default function BanMember() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('XYZ as a new member')
-  const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('XYZ as a new member')
-  const [name, setName] = useState(null)
-  const [plaintext, setPlaintext] = useState('')
+  const [title, setTitle] = useState('Ban XYZ')
+  const [beneficiary, setBeneficiary] = useState(String('0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'))
+  const [description, setDescription] = useState('XYZ should be banned because of this and that.')
 
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
@@ -125,11 +121,9 @@ export default function AddMember() {
         const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
         // Prep call
-        const safeMint = nft.interface.encodeFunctionData('safeMint', [
-          beneficiary,
-          'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
-        ])
-        const call = [safeMint.toString()]
+        const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
+        const govBurn = nft.interface.encodeFunctionData('govBurn', [tokenId])
+        const call = [govBurn.toString()]
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
         const targets = [nftContract.address]
@@ -175,11 +169,11 @@ export default function AddMember() {
       <Head />
 
       <main>
-        <HeadingComponent as="h2">Add a member</HeadingComponent>
+        <HeadingComponent as="h2">Ban a member</HeadingComponent>
         <br />
 
         <FormControl>
-          <FormLabel>Name</FormLabel>
+          <FormLabel>Proposal title</FormLabel>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
@@ -190,9 +184,9 @@ export default function AddMember() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-          <FormLabel>New member address</FormLabel>
+          <FormLabel>Member address</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
+          <FormHelperText>The wallet address of member you want to ban.</FormHelperText>
           <br />
 
           {!isLoading ? (

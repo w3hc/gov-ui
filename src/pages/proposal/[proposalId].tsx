@@ -78,12 +78,11 @@ export default function Proposal() {
   }
 
   const getProposalData = async () => {
-    // setIsLoading(true)
-
+    setIsLoading(true)
     try {
       if (initialized) {
         console.log('already initialized')
-        // setIsLoading(false)
+        setIsLoading(false)
         return
       }
 
@@ -125,11 +124,11 @@ export default function Proposal() {
       }
 
       setInitialized(true)
-      // setIsLoading(true)
+      setIsLoading(false)
     } catch (error) {
       console.error('error:', error)
       setInitialized(true)
-      // setIsLoading(true)
+      setIsLoading(false)
     }
   }
 
@@ -140,22 +139,22 @@ export default function Proposal() {
     }
   }, [proposalId])
 
-  const hasDelegated = async () => {
-    console.log('hasDelegated start')
-    let signer: any
-    if (provider) {
-      // setIsLoading(true)
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const delegateTo = await signer?.getAddress()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegate = await nft.delegates(await signer?.getAddress())
-      if (delegate === delegateTo) {
-        return true
-      }
-      console.log('hasDelegated done')
-    }
-  }
+  // const hasDelegated = async () => {
+  //   console.log('hasDelegated start')
+  //   let signer: any
+  //   if (provider) {
+  //     // setIsLoading(true)
+  //     const ethersProvider = new BrowserProvider(provider)
+  //     signer = await ethersProvider.getSigner()
+  //     const delegateTo = await signer?.getAddress()
+  //     const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+  //     const delegate = await nft.delegates(await signer?.getAddress())
+  //     if (delegate === delegateTo) {
+  //       return true
+  //     }
+  //     console.log('hasDelegated done')
+  //   }
+  // }
 
   const delegateToMyself = async () => {
     console.log('delegateToMyself start')
@@ -179,30 +178,65 @@ export default function Proposal() {
     console.log('delegateToMyself done')
   }
 
+  const isMember = () => {
+    return false
+  }
+
+  const hasDelegated = () => {
+    return false
+  }
+
   const voteYes = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
 
-    let signer
+    setIsLoading(true)
+
+    // Check if user is logged in
+    if (!isConnected) {
+      toast({
+        title: 'Disconnected',
+        position: 'bottom',
+        description: 'Please connect your wallet first.',
+        status: 'info',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+      return
+    }
 
     try {
-      delegateToMyself()
-    } catch (e) {
-      console.log('delegate error:', e)
-    }
-    if (provider) {
-      // setIsLoading(true)
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
+      console.log('voting yes...')
+      let signer
+      if (provider) {
+        // make signer
+        const ethersProvider = new BrowserProvider(provider)
+        signer = await ethersProvider.getSigner()
 
-      console.log('signer:', signer)
+        // Check if user has enough ETH on his wallet
+        const bal = 1
+        if (bal < 1) {
+          // TODO: faucet action
+        }
 
-      try {
-        console.log('voting Yes...')
+        // Check if user is member
+        if ((await isMember()) === false) {
+          // TODO: make a member / join
+          console.log('delegation done')
+        }
 
+        // Check if user is delegated
+        if ((await hasDelegated()) === false) {
+          // TODO: delegate to self
+          console.log('delegation done')
+        }
+
+        // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        console.log('gov:', gov)
-        await gov.castVote(router.query.proposalId, 1)
+
+        // Call castVote
+        await gov.castVote(String(router.query.proposalId), 1)
         await getCurrentVotes(router.query.proposalId)
         setForVotes(forVotes + 1)
         await getState(proposalId)
@@ -215,32 +249,32 @@ export default function Proposal() {
           duration: 5000,
           isClosable: true,
         })
-      } catch (e: any) {
-        console.log('vote error:', e)
+      } else {
+        console.log('no provider')
         toast({
-          title: 'Error',
+          title: 'Disconnected',
           position: 'bottom',
-          description: "You can't vote twice",
-          status: 'error',
+          description: 'Please connect your wallet first.',
+          status: 'info',
           variant: 'subtle',
-          duration: 3000,
+          duration: 2000,
           isClosable: true,
         })
+        setIsLoading(false)
+        return
       }
-      // setIsLoading(false)
-    } else {
-      console.log('no provider')
+    } catch (e: any) {
+      console.log('vote error:', e)
       toast({
-        title: 'Disconnected',
+        title: 'Error',
         position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
+        description: 'Something went wrong. Sorry for that!',
+        status: 'error',
         variant: 'subtle',
-        duration: 2000,
+        duration: 3000,
         isClosable: true,
       })
-      // setIsLoading(false)
-      return
+      setIsLoading(false)
     }
   }
 
@@ -312,22 +346,44 @@ export default function Proposal() {
 
   const execute = async () => {
     console.log('executing...')
+    console.log('provider:', provider)
+
     setIsLoading(true)
     try {
+      console.log('try')
+
       let signer
+      console.log('provider:', provider)
       if (provider) {
         const ethersProvider = new BrowserProvider(provider)
         signer = await ethersProvider.getSigner()
+        console.log('signer', signer)
 
         const targetsFormatted = [targets]
         const valuesFormatted = [values]
         const calldatasFormatted = [calldatas]
         const hashedDescription = ethers.id(rawDescription)
 
+        console.log('targetsFormatted', targetsFormatted)
+        console.log('valuesFormatted', valuesFormatted)
+        console.log('calldatasFormatted', calldatasFormatted)
+        console.log('hashedDescription', hashedDescription)
+
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
         const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
         await executeCall.wait(1)
         getState(proposalId)
+        setIsLoading(false)
+      } else {
+        toast({
+          title: 'Not connected yet',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 5000,
+          isClosable: true,
+        })
         setIsLoading(false)
       }
     } catch (e: any) {
@@ -378,6 +434,19 @@ export default function Proposal() {
             </Button>
           </Box>
         )}
+        {state === 'Pending' && (
+          <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
+            <HeadingComponent as="h4">Are you in favor of this proposal?</HeadingComponent>
+            <br />
+            <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
+              Yes
+            </Button>
+            <Button colorScheme="red" variant="outline" onClick={voteNo}>
+              No
+            </Button>
+          </Box>
+        )}
+
         {state === 'Succeeded' && (
           <>
             <Button
@@ -393,6 +462,11 @@ export default function Proposal() {
             </Button>
           </>
         )}
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   ) : (
