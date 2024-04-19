@@ -34,6 +34,7 @@ export default function RequestEur() {
       const ethersProvider = new BrowserProvider(provider)
       const balance = await ethersProvider.getBalance(String(address))
       const ethBalance = Number(ethers.formatEther(balance))
+      console.log('ethBalance:', ethBalance)
       if (ethBalance < 0.0005) {
         console.log('waiting for some ETH...')
         const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
@@ -136,9 +137,15 @@ export default function RequestEur() {
 
         // Load contracts
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const erc20 = new ethers.Contract(ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI.result, signer)
+        const erc20 = new ethers.Contract(ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI, signer)
 
         // Prep call
+        console.log('beneficiary:', beneficiary)
+        console.log('title:', title)
+        console.log('targetContract:', targetContract)
+        console.log('ethers.parseEther(amount):', ethers.parseEther(amount))
+        console.log('ethers.parseEther(String(amount)):', ethers.parseEther(String(amount)))
+
         const erc20Transfer = erc20.interface.encodeFunctionData('transfer', [beneficiary, ethers.parseEther(String(amount))])
         const call = [erc20Transfer.toString()]
         const calldatas = [call.toString()]

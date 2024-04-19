@@ -94,7 +94,7 @@ export default function Proposal() {
       console.log('proposalCreatedBlocks', proposalCreatedBlocks)
 
       let block
-      for (let i = 30; i < proposalCreatedBlocks.length; i++) {
+      for (let i = 40; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
         console.log('proposalCreatedBlocks[i]:', proposalCreatedBlocks[i])
@@ -156,34 +156,96 @@ export default function Proposal() {
   //   }
   // }
 
-  const delegateToMyself = async () => {
-    console.log('delegateToMyself start')
+  // const delegateToMyself = async () => {
+  //   console.log('delegateToMyself start')
 
-    if ((await hasDelegated()) === true) {
-      return true
-    } else {
-      let signer: any
-      if (provider) {
-        // setIsLoading(true)
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        const delegateTo = await signer?.getAddress()
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-        const delegate = await nft.delegate(delegateTo)
-        const receipt = await delegate.wait(1)
-        // setIsLoading(false)
-        return true
+  //   if ((await hasDelegated()) === true) {
+  //     return true
+  //   } else {
+  //     let signer: any
+  //     if (provider) {
+  //       // setIsLoading(true)
+  //       const ethersProvider = new BrowserProvider(provider)
+  //       signer = await ethersProvider.getSigner()
+  //       const delegateTo = await signer?.getAddress()
+  //       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+  //       const delegate = await nft.delegate(delegateTo)
+  //       const receipt = await delegate.wait(1)
+  //       // setIsLoading(false)
+  //       return true
+  //     }
+  //   }
+  //   console.log('delegateToMyself done')
+  // }
+
+  const handleBalance = async () => {
+    console.log('handleBalance start')
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      const balance = await ethersProvider.getBalance(String(address))
+      const ethBalance = Number(ethers.formatEther(balance))
+      if (ethBalance < 0.0005) {
+        console.log('waiting for some ETH...')
+        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+        const specialSigner = new ethers.Wallet(pKey, customProvider)
+        const tx = await specialSigner.sendTransaction({
+          to: address,
+          value: ethers.parseEther('0.0005'),
+        })
+        const receipt = await tx.wait(1)
+        console.log('faucet tx:', receipt)
       }
     }
-    console.log('delegateToMyself done')
   }
 
-  const isMember = () => {
-    return false
+  const handleMembership = async () => {
+    console.log('handleMembership start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nft.balanceOf(String(address)))
+      console.log('nftBal:', nftBal)
+      if (nftBal === 0) {
+        try {
+          console.log('joining...')
+          const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+          const safeMint = await nft.safeMint(address, uri)
+          const receipt = await safeMint.wait(1)
+          console.log('safeMint:', receipt)
+        } catch (e) {
+          console.log('error during mint:', e)
+          toast({
+            title: 'Error during mint',
+            position: 'bottom',
+            description: "There was an error in the minting process. Could be because you don't have enough ETH on your wallet.",
+            status: 'info',
+            variant: 'subtle',
+            duration: 9000,
+            isClosable: true,
+          })
+          setIsLoading(false)
+        }
+      }
+    }
   }
 
-  const hasDelegated = () => {
-    return false
+  const handleDelegation = async () => {
+    console.log('handleDelegation start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+      if (delegateTo != address) {
+        console.log('delegating...')
+        const delegate = await nft.delegate(address)
+        const delegateTx = await delegate.wait(1)
+        console.log('delegate tx:', delegateTx)
+      }
+    }
   }
 
   const voteYes = async () => {
@@ -214,23 +276,14 @@ export default function Proposal() {
         const ethersProvider = new BrowserProvider(provider)
         signer = await ethersProvider.getSigner()
 
-        // Check if user has enough ETH on his wallet
-        const bal = 1
-        if (bal < 1) {
-          // TODO: faucet action
-        }
+        // If user has not enough ETH, we send some
+        await handleBalance()
 
-        // Check if user is member
-        if ((await isMember()) === false) {
-          // TODO: make a member / join
-          console.log('delegation done')
-        }
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
 
         // Check if user is delegated
-        if ((await hasDelegated()) === false) {
-          // TODO: delegate to self
-          console.log('delegation done')
-        }
+        await handleDelegation()
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -268,8 +321,8 @@ export default function Proposal() {
       toast({
         title: 'Error',
         position: 'bottom',
-        description: 'Something went wrong. Sorry for that!',
-        status: 'error',
+        description: "You can't vote twice.",
+        status: 'info',
         variant: 'subtle',
         duration: 3000,
         isClosable: true,
@@ -279,57 +332,13 @@ export default function Proposal() {
   }
 
   const voteNo = async () => {
-    console.log('voting No...')
-
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
 
-    let signer
-    if (provider) {
-      // setIsLoading(true)
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
+    setIsLoading(true)
 
-      console.log('signer:', signer)
-
-      try {
-        // const delegate = await delegateToMyself()
-      } catch (e) {
-        console.log('delegate error:', e)
-      }
-      try {
-        console.log('voting Yes...')
-
-        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        console.log('gov:', gov)
-        await gov.castVote(router.query.proposalId, 0)
-        await getCurrentVotes(router.query.proposalId)
-        setAgainstVotes(againstVotes + 1)
-        await getState(proposalId)
-        toast({
-          title: 'Voted!',
-          position: 'bottom',
-          description: 'Thank you for voting against this proposal.',
-          status: 'success',
-          variant: 'subtle',
-          duration: 5000,
-          isClosable: true,
-        })
-      } catch (e: any) {
-        console.log('vote error:', e)
-        toast({
-          title: 'Error',
-          position: 'bottom',
-          description: "You can't vote twice",
-          status: 'error',
-          variant: 'subtle',
-          duration: 3000,
-          isClosable: true,
-        })
-      }
-      // setIsLoading(false)
-    } else {
-      console.log('no provider')
+    // Check if user is logged in
+    if (!isConnected) {
       toast({
         title: 'Disconnected',
         position: 'bottom',
@@ -339,8 +348,69 @@ export default function Proposal() {
         duration: 2000,
         isClosable: true,
       })
-      // setIsLoading(false)
       return
+    }
+
+    try {
+      console.log('voting no...')
+      let signer
+      if (provider) {
+        // make signer
+        const ethersProvider = new BrowserProvider(provider)
+        signer = await ethersProvider.getSigner()
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
+
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
+
+        // Check if user is delegated
+        await handleDelegation()
+
+        // Load contract
+        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+
+        // Call castVote
+        await gov.castVote(String(router.query.proposalId), 0)
+        await getCurrentVotes(router.query.proposalId)
+        setForVotes(againstVotes + 1)
+        await getState(proposalId)
+        toast({
+          title: 'Voted!',
+          position: 'bottom',
+          description: 'Thank you for voting for this proposal.',
+          status: 'success',
+          variant: 'subtle',
+          duration: 5000,
+          isClosable: true,
+        })
+      } else {
+        console.log('no provider')
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
+    } catch (e: any) {
+      console.log('vote error:', e)
+      toast({
+        title: 'Error',
+        position: 'bottom',
+        description: "You can't vote twice.",
+        status: 'info',
+        variant: 'subtle',
+        duration: 3000,
+        isClosable: true,
+      })
+      setIsLoading(false)
     }
   }
 

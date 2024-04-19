@@ -160,7 +160,7 @@ export default function Manifesto() {
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
         const targets = [nftContract.address]
-        const values = [ethers.parseEther('0')]
+        const values = [0]
 
         // Call propose
         console.log('caller address:', await signer?.getAddress())
