@@ -94,7 +94,7 @@ export default function Proposal() {
       console.log('proposalCreatedBlocks', proposalCreatedBlocks)
 
       let block
-      for (let i = 0; i < proposalCreatedBlocks.length; i++) {
+      for (let i = 30; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
         console.log('proposalCreatedBlocks[i]:', proposalCreatedBlocks[i])
