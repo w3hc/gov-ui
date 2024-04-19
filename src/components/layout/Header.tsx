@@ -30,7 +30,7 @@ export function Header(props: Props) {
           </LinkComponent>
           <LinkComponent href="/join">
             <MenuItem fontSize="xl" icon={<LuUserPlus />}>
-              Become a member
+              Join as a member
             </MenuItem>
           </LinkComponent>
 

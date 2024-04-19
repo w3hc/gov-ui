@@ -13,10 +13,10 @@ import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../../utils/erc20'
 
 export default function RequestEur() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('42')
-  const [title, setTitle] = useState('Transfer 42 EUR to Alice')
+  const [amount, setAmount] = useState('1000')
+  const [title, setTitle] = useState('Transfer 1000 € to Alice')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [description, setDescription] = useState("Let's transfer 42 EUR to Alice for this and that reason.")
+  const [description, setDescription] = useState("Let's transfer 1000 € to Alice for this and that reason.")
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
   const [targetContract, setTargetContract] = useState(ERC20_CONTRACT_ADDRESS)
@@ -30,18 +30,17 @@ export default function RequestEur() {
 
   const handleBalance = async () => {
     console.log('handleBalance start')
-    let signer
     if (provider) {
       const ethersProvider = new BrowserProvider(provider)
       const balance = await ethersProvider.getBalance(String(address))
       const ethBalance = Number(ethers.formatEther(balance))
-      if (ethBalance < 0.0001) {
+      if (ethBalance < 0.0005) {
         console.log('waiting for some ETH...')
         const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
         const specialSigner = new ethers.Wallet(pKey, customProvider)
         const tx = await specialSigner.sendTransaction({
           to: address,
-          value: ethers.parseEther('0.0001'),
+          value: ethers.parseEther('0.0005'),
         })
         const receipt = await tx.wait(1)
         console.log('faucet tx:', receipt)
@@ -59,11 +58,25 @@ export default function RequestEur() {
       const nftBal = Number(await nft.balanceOf(String(address)))
       console.log('nftBal:', nftBal)
       if (nftBal === 0) {
-        console.log('joining...')
-        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-        const safeMint = await nft.safeMint(address, uri)
-        const receipt = await safeMint.wait(1)
-        console.log('safeMint:', receipt)
+        try {
+          console.log('joining...')
+          const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+          const safeMint = await nft.safeMint(address, uri)
+          const receipt = await safeMint.wait(1)
+          console.log('safeMint:', receipt)
+        } catch (e) {
+          console.log('error during mint:', e)
+          toast({
+            title: 'Error during mint',
+            position: 'bottom',
+            description: "There was an error in the minting process. Could be because you don't have enough ETH on your wallet.",
+            status: 'info',
+            variant: 'subtle',
+            duration: 9000,
+            isClosable: true,
+          })
+          setIsLoading(false)
+        }
       }
     }
   }
