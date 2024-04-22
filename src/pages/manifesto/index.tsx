@@ -159,7 +159,7 @@ export default function Manifesto() {
         const call = [setManifesto.toString()]
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
-        const targets = [nftContract.address]
+        const targets = [govContract.address]
         const values = [0]
 
         // Call propose

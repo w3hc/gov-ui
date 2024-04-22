@@ -16,12 +16,6 @@ export default function Join() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('XYZ as a new member')
-  const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('XYZ as a new member')
-  const [name, setName] = useState(null)
-  const [plaintext, setPlaintext] = useState('')
   const [showButtons, setShowButtons] = useState(false)
 
   const { walletProvider } = useWeb3ModalProvider()

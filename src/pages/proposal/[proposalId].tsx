@@ -94,7 +94,7 @@ export default function Proposal() {
       console.log('proposalCreatedBlocks', proposalCreatedBlocks)
 
       let block
-      for (let i = 46; i < proposalCreatedBlocks.length; i++) {
+      for (let i = 52; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
         console.log('proposalCreatedBlocks[i]:', proposalCreatedBlocks[i])
@@ -138,45 +138,6 @@ export default function Proposal() {
       getProposalData()
     }
   }, [proposalId])
-
-  // const hasDelegated = async () => {
-  //   console.log('hasDelegated start')
-  //   let signer: any
-  //   if (provider) {
-  //     // setIsLoading(true)
-  //     const ethersProvider = new BrowserProvider(provider)
-  //     signer = await ethersProvider.getSigner()
-  //     const delegateTo = await signer?.getAddress()
-  //     const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-  //     const delegate = await nft.delegates(await signer?.getAddress())
-  //     if (delegate === delegateTo) {
-  //       return true
-  //     }
-  //     console.log('hasDelegated done')
-  //   }
-  // }
-
-  // const delegateToMyself = async () => {
-  //   console.log('delegateToMyself start')
-
-  //   if ((await hasDelegated()) === true) {
-  //     return true
-  //   } else {
-  //     let signer: any
-  //     if (provider) {
-  //       // setIsLoading(true)
-  //       const ethersProvider = new BrowserProvider(provider)
-  //       signer = await ethersProvider.getSigner()
-  //       const delegateTo = await signer?.getAddress()
-  //       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-  //       const delegate = await nft.delegate(delegateTo)
-  //       const receipt = await delegate.wait(1)
-  //       // setIsLoading(false)
-  //       return true
-  //     }
-  //   }
-  //   console.log('delegateToMyself done')
-  // }
 
   const handleBalance = async () => {
     console.log('handleBalance start')

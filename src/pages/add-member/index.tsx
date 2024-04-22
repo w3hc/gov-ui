@@ -16,9 +16,9 @@ export default function AddMember() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('XYZ as a new member')
+  const [title, setTitle] = useState('Welcome Francis as a new member')
   const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('XYZ as a new member')
+  const [description, setDescription] = useState('New member because of this and that...')
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
 
@@ -140,14 +140,14 @@ export default function AddMember() {
 
         // Prep call
         const safeMint = nft.interface.encodeFunctionData('safeMint', [
-          beneficiary,
+          String(beneficiary),
           'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
         ])
         const call = [safeMint.toString()]
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
         const targets = [nftContract.address]
-        const values = [ethers.parseEther('0')]
+        const values = [0]
 
         // Call propose
         console.log('caller address:', await signer?.getAddress())
