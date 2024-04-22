@@ -23,19 +23,14 @@ export default function Delegate() {
   const toast = useToast()
 
   const checkCurrentDelegate = async () => {
-    console.log('checkCurrentDelegate')
-
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, ethersProvider)
-      const getDelegate = await nft.delegates(address)
-      setCurrentDelegate(getDelegate)
-      console.log('getDelegate:', getDelegate)
-      if (getDelegate === address) {
-        setIsDelegatedToSelf(true)
-      } else {
-        setIsDelegatedToSelf(false)
-      }
+    const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
+    const getDelegate = await nft.delegates(address)
+    console.log('getDelegate:', getDelegate)
+    setCurrentDelegate(getDelegate)
+    if (getDelegate === address) {
+      setIsDelegatedToSelf(true)
+    } else {
+      setIsDelegatedToSelf(false)
     }
   }
 
