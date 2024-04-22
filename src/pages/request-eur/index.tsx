@@ -17,8 +17,6 @@ export default function RequestEur() {
   const [title, setTitle] = useState('Transfer 1000 € to Alice')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
   const [description, setDescription] = useState("Let's transfer 1000 € to Alice for this and that reason.")
-  const [name, setName] = useState(null)
-  const [plaintext, setPlaintext] = useState('')
   const [targetContract, setTargetContract] = useState(ERC20_CONTRACT_ADDRESS)
 
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -143,7 +141,7 @@ export default function RequestEur() {
         console.log('beneficiary:', beneficiary)
         console.log('title:', title)
         console.log('targetContract:', targetContract)
-        console.log('ethers.parseEther(amount):', ethers.parseEther(amount))
+        // console.log('ethers.parseEther(amount):', ethers.parseEther(amount))
         console.log('ethers.parseEther(String(amount)):', ethers.parseEther(String(amount)))
 
         const erc20Transfer = erc20.interface.encodeFunctionData('transfer', [beneficiary, ethers.parseEther(String(amount))])
@@ -151,7 +149,7 @@ export default function RequestEur() {
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
         const targets = [targetContract]
-        const values = [ethers.parseEther(amount)]
+        const values = [0]
 
         // Call propose
         console.log('caller address:', await signer?.getAddress())
@@ -210,7 +208,7 @@ export default function RequestEur() {
           <br />
 
           <FormLabel>Amount (in EUR)</FormLabel>
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={amount} />
           <FormHelperText>How much EUR are you asking for?</FormHelperText>
           <br />
           <br />
@@ -225,30 +223,14 @@ export default function RequestEur() {
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
           <FormHelperText>Who should receive the money?</FormHelperText>
           <br />
-          {/* <FormLabel>Banner image</FormLabel>
-          <FormHelperText>
-            Recommended format: <strong>1500x500</strong> (jpeg or png)
-          </FormHelperText> */}
-          <br />
-          {/* <input
-            className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-            id="file_input"
-            type="file"
-            style={{ minWidth: '400px', width: '100%' }}
-            onChange={(e: any) => handleFileChange(e.target.files[0])}
-          /> */}
-          {/* <LockIcon w={3} h={3} color="red.500" />{' '}
-          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
-          {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
-          {/* <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText> */}
           <br />
           {!isLoading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Push
+              Submit
             </Button>
           ) : (
-            <Button isLoading loadingText="Pushing..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Push
+            <Button isLoading loadingText="Submitting..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
+              Submitting
             </Button>
           )}
         </FormControl>
