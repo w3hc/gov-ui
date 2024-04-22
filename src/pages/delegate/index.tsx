@@ -135,7 +135,7 @@ export default function Delegate() {
     }
 
     try {
-      console.log('submitting proposal...')
+      console.log('delegating...')
       let signer
       if (provider) {
         // make signer
@@ -164,11 +164,11 @@ export default function Delegate() {
       setIsLoading(false)
       console.log('delegated')
     } catch (e) {
-      console.log('error submitting proposal:', e)
+      console.log('error delegating:', e)
       toast({
-        title: "Can't propose",
+        title: "Can't delegate",
         position: 'bottom',
-        description: "You can't submit this kind of proposal.",
+        description: "Can't delegate.",
         status: 'info',
         variant: 'subtle',
         duration: 9000,
@@ -197,7 +197,7 @@ export default function Delegate() {
     }
 
     try {
-      console.log('submitting proposal...')
+      console.log('delegating...')
       let signer
       if (provider) {
         // make signer
@@ -220,13 +220,13 @@ export default function Delegate() {
         return
       }
       setLoadingDelegateToSelf(false)
-      console.log('proposal submitted')
+      console.log('delegated')
     } catch (e) {
-      console.log('error submitting proposal:', e)
+      console.log('error delegating:', e)
       toast({
         title: "Can't propose",
         position: 'bottom',
-        description: "You can't submit this kind of proposal.",
+        description: "You can't delegate.",
         status: 'info',
         variant: 'subtle',
         duration: 9000,
