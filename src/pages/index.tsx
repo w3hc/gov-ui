@@ -78,7 +78,7 @@ export default function Home() {
         const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
         console.log('proposalCreatedBlocks', proposalCreatedBlocks)
         let proposalRaw = proposal
-        for (let i = 40; i < proposalCreatedBlocks.length; i++) {
+        for (let i = 46; i < proposalCreatedBlocks.length; i++) {
           console.log('iteration:', i)
           /////////////////*******//////////////
 
