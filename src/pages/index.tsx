@@ -45,18 +45,7 @@ export default function Home() {
     }
   }
 
-  // const getName = async () => {
-  //   const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
-  //   const name = await gov.name()
-  //   if (name === '') {
-  //     return 'no name'
-  //   } else {
-  //     return name
-  //   }
-  // }
-
   const getState = async (proposalId: any) => {
-    // const ethersProvider = new BrowserProvider(provider as any)
     const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
     return await gov.state(proposalId)
   }
@@ -78,7 +67,7 @@ export default function Home() {
         const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
         console.log('proposalCreatedBlocks', proposalCreatedBlocks)
         let proposalRaw = proposal
-        for (let i = 52; i < proposalCreatedBlocks.length; i++) {
+        for (let i = 56; i < proposalCreatedBlocks.length; i++) {
           console.log('iteration:', i)
           /////////////////*******//////////////
 

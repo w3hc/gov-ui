@@ -12,10 +12,10 @@ import { useRouter } from 'next/router'
 
 export default function RequestEth() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0.00001')
-  const [title, setTitle] = useState('Request 0.00001 ETH')
+  const [amount, setAmount] = useState('0.000000001')
+  const [title, setTitle] = useState('Transfer 1 ETH to Alice')
   const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
-  const [description, setDescription] = useState("Let's request 0.00001 ETH for this and that reason!")
+  const [description, setDescription] = useState("Let's transfer 1 ETH to Alice for this and that reason!")
   const [name, setName] = useState(null)
   const [plaintext, setPlaintext] = useState('')
   const [isMember, setIsMember] = useState(false)
