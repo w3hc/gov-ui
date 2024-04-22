@@ -10,14 +10,17 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
 
-export default function AddMember() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
-
+export default function RequestEth() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [title, setTitle] = useState('Welcome Francis as a new member')
-  const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('New member because of this and that...')
+  const [amount, setAmount] = useState('0.000000001')
+  const [title, setTitle] = useState('Transfer 1 ETH to Alice')
+  const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
+  const [description, setDescription] = useState("Let's transfer 1 ETH to Alice for this and that reason!")
+  const [name, setName] = useState(null)
+  const [plaintext, setPlaintext] = useState('')
+  const [isMember, setIsMember] = useState(false)
 
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const provider = walletProvider
@@ -131,20 +134,15 @@ export default function AddMember() {
         // Check if user is delegated
         await handleDelegation()
 
-        // Load contracts
+        // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
         // Prep call
-        const safeMint = nft.interface.encodeFunctionData('safeMint', [
-          String(beneficiary),
-          'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
-        ])
-        const call = [safeMint.toString()]
+        const call = '0x'
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
-        const targets = [nftContract.address]
-        const values = [0]
+        const targets = [beneficiary]
+        const values = [ethers.parseEther(amount)]
 
         // If user has not enough ETH, we send some
         await handleBalance()
@@ -170,7 +168,7 @@ export default function AddMember() {
       setIsLoading(false)
       console.log('proposal submitted')
     } catch (e) {
-      console.log('error submitting proposal:', e)
+      console.log('delegate error:', e)
       toast({
         title: "Can't propose",
         position: 'bottom',
@@ -189,12 +187,12 @@ export default function AddMember() {
       <Head />
 
       <main>
-        <HeadingComponent as="h2">Add a member</HeadingComponent>
+        <HeadingComponent as="h2">Request ETH</HeadingComponent>
         <br />
 
         <FormControl>
           <FormLabel>Name</FormLabel>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="" />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
           <br />
@@ -204,21 +202,51 @@ export default function AddMember() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-          <FormLabel>New member address</FormLabel>
-          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
+
+          <FormLabel>Amount (in ETH)</FormLabel>
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
+          <FormHelperText>How much ETH are you asking for?</FormHelperText>
+          <br />
           <br />
 
+          <FormLabel>Target address</FormLabel>
+          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
+          <FormHelperText>Who should receive the money?</FormHelperText>
+          <br />
+          <br />
+
+          {/* <FormLabel>Banner image</FormLabel>
+          <FormHelperText>
+            Recommended format: <strong>1500x500</strong> (jpeg or png)
+          </FormHelperText> */}
+          {/* <br /> */}
+          {/* <input
+            className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+            id="file_input"
+            type="file"
+            style={{ minWidth: '400px', width: '100%' }}
+            onChange={(e: any) => handleFileChange(e.target.files[0])}
+          /> */}
+          {/* <LockIcon w={3} h={3} color="red.500" />{' '}
+          <Checkbox onChange={(e) => setEncryptionRequested(e.target.checked)}>Only accessible to DAO members</Checkbox> */}
+          {/* <FormHelperText>Your file will be stored encrypted on IPFS (Filecoin)</FormHelperText> */}
+          {/* <FormHelperText>Your file will be stored on IPFS (Filecoin), so the image you&lsquo;re sharing will be public.</FormHelperText> */}
+          {/* <br /> */}
           {!isLoading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
+              Push
             </Button>
           ) : (
             <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
+              Push
             </Button>
           )}
         </FormControl>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   )

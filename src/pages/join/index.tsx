@@ -1,22 +1,22 @@
 import * as React from 'react'
-import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textarea } from '@chakra-ui/react'
+import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textarea, Box, Wrap, WrapItem } from '@chakra-ui/react'
 import { useState } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
 import { Head } from '../../components/layout/Head'
-import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
+import { LinkComponent } from '../../components/layout/LinkComponent'
+import { AddIcon } from '@chakra-ui/icons'
+import Image from 'next/image'
 
-export default function AddMember() {
+export default function Join() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [title, setTitle] = useState('Welcome Francis as a new member')
-  const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('New member because of this and that...')
+  const [showButtons, setShowButtons] = useState(false)
 
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
@@ -98,7 +98,7 @@ export default function AddMember() {
     }
   }
 
-  const submitProposal = async (e: any) => {
+  const join = async (e: any) => {
     e.preventDefault()
     setIsLoading(true)
 
@@ -131,37 +131,8 @@ export default function AddMember() {
         // Check if user is delegated
         await handleDelegation()
 
-        // Load contracts
-        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-
-        // Prep call
-        const safeMint = nft.interface.encodeFunctionData('safeMint', [
-          String(beneficiary),
-          'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
-        ])
-        const call = [safeMint.toString()]
-        const calldatas = [call.toString()]
-        const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
-        const targets = [nftContract.address]
-        const values = [0]
-
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
-        // Call propose
-        console.log('caller address:', await signer?.getAddress())
-        const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
-        console.log('Propose triggered')
-        const proposeReceipt: any = await propose.wait(1)
-        console.log('propose tx', proposeReceipt)
-        const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
-        const proposalId: any = proposals[0].args?.proposalId.toString()
-        console.log('proposalId:', proposalId)
-
-        // Redirect to proposal page
-        const targetURL = '/proposal/' + proposalId
-        router.push(targetURL)
+        setShowButtons(true)
+        setIsLoading(false)
       } else {
         console.log('provider unset')
         setIsLoading(false)
@@ -189,36 +160,71 @@ export default function AddMember() {
       <Head />
 
       <main>
-        <HeadingComponent as="h2">Add a member</HeadingComponent>
+        <HeadingComponent as="h2">Become a member</HeadingComponent>
         <br />
 
-        <FormControl>
-          <FormLabel>Name</FormLabel>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
-          <FormHelperText>How should we refer to your proposal?</FormHelperText>
-          <br />
-          <br />
+        <Box borderRadius="lg" overflow="hidden">
+          <Image priority width="2000" height="2000" alt="dao-image" src="/warning-sign.gif" />
+        </Box>
+        <br />
 
-          <FormLabel>Description</FormLabel>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="" />
-          <FormHelperText>Supports markdown.</FormHelperText>
-          <br />
-          <br />
-          <FormLabel>New member address</FormLabel>
-          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
-          <br />
-
-          {!isLoading ? (
-            <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
-          ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
-          )}
-        </FormControl>
+        {!isLoading ? (
+          <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={join}>
+            Join
+          </Button>
+        ) : (
+          <Button isLoading loadingText="Joining..." mt={4} colorScheme="blue" variant="outline" type="submit">
+            Join
+          </Button>
+        )}
+        <br />
+        <br />
+        {showButtons && (
+          <>
+            <Wrap>
+              <WrapItem>
+                <LinkComponent href="/request-eth">
+                  <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                    Request ETH
+                  </Button>
+                </LinkComponent>
+              </WrapItem>
+              <WrapItem>
+                <LinkComponent href="/request-eur">
+                  <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                    Request EUR
+                  </Button>
+                </LinkComponent>
+              </WrapItem>
+              <WrapItem>
+                <LinkComponent href="/add-member">
+                  <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                    Add a new member
+                  </Button>
+                </LinkComponent>
+              </WrapItem>
+              <WrapItem>
+                <LinkComponent href="/manifesto">
+                  <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
+                    Edit the manifesto
+                  </Button>
+                </LinkComponent>
+              </WrapItem>
+              <WrapItem>
+                <LinkComponent href="/ban-member">
+                  <Button mt={3} mr={5} rightIcon={<AddIcon />} colorScheme="red" variant="outline">
+                    Ban a member
+                  </Button>
+                </LinkComponent>
+              </WrapItem>
+            </Wrap>
+          </>
+        )}
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   )

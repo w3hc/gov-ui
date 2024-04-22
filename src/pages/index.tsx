@@ -1,243 +1,153 @@
-import { Heading, Button, Badge, Flex, useToast, Link, Box } from '@chakra-ui/react'
-import { AddIcon } from '@chakra-ui/icons'
-import { Head } from 'components/layout/Head'
-import { HeadingComponent } from 'components/layout/HeadingComponent'
-import { LinkComponent } from 'components/layout/LinkComponent'
-import { useState, useEffect, useCallback } from 'react'
-import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi'
+import * as React from 'react'
+import { Button, Badge, useToast, Box, Text } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
+import { BrowserProvider } from 'ethers'
+import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { LinkComponent } from '../components/layout/LinkComponent'
+import govContract from '../utils/Gov.json'
 import { ethers } from 'ethers'
-import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../utils/erc20'
-import { useEthersSigner, useEthersProvider } from '../hooks/ethersAdapter'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, startBlock, nftAbi } from '../utils/config'
+import { HeadingComponent } from '../components/layout/HeadingComponent'
+import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 
 export default function Home() {
-  const { chains, error, pendingChainId, switchNetwork } = useSwitchNetwork()
-  const { isConnected } = useAccount()
-  const { chain } = useNetwork()
-  const provider = useEthersProvider()
-  const signer = useEthersSigner()
-  const toast = useToast()
-  const { address, isConnecting, isDisconnected } = useAccount()
-
-  const [initialized, setInitialized] = useState(false)
-  const [loading, setLoading] = useState<boolean>(false)
-  // const [signer, setSigner] = useState<any>()
-  // const [provider, setProvider] = useState<any>()
-  const [txLink, setTxLink] = useState<string>()
-  const [txHash, setTxHash] = useState<string>()
-  const [name, setName] = useState<string>('')
-  const [block, setBlock] = useState(0)
-  const [manifesto, setManifesto] = useState('')
-  const [manifestoLink, setManifestoLink] = useState('')
-  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([
-    {
-      id: '12345678',
-      link: 'http://link.com',
-      title: '',
-      state: 0,
-    },
-  ])
+  const [initialized, setInitialized] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [name, setName] = useState<string>('Test DAO')
+  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
-  const [isMember, setIsMember] = useState(false)
+
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { walletProvider } = useWeb3ModalProvider()
+  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
+  const provider = walletProvider
+  const toast = useToast()
 
   const baseUrl = '/proposal/'
 
-  const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
-
   useEffect(() => {
-    const init = async () => {
-      if (chain?.id !== 11155420) {
-        switchNetwork?.(11155420)
+    console.log('chainId:', chainId)
+  }, [])
+
+  const getBal = async () => {
+    if (isConnected) {
+      const ethersProvider = new BrowserProvider(provider as any)
+      const balance = await ethersProvider.getBalance(address as any)
+      const ethBalance = ethers.formatEther(balance)
+      if (ethBalance !== '0') {
+        return Number(ethBalance)
+      } else {
+        return 0
       }
-      getBlock()
-      getName()
-      getManifesto()
-      checkMembership()
-    }
-    init()
-
-    console.log('DAO Contract address:', GOV_CONTRACT_ADDRESS)
-  }, [signer])
-
-  const getName = useCallback(async () => {
-    const name = await gov.name()
-    if (name === '') {
-      setName('unset')
     } else {
-      setName(name)
+      return 0
     }
-  }, [])
-
-  const getBlock = useCallback(async () => {
-    const blockNumber = await provider.getBlockNumber()
-    setBlock(blockNumber)
-  }, [])
-
-  const getManifesto = useCallback(async () => {
-    const manifestoCall = await gov.manifesto()
-    // console.log('manifestoCall:', manifestoCall)
-    if (manifestoCall === '') {
-      setManifesto('[unset]')
-      setManifestoLink('https://bafkreifnnreoxxgkhty7v2w3qwiie6cfxpv3vcco2xldekfvbiem3nm6dm.ipfs.w3s.link/')
-    } else {
-      setManifesto(manifestoCall)
-      // setManifestoLink('https://' + manifestoCall + '.ipfs.w3s.link/manifesto.md')
-      setManifestoLink(manifestoCall)
-    }
-  }, [])
+  }
 
   const getState = async (proposalId: any) => {
+    const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
     return await gov.state(proposalId)
   }
 
-  const getProposals = useCallback(async () => {
-    console.log('getProposals started')
-    if (block > 1) {
-      try {
-        // console.log('if (block > 1)')
-        // console.log('check 1')
+  const makeProposalObject = async () => {
+    console.log('getProposals start')
+    try {
+      if (initialized) {
+        console.log('already initialized')
+        setIsLoading(false)
+        return
+      }
+      setIsLoading(true)
+      console.log('provider:', provider)
+      const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
+      setProposal([])
 
-        // console.log('gov:', gov)
-        console.log('block:', block)
-        console.log('startBlock:', startBlock)
-        console.log('block - startBlock:', block - startBlock)
+      if (typeof gov.getProposalCreatedBlocks === 'function') {
+        const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
+        console.log('proposalCreatedBlocks', proposalCreatedBlocks)
+        let proposalRaw = proposal
+        for (let i = 64; i < proposalCreatedBlocks.length; i++) {
+          console.log('iteration:', i)
+          /////////////////*******//////////////
 
-        const proposals: any = await gov.queryFilter('ProposalCreated' as any, startBlock, block)
+          const proposals = (await gov.queryFilter('ProposalCreated', proposalCreatedBlocks[i])) as any
 
-        let i: number = 0
-        let proposalsRaw = proposal
-
-        // console.log('proposals:', proposals[0]) // https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1722195086
-
-        // console.log((<EventLog>proposals[0]).args)
-
-        // if (“args” in proposals[0]) { console.log(proposals[0]).args; }
-        // console.log('check 3: ' + proposals[0]?.args?.description)
-
-        if (proposals[0].args != undefined) {
-          // console.log('hello')
-          // console.log('Number(proposals.length:', Number(proposals.length))
-          for (i = 0; i < Number(proposals.length); i++) {
-            // console.log('iterations (in loop):', i)
-            // console.log('proposalsRaw:', proposalsRaw)
-            // console.log('proposals (in loop):', proposals)
-            // console.log('DESC:', proposals[i].args?.description)
-            console.log('proposals[i].args?.description:', proposals[i].args.description)
-            proposalsRaw.push(
+          if (proposals.length > 0) {
+            proposalRaw.push(
               ...[
                 {
-                  id: String(proposals[i]?.args[0]),
-                  link: baseUrl + String(proposals[i]?.args[0]),
-                  title: proposals[i].args?.description.substring(
-                    proposals[i].args?.description == '#' ? 2 : 2,
-                    proposals[i].args?.description.indexOf('\n')
-                  ),
-                  state: Number(await getState(proposals[i]?.args[0])),
+                  id: String(proposals[0].args[0]),
+                  link: baseUrl + String(proposals[0].args[0]),
+                  title: proposals[0].args[8].substring(proposals[0].args[8] == '#' ? 2 : 2, proposals[0].args[8].indexOf('\n')),
+                  state: Number(await getState(proposals[0].args[0])),
                 },
               ]
             )
+          } else {
+            console.log('\nNo proposals found at block #' + Number(proposalCreatedBlocks[i]))
           }
-          delete proposal[0]
-          setProposal(proposalsRaw)
-          console.log('proposalsRaw:', proposalsRaw)
-          console.log('proposal:', proposal)
-          console.log('getProposals ended')
-          setInitialized(true)
         }
-      } catch (error) {
-        console.log('getProposals error:', error)
-      }
-    }
-  }, [block])
 
-  const checkMembership = async () => {
-    if (!signer) {
-      return
-    }
-    try {
-      const userAddress = await signer?.getAddress()
+        console.log('proposalRaw:', proposalRaw)
+        console.log('proposal:', proposal)
 
-      const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, provider)
-      const nftAddress = await gov.token()
+        // TODO: fix executed twice
+        // Remove duplicates based on the `id` property
+        const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+        setProposal(uniqueProposals)
 
-      const nft = new ethers.Contract(nftAddress, nftAbi, provider)
-      const call3 = await nft.balanceOf(userAddress)
-      if (call3 == 1) {
-        setIsMember(true)
+        console.log('getProposals executed ✅')
+        setInitialized(true)
+        setIsLoading(false)
       } else {
-        setIsMember(false)
+        console.error('getProposalCreatedBlocks method not available on this DAO contract')
+        setInitialized(true)
+        setIsLoading(false)
+        toast({
+          title: 'Oh no!',
+          description: 'The getProposalCreatedBlocks method is NOT available on this contract',
+          status: 'error',
+          position: 'bottom',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
       }
-    } catch (e) {
-      console.log('checkMembership error:', e)
+    } catch (error: any) {
+      setIsLoading(false)
+      setInitialized(true)
+      console.error('error:', error)
+      if (!error.message.includes('could not decode result data')) {
+        toast({
+          title: 'Woops',
+          description: 'Something went wrong...',
+          status: 'error',
+          position: 'bottom',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
+      }
     }
   }
 
   useEffect(() => {
-    getProposals()
-  }, [getProposals])
-
-  // const mint = async () => {
-  //   try {
-  //     if (!signer) {
-  //       toast({
-  //         title: 'No wallet',
-  //         description: 'Please connect your wallet first.',
-  //         status: 'error',
-  //         position: 'bottom',
-  //         variant: 'subtle',
-  //         duration: 9000,
-  //         isClosable: true,
-  //       })
-  //       return
-  //     }
-  //     setIsLoading(true)
-  //     setTxHash('')
-  //     setTxLink('')
-  //     const erc20 = new ethers.Contract(ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI, signer)
-  //     const call = await erc20.mint(ethers.parseEther('10000'))
-  //     const receipt = await call.wait()
-  //     console.log('tx:', receipt)
-  //     setTxHash(receipt.hash)
-  //     setTxLink('https://sepolia.etherscan.io/tx/' + receipt.hash)
-  //     setIsLoading(false)
-  //     toast({
-  //       title: 'Successful mint',
-  //       description: 'Congrats, 10,000 BASIC tokens were minted and sent to your wallet! 🎉',
-  //       status: 'success',
-  //       position: 'bottom',
-  //       variant: 'subtle',
-  //       duration: 20000,
-  //       isClosable: true,
-  //     })
-  //   } catch (e) {
-  //     setIsLoading(false)
-  //     console.log('error:', e)
-  //     toast({
-  //       title: 'Woops',
-  //       description: 'Something went wrong during the minting process...',
-  //       status: 'error',
-  //       position: 'bottom',
-  //       variant: 'subtle',
-  //       duration: 9000,
-  //       isClosable: true,
-  //     })
-  //   }
-  // }
+    console.log('useEffect executed')
+    if (!initialized) {
+      makeProposalObject()
+    }
+  }, [initialized])
 
   function Item(props: any) {
     return (
       <>
         <div className="">
-          <Box mt={3} fontSize="lg">
-            {' '}
+          <Box mt={3} fontSize="md">
             {/* You can adjust the value of fontSize to other Chakra UI size values (xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl, 8xl, 9xl) or use
             custom values (e.g., "20px", "2rem") as per your requirements. */}
             <strong>
-              <Link style={{ color: '#45a2f8' }} target="blank" href={props.link}>
-                {props.title}
-              </Link>
+              <LinkComponent href={props.link}>{props.title}</LinkComponent>
             </strong>{' '}
             <Badge ml="1" fontSize="0.5em" colorScheme={stateColor[props.state]} variant="solid">
               {stateText[props.state]}
@@ -251,7 +161,7 @@ export default function Home() {
   function List() {
     return (
       <div>
-        {initialized === true ? (
+        {isLoading === false ? (
           proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
           <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
@@ -262,68 +172,68 @@ export default function Home() {
 
   return (
     <>
-      <Head />
-
       <main>
-        <>
-          <HeadingComponent as="h2">{name}</HeadingComponent>
-        </>
+        <Box borderRadius="lg" overflow="hidden">
+          <Image priority width="2000" height="2000" alt="dao-image" src="/huangshan.jpeg" />
+        </Box>
+        <Text fontSize={9}>
+          <i>
+            Photo:{' '}
+            <LinkComponent href="https://unsplash.com/photos/a-view-of-a-mountain-range-from-the-top-of-a-hill-pZDcvou8bRw">
+              Ruslan Kaptsan
+            </LinkComponent>
+          </i>
+        </Text>
         <br />
-        <p>
+        <HeadingComponent as="h3">{name}</HeadingComponent>
+        <Text>The purpose of this DAO is to test Gov. </Text>
+        <br />
+        <Text>
+          Using Gov, adding a new member typically requires a community vote, but in this version, you can become a member to try out features like
+          submitting a proposal, delegating your voting power to someone, and voting.
+        </Text>
+        <br />
+        <Text fontSize={12}>
           DAO contract address:{' '}
           <strong>
             <a
               style={{ color: '#45a2f8' }}
               target="_blank"
               rel="noopener noreferrer"
-              href={'https://sepolia-optimism.etherscan.io/address/' + GOV_CONTRACT_ADDRESS + '#code'}>
-              {GOV_CONTRACT_ADDRESS}
+              href={'https://sepolia.etherscan.io/address/' + govContract.address + '#code'}>
+              {govContract.address}
             </a>
           </strong>
-        </p>
-        {/* <p>
-          Manifesto:{' '}
-          <strong>
-            <a style={{ color: '#45a2f8' }} target="_blank" rel="noopener noreferrer" href={manifestoLink}>
-              {manifesto}
-            </a>
-          </strong>
-        </p> */}
+        </Text>
+        <LinkComponent href="/join">
+          <Button mt={3} rightIcon={<AddIcon />} colorScheme="green" variant="outline" size="sm">
+            Join
+          </Button>
+        </LinkComponent>
+
+        {initialized ? (
+          <>
+            <br />
+            <br />
+            <HeadingComponent as="h3">Proposals</HeadingComponent>
+            <List />
+
+            <br />
+            <br />
+          </>
+        ) : (
+          <>
+            <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+
+            <br />
+            <br />
+          </>
+        )}
         <br />
-        <HeadingComponent as="h3">Proposals</HeadingComponent>
-        <List />
         <br />
         <br />
-        <LinkComponent href="/push">
-          <Button rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            ETH transfer
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/erc20">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            ERC-20 transfer
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/add-member">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            Add a new member
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/ban-member">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            Ban a member
-          </Button>
-          <br />
-        </LinkComponent>
-        <LinkComponent href="/manifesto">
-          <Button mt={5} rightIcon={<AddIcon />} colorScheme="green" variant="outline">
-            Edit the manifesto
-          </Button>
-          <br />
-        </LinkComponent>
+        <br />
+        <br />
       </main>
     </>
   )

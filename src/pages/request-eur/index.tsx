@@ -9,15 +9,17 @@ import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
+import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../../utils/erc20'
 
-export default function AddMember() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
-
+export default function RequestEur() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [title, setTitle] = useState('Welcome Francis as a new member')
-  const [beneficiary, setBeneficiary] = useState(String(address))
-  const [description, setDescription] = useState('New member because of this and that...')
+  const [amount, setAmount] = useState('1000')
+  const [title, setTitle] = useState('Transfer 1000 € to Alice')
+  const [beneficiary, setBeneficiary] = useState('0xD8a394e7d7894bDF2C57139fF17e5CBAa29Dd977')
+  const [description, setDescription] = useState("Let's transfer 1000 € to Alice for this and that reason.")
+  const [targetContract, setTargetContract] = useState(ERC20_CONTRACT_ADDRESS)
 
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const provider = walletProvider
@@ -30,6 +32,7 @@ export default function AddMember() {
       const ethersProvider = new BrowserProvider(provider)
       const balance = await ethersProvider.getBalance(String(address))
       const ethBalance = Number(ethers.formatEther(balance))
+      console.log('ethBalance:', ethBalance)
       if (ethBalance < 0.0005) {
         console.log('waiting for some ETH...')
         const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
@@ -133,17 +136,20 @@ export default function AddMember() {
 
         // Load contracts
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+        const erc20 = new ethers.Contract(ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI, signer)
 
         // Prep call
-        const safeMint = nft.interface.encodeFunctionData('safeMint', [
-          String(beneficiary),
-          'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/',
-        ])
-        const call = [safeMint.toString()]
+        console.log('beneficiary:', beneficiary)
+        console.log('title:', title)
+        console.log('targetContract:', targetContract)
+        // console.log('ethers.parseEther(amount):', ethers.parseEther(amount))
+        console.log('ethers.parseEther(String(amount)):', ethers.parseEther(String(amount)))
+
+        const erc20Transfer = erc20.interface.encodeFunctionData('transfer', [beneficiary, ethers.parseEther(String(amount))])
+        const call = [erc20Transfer.toString()]
         const calldatas = [call.toString()]
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
-        const targets = [nftContract.address]
+        const targets = [targetContract]
         const values = [0]
 
         // If user has not enough ETH, we send some
@@ -170,7 +176,7 @@ export default function AddMember() {
       setIsLoading(false)
       console.log('proposal submitted')
     } catch (e) {
-      console.log('error submitting proposal:', e)
+      console.log('delegate error:', e)
       toast({
         title: "Can't propose",
         position: 'bottom',
@@ -189,12 +195,12 @@ export default function AddMember() {
       <Head />
 
       <main>
-        <HeadingComponent as="h2">Add a member</HeadingComponent>
+        <HeadingComponent as="h2">Request EUR</HeadingComponent>
         <br />
 
         <FormControl>
           <FormLabel>Name</FormLabel>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="" />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
           <br />
@@ -204,21 +210,39 @@ export default function AddMember() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-          <FormLabel>New member address</FormLabel>
-          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
+
+          <FormLabel>Amount (in EUR)</FormLabel>
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={amount} />
+          <FormHelperText>How much EUR are you asking for?</FormHelperText>
+          <br />
           <br />
 
+          <FormLabel>ERC-20 token contract address</FormLabel>
+          <Input value={targetContract} onChange={(e) => setTargetContract(e.target.value)} placeholder={targetContract} />
+          <FormHelperText>Which token you you like to transfer from the DAO to the beneficiary?</FormHelperText>
+          <br />
+          <br />
+
+          <FormLabel>Beneficiary</FormLabel>
+          <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
+          <FormHelperText>Who should receive the money?</FormHelperText>
+          <br />
+          <br />
           {!isLoading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
+              Submit
             </Button>
           ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
+            <Button isLoading loadingText="Submitting..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
+              Submitting
             </Button>
           )}
         </FormControl>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </main>
     </>
   )

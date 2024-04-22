@@ -1,173 +1,184 @@
-import {
-  Heading,
-  Button,
-  Badge,
-  FormControl,
-  FormLabel,
-  Textarea,
-  ListItem,
-  UnorderedList,
-  Input,
-  FormHelperText,
-  Checkbox,
-  Text,
-} from '@chakra-ui/react'
-import { LockIcon } from '@chakra-ui/icons'
-import { Head } from '../../components/layout/Head'
+import * as React from 'react'
+import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textarea } from '@chakra-ui/react'
 import { useState } from 'react'
-import { useEthersSigner, useEthersProvider } from '../../hooks/ethersAdapter'
+import { BrowserProvider } from 'ethers'
+import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { Head } from '../../components/layout/Head'
+import govContract from '../../utils/Gov.json'
+import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
-import { GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, nftAbi, ERC20_CONTRACT_ABI, ERC20_CONTRACT_ADRESS } from '../../utils/config'
+import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
 
-// const baseUrl = 'https://www.tally.xyz/gov/' + TALLY_DAO_NAME + '/proposal/'
-
 export default function BanMember() {
-  const [loading, setLoading] = useState(false)
-  const [amount, setAmount] = useState('0')
-  const [title, setTitle] = useState('Ban a member')
-  const [beneficiary, setBeneficiary] = useState('0x8CCbFaAe6BC02a73BBe8d6d8017cC8313E4C90A7')
-  const [targets, setTargets] = useState('')
-  const [description, setDescription] = useState('We should ban this member.')
-  const [encryptionRequested, setEncryptionRequested] = useState(false)
-  const [name, setName] = useState('')
-  const [plaintext, setPlaintext] = useState('')
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
 
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [title, setTitle] = useState('Ban XYZ')
+  const [beneficiary, setBeneficiary] = useState(String('0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'))
+  const [description, setDescription] = useState('XYZ should be banned because of this and that.')
+
+  const { walletProvider } = useWeb3ModalProvider()
+  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
+  const provider = walletProvider
+  const toast = useToast()
   const router = useRouter()
-  const provider = useEthersProvider()
-  const signer = useEthersSigner()
+
+  const handleBalance = async () => {
+    console.log('handleBalance start')
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      const balance = await ethersProvider.getBalance(String(address))
+      const ethBalance = Number(ethers.formatEther(balance))
+      if (ethBalance < 0.0005) {
+        console.log('waiting for some ETH...')
+        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+        const specialSigner = new ethers.Wallet(pKey, customProvider)
+        const tx = await specialSigner.sendTransaction({
+          to: address,
+          value: ethers.parseEther('0.0005'),
+        })
+        const receipt = await tx.wait(1)
+        console.log('faucet tx:', receipt)
+      }
+    }
+  }
+
+  const handleMembership = async () => {
+    console.log('handleMembership start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nft.balanceOf(String(address)))
+      console.log('nftBal:', nftBal)
+      if (nftBal === 0) {
+        try {
+          console.log('joining...')
+          // If user has not enough ETH, we send some
+          await handleBalance()
+          const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+          const safeMint = await nft.safeMint(address, uri)
+          const receipt = await safeMint.wait(1)
+          console.log('safeMint:', receipt)
+        } catch (e) {
+          console.log('error during mint:', e)
+          toast({
+            title: 'Error during mint',
+            position: 'bottom',
+            description: "There was an error in the minting process. Could be because you don't have enough ETH on your wallet.",
+            status: 'info',
+            variant: 'subtle',
+            duration: 9000,
+            isClosable: true,
+          })
+          setIsLoading(false)
+        }
+      }
+    }
+  }
+
+  const handleDelegation = async () => {
+    console.log('handleDelegation start')
+    let signer
+    if (provider) {
+      const ethersProvider = new BrowserProvider(provider)
+      signer = await ethersProvider.getSigner()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+      if (delegateTo != address) {
+        console.log('delegating...')
+        // If user has not enough ETH, we send some
+        await handleBalance()
+        const delegate = await nft.delegate(address)
+        const delegateTx = await delegate.wait(1)
+        console.log('delegate tx:', delegateTx)
+      }
+    }
+  }
 
   const submitProposal = async (e: any) => {
     e.preventDefault()
-    setLoading(true)
+    setIsLoading(true)
 
-    console.log('submitProposal triggered')
-    // console.log('file name:', name)
-    console.log('encryptionRequested:', encryptionRequested)
-
-    let fileToAddInDescription: string = ''
-    let plaintextString = ''
-
-    // if encryption is not requested, upload the file to ipfs
-    // fileToAddInDescription = await UploadFile(plaintext, name)
-    // console.log('[no encryption] fileToAddInDescription:', fileToAddInDescription)
-    // }
+    // Check if user is logged in
+    if (!isConnected) {
+      toast({
+        title: 'Disconnected',
+        position: 'bottom',
+        description: 'Please connect your wallet first.',
+        status: 'info',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+      setIsLoading(false)
+      return
+    }
 
     try {
-      // prepare Gov
-      const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
-      const nftAddress = await gov.token()
-      const nft = new ethers.Contract(nftAddress, nftAbi, signer)
+      console.log('submitting proposal...')
+      let signer
+      if (provider) {
+        // make signer
+        const ethersProvider = new BrowserProvider(provider)
+        signer = await ethersProvider.getSigner()
 
-      const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
 
-      // prepare calldatas
-      const govBurn = nft.interface.encodeFunctionData('govBurn', [tokenId])
-      const calldatas = [govBurn.toString()]
+        // Check if user is delegated
+        await handleDelegation()
 
-      // prepare proposal description
-      let PROPOSAL_DESCRIPTION: string
-      // console.log('fileToAddInDescription:', fileToAddInDescription)
-      // console.log('encryptionRequested:', encryptionRequested)
-      // console.log('plaintextString:', plaintextString)
+        // Load contracts
+        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
-      if (fileToAddInDescription) {
-        // won't work if no file attached
-        if (plaintextString) {
-          PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
-          if (encryptionRequested) {
-            PROPOSAL_DESCRIPTION += ' encrypted' /*+ (cipherId === null ? "没有" : cipherId)*/
-          } else {
-            PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + ''
-          }
-        } else {
-          PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + '\n\n[View attached document](' + fileToAddInDescription + ')'
-        }
+        // Prep call
+        const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
+        const govBurn = nft.interface.encodeFunctionData('govBurn', [tokenId])
+        const call = [govBurn.toString()]
+        const calldatas = [call.toString()]
+        const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
+        const targets = [nftContract.address]
+        const values = [0]
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
+
+        // Call propose
+        console.log('caller address:', await signer?.getAddress())
+        const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
+        console.log('Propose triggered')
+        const proposeReceipt: any = await propose.wait(1)
+        console.log('propose tx', proposeReceipt)
+        const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
+        const proposalId: any = proposals[0].args?.proposalId.toString()
+        console.log('proposalId:', proposalId)
+
+        // Redirect to proposal page
+        const targetURL = '/proposal/' + proposalId
+        router.push(targetURL)
       } else {
-        PROPOSAL_DESCRIPTION = '# ' + title + '\n' + description + ''
+        console.log('provider unset')
+        setIsLoading(false)
+        return
       }
-
-      // console.log('PROPOSAL_DESCRIPTION:', PROPOSAL_DESCRIPTION)
-
-      PROPOSAL_DESCRIPTION = PROPOSAL_DESCRIPTION
-
-      // set targets and values
-      const values = [0]
-
-      console.log(amount)
-      console.log(description)
-      setAmount(amount)
-
-      console.log('encryptionRequested:', encryptionRequested)
-
-      // delegate to self before calling propose
-      await delegateToMyself()
-
-      // call propose
-      console.log('caller address:', await signer?.getAddress())
-      const propose = await gov.propose([nftAddress], values, calldatas, PROPOSAL_DESCRIPTION)
-      console.log('Propose triggered')
-      const proposeReceipt: any = await propose.wait(1)
-      const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber) // TODO: fix type casting
-      const proposalId: any = proposals[0].args?.proposalId.toString()
-      console.log('proposalId:', proposalId)
-      // console.log('Tally link:', baseUrl + proposalId)
-      const targetURL = '/proposal/' + proposalId
-      setLoading(false)
-      router.push(targetURL)
+      setIsLoading(false)
+      console.log('proposal submitted')
     } catch (e) {
-      console.log('error:', e)
-      setLoading(false)
-    }
-  }
-
-  const handleFileChange = (event: any) => {
-    if (encryptionRequested) {
-      console.log('handleFileChange:', event)
-      const file = event
-      setName(file.name)
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = (event) => {
-        const plaintext = String(event.target?.result)
-        setPlaintext(plaintext)
-      }
-      reader.onerror = (error) => {
-        console.log('File Input Error: ', error)
-      }
-    } else {
-      console.log('event:', event)
-      const file = event
-      setName(file.name)
-      setPlaintext(file)
-    }
-  }
-
-  const hasDelegated = async () => {
-    const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
-    const delegateTo = await signer?.getAddress()
-    const nftAddress = await gov.token()
-    const nft = new ethers.Contract(nftAddress, nftAbi, signer)
-    const delegate = await nft.delegates(await signer?.getAddress())
-    if (delegate === delegateTo) {
-      return true
-    }
-  }
-
-  const delegateToMyself = async () => {
-    if ((await hasDelegated()) === true) {
-      return true
-    } else {
-      console.log('delegating to self...')
-      const delegateTo = await signer?.getAddress()
-      console.log('hello signer address:', await signer?.getAddress())
-      const gov = new ethers.Contract(GOV_CONTRACT_ADDRESS, GOV_CONTRACT_ABI, signer)
-      const nftAddress = await gov.token()
-      const nft = new ethers.Contract(nftAddress, nftAbi, signer)
-      const delegate = await nft.delegate(delegateTo)
-      const receippt = await delegate.wait(1)
-      console.log('delegate receipt:', receippt)
-      return true
+      console.log('error submitting proposal:', e)
+      toast({
+        title: "Can't propose",
+        position: 'bottom',
+        description: "You can't submit this kind of proposal.",
+        status: 'info',
+        variant: 'subtle',
+        duration: 9000,
+        isClosable: true,
+      })
+      setIsLoading(false)
     }
   }
 
@@ -176,18 +187,11 @@ export default function BanMember() {
       <Head />
 
       <main>
-        <br />
-
-        <Heading as="h2">Ban a member</Heading>
-        <Text mt={3} fontSize="md">
-          Banning a member requires a majority. You can submit your proposal here.
-        </Text>
-
-        <br />
+        <HeadingComponent as="h2">Ban a member</HeadingComponent>
         <br />
 
         <FormControl>
-          <FormLabel>Proposal name</FormLabel>
+          <FormLabel>Proposal title</FormLabel>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={title} />
           <FormHelperText>How should we refer to your proposal?</FormHelperText>
           <br />
@@ -198,12 +202,12 @@ export default function BanMember() {
           <FormHelperText>Supports markdown.</FormHelperText>
           <br />
           <br />
-          <FormLabel>Wallet address of the member you want to ban</FormLabel>
+          <FormLabel>Member address</FormLabel>
           <Input value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder={beneficiary} />
-          <FormHelperText>The wallet address of the new member</FormHelperText>
+          <FormHelperText>The wallet address of member you want to ban.</FormHelperText>
           <br />
 
-          {!loading ? (
+          {!isLoading ? (
             <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
               Submit proposal
             </Button>

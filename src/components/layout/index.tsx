@@ -1,25 +1,19 @@
-import React, { ReactNode } from 'react'
+import { Web3Modal } from '../../context/web3modal'
+import { ReactNode } from 'react'
 import { Box, Container } from '@chakra-ui/react'
 import { Header } from './Header'
-import { Footer } from './Footer'
-import { NetworkStatus } from './NetworkStatus'
 
 interface Props {
-  children: ReactNode
+  children?: ReactNode
 }
 
-export function Layout(props: Props) {
+export default function RootLayout({ children }: Props) {
   return (
-    <Box margin="0 auto" minH="100vh">
-      <Header />
-
-      <Container maxW="container.lg">{props.children}</Container>
-
-      <Box position="fixed" bottom={2} right={2}>
-        <NetworkStatus />
+    <Web3Modal>
+      <Box margin="0 auto" minH="100vh">
+        <Header />
+        <Container maxW="container.lg">{children}</Container>
       </Box>
-
-      <Footer />
-    </Box>
+    </Web3Modal>
   )
 }
