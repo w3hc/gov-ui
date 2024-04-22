@@ -13,7 +13,7 @@ export default function Delegate() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [loadingDelegateToSelf, setLoadingDelegateToSelf] = useState(false)
-  const [currentDelegate, setCurrentDelegate] = useState(false)
+  const [currentDelegate, setCurrentDelegate] = useState('')
   const [isDelegatedToSelf, setIsDelegatedToSelf] = useState(true)
   const [targetAddress, setTargetAddress] = useState(String(address))
 
@@ -23,14 +23,16 @@ export default function Delegate() {
   const toast = useToast()
 
   const checkCurrentDelegate = async () => {
-    const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
-    const getDelegate = await nft.delegates(address)
-    console.log('getDelegate:', getDelegate)
-    setCurrentDelegate(getDelegate)
-    if (getDelegate === address) {
-      setIsDelegatedToSelf(true)
-    } else {
-      setIsDelegatedToSelf(false)
+    if (address) {
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
+      const getDelegate = await nft.delegates(address)
+      console.log('getDelegate:', getDelegate)
+      setCurrentDelegate(getDelegate)
+      if (getDelegate === address) {
+        setIsDelegatedToSelf(true)
+      } else {
+        setIsDelegatedToSelf(false)
+      }
     }
   }
 
@@ -39,7 +41,7 @@ export default function Delegate() {
       checkCurrentDelegate()
     }
     init()
-  }, [loadingDelegateToSelf, isLoading])
+  }, [loadingDelegateToSelf, isLoading, address])
 
   const handleBalance = async () => {
     console.log('handleBalance start')
@@ -160,7 +162,7 @@ export default function Delegate() {
         return
       }
       setIsLoading(false)
-      console.log('proposal submitted')
+      console.log('delegated')
     } catch (e) {
       console.log('error submitting proposal:', e)
       toast({
@@ -241,12 +243,19 @@ export default function Delegate() {
       <main>
         <HeadingComponent as="h2">Delegation management</HeadingComponent>
         <br />
-        {isDelegatedToSelf === true ? (
+        {currentDelegate === address && (
           <Text>
             You&apos;ve delegated your vote to <strong>yourself</strong>. If you feel like you may not be willing to vote on a regular basis, you can
             delegate to someone who will vote on your behalf. You can take it back anytime you want.
           </Text>
-        ) : (
+        )}
+        {currentDelegate === '0x0000000000000000000000000000000000000000' && (
+          <Text>
+            You&apos;ve delegated your vote to <strong>nobody</strong> yet. You can go ahead and delegate to yourself or to someone who will vote on
+            your behalf. You can take modify that anytime you want.
+          </Text>
+        )}
+        {isDelegatedToSelf === false && currentDelegate !== '0x0000000000000000000000000000000000000000' && (
           <Text>
             You&apos;ve delegated to <strong>{currentDelegate ? currentDelegate : ''}</strong>. If you feel like you may not be willing to vote on a
             regular basis, you can delegate to someone who will vote on your behalf. You can take it back anytime you want.
