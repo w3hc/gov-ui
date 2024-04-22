@@ -9,18 +9,14 @@ import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
-import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../../utils/erc20'
 
 export default function AddMember() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [amount, setAmount] = useState('0')
   const [title, setTitle] = useState('Welcome Francis as a new member')
   const [beneficiary, setBeneficiary] = useState(String(address))
   const [description, setDescription] = useState('New member because of this and that...')
-  const [name, setName] = useState(null)
-  const [plaintext, setPlaintext] = useState('')
 
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
