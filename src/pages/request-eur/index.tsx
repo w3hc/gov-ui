@@ -59,6 +59,8 @@ export default function RequestEur() {
       if (nftBal === 0) {
         try {
           console.log('joining...')
+          // If user has not enough ETH, we send some
+          await handleBalance()
           const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
           const safeMint = await nft.safeMint(address, uri)
           const receipt = await safeMint.wait(1)
@@ -90,6 +92,8 @@ export default function RequestEur() {
       const delegateTo = await nft.delegates(address)
       if (delegateTo != address) {
         console.log('delegating...')
+        // If user has not enough ETH, we send some
+        await handleBalance()
         const delegate = await nft.delegate(address)
         const delegateTx = await delegate.wait(1)
         console.log('delegate tx:', delegateTx)
@@ -124,9 +128,6 @@ export default function RequestEur() {
         const ethersProvider = new BrowserProvider(provider)
         signer = await ethersProvider.getSigner()
 
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
         // If user is not a member, make him a member (test only)
         await handleMembership()
 
@@ -150,6 +151,9 @@ export default function RequestEur() {
         const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
         const targets = [targetContract]
         const values = [0]
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
 
         // Call propose
         console.log('caller address:', await signer?.getAddress())

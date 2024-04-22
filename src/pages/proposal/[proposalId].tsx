@@ -94,7 +94,7 @@ export default function Proposal() {
       console.log('proposalCreatedBlocks', proposalCreatedBlocks)
 
       let block
-      for (let i = 56; i < proposalCreatedBlocks.length; i++) {
+      for (let i = 64; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
         console.log('proposalCreatedBlocks[i]:', proposalCreatedBlocks[i])
@@ -171,6 +171,8 @@ export default function Proposal() {
       if (nftBal === 0) {
         try {
           console.log('joining...')
+          // If user has not enough ETH, we send some
+          await handleBalance()
           const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
           const safeMint = await nft.safeMint(address, uri)
           const receipt = await safeMint.wait(1)
@@ -202,6 +204,8 @@ export default function Proposal() {
       const delegateTo = await nft.delegates(address)
       if (delegateTo != address) {
         console.log('delegating...')
+        // If user has not enough ETH, we send some
+        await handleBalance()
         const delegate = await nft.delegate(address)
         const delegateTx = await delegate.wait(1)
         console.log('delegate tx:', delegateTx)
@@ -237,9 +241,6 @@ export default function Proposal() {
         const ethersProvider = new BrowserProvider(provider)
         signer = await ethersProvider.getSigner()
 
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
         // If user is not a member, make him a member (test only)
         await handleMembership()
 
@@ -248,6 +249,9 @@ export default function Proposal() {
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
 
         // Call castVote
         await gov.castVote(String(router.query.proposalId), 1)
@@ -320,9 +324,6 @@ export default function Proposal() {
         const ethersProvider = new BrowserProvider(provider)
         signer = await ethersProvider.getSigner()
 
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
         // If user is not a member, make him a member (test only)
         await handleMembership()
 
@@ -331,6 +332,9 @@ export default function Proposal() {
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
 
         // Call castVote
         await gov.castVote(String(router.query.proposalId), 0)
@@ -390,6 +394,12 @@ export default function Proposal() {
         signer = await ethersProvider.getSigner()
         console.log('signer', signer)
 
+        // If user is not a member, make him a member (test only)
+        await handleMembership()
+
+        // Check if user is delegated
+        await handleDelegation()
+
         const targetsFormatted = [targets]
         const valuesFormatted = [values]
         const calldatasFormatted = [calldatas]
@@ -399,6 +409,9 @@ export default function Proposal() {
         console.log('valuesFormatted', valuesFormatted)
         console.log('calldatasFormatted', calldatasFormatted)
         console.log('hashedDescription', hashedDescription)
+
+        // If user has not enough ETH, we send some
+        await handleBalance()
 
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
         const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
