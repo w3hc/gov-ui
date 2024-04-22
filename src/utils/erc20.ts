@@ -1,7 +1,7 @@
 // contract used in the example app: https://github.com/w3hc/w3hc-hardhat-template/
 export const ERC20_CONTRACT_ADDRESS = '0xe6BCD785b90dc16d667B022cc871c046587d9Ac5' // Sepolia
 // export const ERC20_CONTRACT_ADDRESS = '0x80Fae255a5261Ca183668259382A37789e86f92F' // OP Sepolia
-export const ERC20_CONTRACT_ABI = <const>[
+export const ERC20_CONTRACT_ABI = [
   { inputs: [], stateMutability: 'nonpayable', type: 'constructor' },
   {
     anonymous: false,
