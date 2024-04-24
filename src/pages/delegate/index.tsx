@@ -10,17 +10,30 @@ import { HeadingComponent } from '../../components/layout/HeadingComponent'
 
 export default function Delegate() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { walletProvider } = useWeb3ModalProvider()
+  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
+  const toast = useToast()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [provider, setProvider] = useState<any>(undefined)
+  const [signer, setSigner] = useState<any>(undefined)
   const [loadingDelegateToSelf, setLoadingDelegateToSelf] = useState(false)
   const [currentDelegate, setCurrentDelegate] = useState('')
   const [isDelegatedToSelf, setIsDelegatedToSelf] = useState(true)
   const [targetAddress, setTargetAddress] = useState(String(address))
 
-  const { walletProvider } = useWeb3ModalProvider()
-  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
-  const provider = walletProvider
-  const toast = useToast()
+  useEffect(() => {
+    const init = async () => {
+      if (walletProvider) {
+        setProvider(walletProvider)
+        const ethersProvider = new BrowserProvider(walletProvider)
+        const signer = await ethersProvider.getSigner()
+        setSigner(signer)
+        await checkCurrentDelegate()
+      }
+    }
+    init()
+  }, [address, walletProvider, loadingDelegateToSelf, isLoading])
 
   const checkCurrentDelegate = async () => {
     if (address) {
@@ -36,84 +49,100 @@ export default function Delegate() {
     }
   }
 
-  useEffect(() => {
-    const init = async () => {
-      checkCurrentDelegate()
-    }
-    init()
-  }, [loadingDelegateToSelf, isLoading, address])
-
   const handleBalance = async () => {
-    console.log('handleBalance start')
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      const balance = await ethersProvider.getBalance(String(address))
-      const ethBalance = Number(ethers.formatEther(balance))
-      if (ethBalance < 0.0005) {
-        console.log('waiting for some ETH...')
-        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
-        const specialSigner = new ethers.Wallet(pKey, customProvider)
-        const tx = await specialSigner.sendTransaction({
-          to: address,
-          value: ethers.parseEther('0.0005'),
-        })
-        const receipt = await tx.wait(1)
-        console.log('faucet tx:', receipt)
-      }
+    console.log('handle balance start')
+    const ethersProvider = new BrowserProvider(provider)
+    const balance = await ethersProvider.getBalance(String(address))
+    const ethBalance = Number(ethers.formatEther(balance))
+    console.log('ethBalance:', ethBalance)
+    if (ethBalance < 0.0005) {
+      console.log('waiting for some ETH...')
+      const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+      const specialSigner = new ethers.Wallet(pKey, customProvider)
+      const tx = await specialSigner.sendTransaction({
+        to: address,
+        value: ethers.parseEther('0.0005'),
+      })
+      const receipt = await tx.wait(1)
+      console.log('faucet tx:', receipt)
+      console.log('balance ok')
+    } else {
+      console.log('balance ok')
     }
   }
 
   const handleMembership = async () => {
-    console.log('handleMembership start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
+    try {
+      console.log('handleMembership start')
+
+      await handleBalance()
+
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(String(address)))
+      const nftBal = Number(await nft.balanceOf(address))
       console.log('nftBal:', nftBal)
-      if (nftBal === 0) {
-        try {
-          console.log('joining...')
-          // If user has not enough ETH, we send some
-          await handleBalance()
-          const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-          const safeMint = await nft.safeMint(address, uri)
-          const receipt = await safeMint.wait(1)
-          console.log('safeMint:', receipt)
-        } catch (e) {
-          console.log('error during mint:', e)
-          toast({
-            title: 'Error during mint',
-            position: 'bottom',
-            description: "There was an error in the minting process. Could be because you don't have enough ETH on your wallet.",
-            status: 'info',
-            variant: 'subtle',
-            duration: 9000,
-            isClosable: true,
-          })
-          setIsLoading(false)
-        }
+
+      if (nftBal < 1) {
+        console.log('joining...')
+
+        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+        const tx = await nft.safeMint(address, uri)
+        console.log('tx:', tx)
+        const receipt = await tx.wait(1)
+        console.log('receipt:', receipt)
+        console.log('membership done')
+      } else {
+        console.log('already member')
+        console.log('membership done')
+      }
+    } catch (e: any) {
+      console.log('handleMembership error', e)
+
+      if (e.toString().includes('could not coalesce error')) {
+        console.log('This is the coalesce error.')
+        toast({
+          title: 'Email login not supported',
+          position: 'bottom',
+          description: "Sorry, this feature is not supported yet if you're using the email login.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      } else {
+        toast({
+          title: 'Error',
+          position: 'bottom',
+          description: 'handleMembership error',
+          status: 'error',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
       }
     }
   }
 
   const handleDelegation = async () => {
-    console.log('handleDelegation start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegateTo = await nft.delegates(address)
-      if (delegateTo != address) {
-        console.log('delegating...')
-        // If user has not enough ETH, we send some
-        await handleBalance()
-        const delegate = await nft.delegate(address)
-        const delegateTx = await delegate.wait(1)
-        console.log('delegate tx:', delegateTx)
-      }
+    console.log('delegation start')
+
+    await handleBalance()
+
+    const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+    const delegateTo = await nft.delegates(address)
+    if (delegateTo != address) {
+      console.log('delegating...')
+
+      const delegate = await nft.delegate(address)
+      const delegateTx = await delegate.wait(1)
+      console.log('delegate tx:', delegateTx)
+      console.log('delegation done')
+    } else {
+      console.log('already delegated')
+      console.log('delegation done')
     }
   }
 
@@ -212,9 +241,7 @@ export default function Delegate() {
         // If user is not a member, make him a member (test only)
         await handleMembership()
 
-        // Check if user is delegated
         await handleDelegation()
-
         setLoadingDelegateToSelf(false)
       } else {
         console.log('provider unset')

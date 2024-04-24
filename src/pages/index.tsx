@@ -11,39 +11,29 @@ import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 
 export default function Home() {
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { walletProvider } = useWeb3ModalProvider()
+  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
+  const toast = useToast()
+
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [provider, setProvider] = useState<any>(undefined)
   const [name, setName] = useState<string>('Test DAO')
   const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
 
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
-  const { walletProvider } = useWeb3ModalProvider()
-  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
-  const provider = walletProvider
-  const toast = useToast()
-
   const baseUrl = '/proposal/'
 
   useEffect(() => {
-    console.log('chainId:', chainId)
-  }, [])
-
-  const getBal = async () => {
-    if (isConnected) {
-      const ethersProvider = new BrowserProvider(provider as any)
-      const balance = await ethersProvider.getBalance(address as any)
-      const ethBalance = ethers.formatEther(balance)
-      if (ethBalance !== '0') {
-        return Number(ethBalance)
-      } else {
-        return 0
+    const init = async () => {
+      if (customProvider) {
+        setProvider(customProvider)
       }
-    } else {
-      return 0
     }
-  }
+    init()
+  }, [address, walletProvider])
 
   const getState = async (proposalId: any) => {
     const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
@@ -51,23 +41,21 @@ export default function Home() {
   }
 
   const makeProposalObject = async () => {
-    console.log('getProposals start')
     try {
+      console.log('fetching proposals...')
       if (initialized) {
         console.log('already initialized')
         setIsLoading(false)
         return
       }
       setIsLoading(true)
-      console.log('provider:', provider)
       const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
       setProposal([])
 
       if (typeof gov.getProposalCreatedBlocks === 'function') {
         const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
-        console.log('proposalCreatedBlocks', proposalCreatedBlocks)
         let proposalRaw = proposal
-        for (let i = 64; i < proposalCreatedBlocks.length; i++) {
+        for (let i = 12; i < proposalCreatedBlocks.length; i++) {
           console.log('iteration:', i)
           /////////////////*******//////////////
 
@@ -89,15 +77,12 @@ export default function Home() {
           }
         }
 
-        console.log('proposalRaw:', proposalRaw)
-        console.log('proposal:', proposal)
-
         // TODO: fix executed twice
         // Remove duplicates based on the `id` property
         const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
         setProposal(uniqueProposals)
 
-        console.log('getProposals executed ✅')
+        console.log('all proposals fetched ✅')
         setInitialized(true)
         setIsLoading(false)
       } else {
@@ -191,6 +176,10 @@ export default function Home() {
         <Text>
           Using Gov, adding a new member typically requires a community vote, but in this version, you can become a member to try out features like
           submitting a proposal, delegating your voting power to someone, and voting.
+        </Text>
+        <br />
+        <Text>
+          Please note that the voting period is set to <strong>5 minutes!</strong>
         </Text>
         <br />
         <Text fontSize={12}>

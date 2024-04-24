@@ -31,33 +31,37 @@ export default function Proposal() {
 
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [txLink, setTxLink] = useState<string>()
-  const [txHash, setTxHash] = useState<string>()
-  const [name, setName] = useState<string>('')
-  const [block, setBlock] = useState(0)
-  const [manifesto, setManifesto] = useState('')
-  const [manifestoLink, setManifestoLink] = useState('')
-  const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
-  const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
-  const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
-  // const [isMember, setIsMember] = useState(false)
-
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
-  const { walletProvider } = useWeb3ModalProvider()
-  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
-  const provider = walletProvider
-  const toast = useToast()
+  const [provider, setProvider] = useState<any>(undefined)
+  const [signer, setSigner] = useState<any>(undefined)
   const [title, setTitle] = useState('')
   const [stateBadge, setStateBadge] = useState<any>()
   const [state, setState] = useState<any>()
   const [description, setDescription] = useState('')
-  const [uri, setUri] = useState(null)
   const [targets, setTargets] = useState<any>()
   const [values, setValues] = useState<any>()
   const [calldatas, setCalldatas] = useState<any>()
   const [rawDescription, setRawDescription] = useState<any>()
   const [forVotes, setForVotes] = useState<number>(0)
   const [againstVotes, setAgainstVotes] = useState<number>(0)
+  const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
+  const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
+
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { walletProvider } = useWeb3ModalProvider()
+  const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
+  const toast = useToast()
+
+  useEffect(() => {
+    const init = async () => {
+      if (walletProvider) {
+        setProvider(walletProvider)
+        const ethersProvider = new BrowserProvider(walletProvider)
+        const signer = await ethersProvider.getSigner()
+        setSigner(signer)
+      }
+    }
+    init()
+  }, [address, walletProvider])
 
   const getState = async (proposalId: any) => {
     const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
@@ -86,33 +90,19 @@ export default function Proposal() {
         return
       }
 
-      console.log('proposalId:', proposalId)
-
       const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
 
       const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
-      console.log('proposalCreatedBlocks', proposalCreatedBlocks)
 
       let block
-      for (let i = 64; i < proposalCreatedBlocks.length; i++) {
+      for (let i = 12; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
-        console.log('proposalCreatedBlocks[i]:', proposalCreatedBlocks[i])
         const proposals: any = await gov.queryFilter('ProposalCreated', block)
-        console.log('proposals:', proposals)
-
-        //   console.log('proposals[0].args[0]', proposals[0].args[0])
-
-        console.log('String(proposals[i].args[0])', String(proposals[i].args[0]))
-        console.log('proposalId:', proposalId)
 
         if (String(proposals[i].args[0]) === proposalId) {
-          console.log('yo')
-          console.log('proposals[0].args[0]', proposals[0].args[0])
-
           setTitle(proposals[i].args[8].substring(proposals[i].args[8] == '#' ? 2 : 2, proposals[i].args[8].indexOf('\n')))
           setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n')))
-          setUri(proposals[i].args[8].substring(proposals[i].args[8].indexOf('(') + 1, proposals[i].args[8].indexOf(')')))
           setCalldatas(proposals[i].args[5])
           await getState(proposalId)
           await getCurrentVotes(proposalId)
@@ -133,7 +123,6 @@ export default function Proposal() {
   }
 
   useEffect(() => {
-    console.log('router.query', router.query)
     if (!initialized) {
       getProposalData()
     }
@@ -230,6 +219,7 @@ export default function Proposal() {
         duration: 2000,
         isClosable: true,
       })
+      setIsLoading(false)
       return
     }
 
@@ -283,15 +273,46 @@ export default function Proposal() {
       }
     } catch (e: any) {
       console.log('vote error:', e)
-      toast({
-        title: 'Error',
-        position: 'bottom',
-        description: "You can't vote twice.",
-        status: 'info',
-        variant: 'subtle',
-        duration: 3000,
-        isClosable: true,
-      })
+
+      switch (e) {
+        case String(e).includes('coalesce'):
+          console.log('This is the coalesce error.')
+          toast({
+            title: 'Woops',
+            position: 'bottom',
+            description: 'Please refresh the page and try again.',
+            status: 'info',
+            variant: 'subtle',
+            duration: 3000,
+            isClosable: true,
+          })
+          break
+
+        default:
+          console.log('Basic error')
+      }
+
+      if (state === 'Pending') {
+        toast({
+          title: 'Pending proposal',
+          position: 'bottom',
+          description: 'The proposal is still pending. Please try again in a few seconds.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+      } else {
+        toast({
+          title: 'Already voted',
+          position: 'bottom',
+          description: "You can't vote twice.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+      }
       setIsLoading(false)
     }
   }
@@ -434,10 +455,10 @@ export default function Proposal() {
       console.log('execute error:', e)
       setIsLoading(false)
       toast({
-        title: 'Nasty Error',
+        title: 'Oh no!',
         position: 'bottom',
-        description: "This proposal can't be executed (and will never be).",
-        status: 'error',
+        description: "This proposal can't be executed.",
+        status: 'info',
         variant: 'subtle',
         duration: 3000,
         isClosable: true,
