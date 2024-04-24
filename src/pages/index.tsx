@@ -7,7 +7,7 @@ import { LinkComponent } from '../components/layout/LinkComponent'
 import govContract from '../utils/Gov.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
-import { AddIcon } from '@chakra-ui/icons'
+import { AddIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 
 export default function Home() {
@@ -181,7 +181,12 @@ export default function Home() {
         </Text>
         <br />
         <Text>
-          Please note that the voting period is set to <strong>5 minutes!</strong>
+          <WarningIcon w={4} h={4} color="red.500" /> Please note that the voting period is set to <strong>5 minutes!</strong>
+        </Text>
+        <br />
+        <Text>
+          <WarningIcon w={4} h={4} color="red.500" /> Also, if you&apos;re using the email login some fetures may not be working yet. Thanks for your
+          patience!
         </Text>
         <br />
         <Text fontSize={12}>
