@@ -149,7 +149,9 @@ export default function Home() {
         {isLoading === false ? (
           proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
-          <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+          </Box>
         )}
       </div>
     )
@@ -194,7 +196,7 @@ export default function Home() {
             </a>
           </strong>
         </Text>
-        <LinkComponent href="/join">
+        <LinkComponent href="/profile">
           <Button mt={3} rightIcon={<AddIcon />} colorScheme="green" variant="outline" size="sm">
             Join
           </Button>
@@ -212,7 +214,9 @@ export default function Home() {
           </>
         ) : (
           <>
-            <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+            </Box>
 
             <br />
             <br />

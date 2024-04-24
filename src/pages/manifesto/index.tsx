@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Text, Textarea } from '@chakra-ui/react'
+import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Text, Textarea, Box } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
@@ -195,7 +195,7 @@ export default function Manifesto() {
         // Call propose
         console.log('caller address:', await signer?.getAddress())
         const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
-        console.log('Propose triggered')
+        console.log('propose triggered')
         const proposeReceipt: any = await propose.wait(1)
         console.log('propose tx', proposeReceipt)
         const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
@@ -245,7 +245,9 @@ export default function Manifesto() {
           </>
         ) : (
           <>
-            <Image priority width="100" height="100" alt="loader" src="/reggae-loader.svg" />
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+            </Box>
           </>
         )}
 

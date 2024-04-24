@@ -7,6 +7,7 @@ import { Head } from '../../components/layout/Head'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
+import Image from 'next/image'
 
 export default function Delegate() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -20,7 +21,7 @@ export default function Delegate() {
   const [loadingDelegateToSelf, setLoadingDelegateToSelf] = useState(false)
   const [currentDelegate, setCurrentDelegate] = useState('')
   const [isDelegatedToSelf, setIsDelegatedToSelf] = useState(true)
-  const [targetAddress, setTargetAddress] = useState(String(address))
+  const [targetAddress, setTargetAddress] = useState(String(address ? address : ''))
 
   useEffect(() => {
     const init = async () => {
@@ -29,6 +30,7 @@ export default function Delegate() {
         const ethersProvider = new BrowserProvider(walletProvider)
         const signer = await ethersProvider.getSigner()
         setSigner(signer)
+        setTargetAddress(String(address))
         await checkCurrentDelegate()
       }
     }
@@ -271,7 +273,11 @@ export default function Delegate() {
 
       <main>
         <HeadingComponent as="h2">Delegation management</HeadingComponent>
-        <br />
+        {!isConnected && (
+          <>
+            <Text>Please connect your wallet.</Text>
+          </>
+        )}
         {currentDelegate === address && (
           <Text>
             You&apos;ve delegated your vote to <strong>yourself</strong>. If you feel like you may not be willing to vote on a regular basis, you can

@@ -186,7 +186,7 @@ export default function BanMember() {
         // Call propose
         console.log('caller address:', await signer?.getAddress())
         const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
-        console.log('Propose triggered')
+        console.log('propose triggered')
         const proposeReceipt: any = await propose.wait(1)
         console.log('propose tx', proposeReceipt)
         const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)

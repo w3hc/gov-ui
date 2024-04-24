@@ -535,6 +535,8 @@ export default function Proposal() {
       </main>
     </>
   ) : (
-    <Image priority width="400" height="400" alt="loader" src="/reggae-loader.svg" />
+    <Box display="flex" justifyContent="center" alignItems="center">
+      <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+    </Box>
   )
 }
