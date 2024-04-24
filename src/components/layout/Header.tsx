@@ -28,9 +28,9 @@ export function Header(props: Props) {
               Home
             </MenuItem>
           </LinkComponent>
-          <LinkComponent href="/join">
+          <LinkComponent href="/profile">
             <MenuItem fontSize="xl" icon={<LuUserPlus />}>
-              Join as a member
+              User profile
             </MenuItem>
           </LinkComponent>
 

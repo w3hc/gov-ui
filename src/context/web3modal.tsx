@@ -44,8 +44,8 @@ createWeb3Modal({
   ethersConfig,
   chains: [sepolia],
   projectId,
-  enableAnalytics: true,
-  enableOnramp: true,
+  // enableAnalytics: true,
+  // enableOnramp: true,
 })
 
 export function Web3Modal({ children }: Props) {

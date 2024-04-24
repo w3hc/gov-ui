@@ -10,92 +10,118 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
+import Image from 'next/image'
 
 export default function Manifesto() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
-
-  const [manifesto, setManifesto] = useState('')
-  const [newManifesto, setNewManifesto] = useState('https://bafkreifnnreoxxgkhty7v2w3qwiie6cfxpv3vcco2xldekfvbiem3nm6dm.ipfs.w3s.link/ ')
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [title, setTitle] = useState('Manifesto update')
-  const [description, setDescription] = useState("Let's update the manifesto.")
-
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
-  const provider = walletProvider
   const toast = useToast()
   const router = useRouter()
 
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [provider, setProvider] = useState<any>(undefined)
+  const [signer, setSigner] = useState<any>(undefined)
+  const [manifesto, setManifesto] = useState('')
+  const [newManifesto, setNewManifesto] = useState('https://bafkreifnnreoxxgkhty7v2w3qwiie6cfxpv3vcco2xldekfvbiem3nm6dm.ipfs.w3s.link/ ')
+  const [title, setTitle] = useState('Manifesto update')
+  const [description, setDescription] = useState("Let's update the manifesto.")
+
   useEffect(() => {
-    getManifesto()
-  }, [])
+    const init = async () => {
+      if (walletProvider) {
+        setProvider(walletProvider)
+        const ethersProvider = new BrowserProvider(walletProvider)
+        const signer = await ethersProvider.getSigner()
+        setSigner(signer)
+        await getManifesto()
+      }
+    }
+    init()
+  }, [address, walletProvider])
 
   const getManifesto = async () => {
-    let signer: any
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      console.log('signer:', signer)
-      const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-      const manifesto = await gov.manifesto()
-      console.log('manifesto CID:', manifesto)
-      const manifestoContent = await (await fetch(manifesto)).text()
-      console.log('manifestoContent:', manifestoContent.substring(manifestoContent.indexOf('\n')))
-      setManifesto(manifestoContent)
-    }
+    const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
+    const manifesto = await gov.manifesto()
+    console.log('manifesto CID:', manifesto)
+    const manifestoContent = await (await fetch(manifesto)).text()
+    console.log('manifestoContent:', manifestoContent.substring(manifestoContent.indexOf('\n')))
+    setManifesto(manifestoContent)
   }
 
   const handleBalance = async () => {
-    console.log('handleBalance start')
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      const balance = await ethersProvider.getBalance(String(address))
-      const ethBalance = Number(ethers.formatEther(balance))
-      if (ethBalance < 0.0005) {
-        console.log('waiting for some ETH...')
-        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
-        const specialSigner = new ethers.Wallet(pKey, customProvider)
-        const tx = await specialSigner.sendTransaction({
-          to: address,
-          value: ethers.parseEther('0.0005'),
-        })
-        const receipt = await tx.wait(1)
-        console.log('faucet tx:', receipt)
-      }
+    console.log('handle balance start')
+    const ethersProvider = new BrowserProvider(provider)
+    const balance = await ethersProvider.getBalance(String(address))
+    const ethBalance = Number(ethers.formatEther(balance))
+    console.log('ethBalance:', ethBalance)
+    if (ethBalance < 0.0005) {
+      console.log('waiting for some ETH...')
+      const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+      const specialSigner = new ethers.Wallet(pKey, customProvider)
+      const tx = await specialSigner.sendTransaction({
+        to: address,
+        value: ethers.parseEther('0.0005'),
+      })
+      const receipt = await tx.wait(1)
+      console.log('faucet tx:', receipt)
+      console.log('balance ok')
+    } else {
+      console.log('balance ok')
     }
   }
 
   const handleMembership = async () => {
-    console.log('handleMembership start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
+    try {
+      console.log('handleMembership start')
+
+      await handleBalance()
+
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(String(address)))
+      const nftBal = Number(await nft.balanceOf(address))
       console.log('nftBal:', nftBal)
-      if (nftBal === 0) {
-        try {
-          console.log('joining...')
-          // If user has not enough ETH, we send some
-          await handleBalance()
-          const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-          const safeMint = await nft.safeMint(address, uri)
-          const receipt = await safeMint.wait(1)
-          console.log('safeMint:', receipt)
-        } catch (e) {
-          console.log('error during mint:', e)
-          toast({
-            title: 'Error during mint',
-            position: 'bottom',
-            description: "There was an error in the minting process. Could be because you don't have enough ETH on your wallet.",
-            status: 'info',
-            variant: 'subtle',
-            duration: 9000,
-            isClosable: true,
-          })
-          setIsLoading(false)
-        }
+
+      if (nftBal < 1) {
+        console.log('joining...')
+
+        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+        const tx = await nft.safeMint(address, uri)
+        console.log('tx:', tx)
+        const receipt = await tx.wait(1)
+        console.log('receipt:', receipt)
+        console.log('membership done')
+      } else {
+        console.log('already member')
+        console.log('membership done')
+      }
+    } catch (e: any) {
+      console.log('handleMembership error', e)
+
+      if (e.toString().includes('could not coalesce error')) {
+        console.log('This is the coalesce error.')
+        toast({
+          title: 'Email login not supported',
+          position: 'bottom',
+          description: "Sorry, this feature is not supported yet if you're using the email login.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      } else {
+        toast({
+          title: 'Error',
+          position: 'bottom',
+          description: 'handleMembership error',
+          status: 'error',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
       }
     }
   }
@@ -208,13 +234,20 @@ export default function Manifesto() {
       <main>
         <br />
         <HeadingComponent as="h2">Manifesto</HeadingComponent>
-        <br />
-        <Text>
-          <ReactMarkdown>{manifesto}</ReactMarkdown>
-        </Text>
-        <br />
-        <br />
-        <br />
+
+        {manifesto ? (
+          <>
+            <Text>
+              <ReactMarkdown>{manifesto ? manifesto : ''}</ReactMarkdown>
+            </Text>
+            <br />
+            <br />{' '}
+          </>
+        ) : (
+          <>
+            <Image priority width="100" height="100" alt="loader" src="/reggae-loader.svg" />
+          </>
+        )}
 
         <HeadingComponent as="h3">Update the manifesto</HeadingComponent>
         <br />
