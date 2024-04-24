@@ -20,7 +20,7 @@ export default function AddMember() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
-  const [title, setTitle] = useState('Welcome Francis as a new member')
+  const [title, setTitle] = useState('Welcome a new member')
   const [beneficiary, setBeneficiary] = useState(String(address))
   const [description, setDescription] = useState('New member because of this and that...')
 

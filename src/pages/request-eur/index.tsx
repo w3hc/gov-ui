@@ -22,7 +22,7 @@ export default function RequestEur() {
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
   const [amount, setAmount] = useState('1000')
-  const [title, setTitle] = useState('One cool contrib')
+  const [title, setTitle] = useState('One cool contrib (EUR transfer)')
   const [beneficiary, setBeneficiary] = useState<string>('')
   const [description, setDescription] = useState("Let's transfer 1000 € for this cool contrib!")
   const [targetContract, setTargetContract] = useState(ERC20_CONTRACT_ADDRESS)

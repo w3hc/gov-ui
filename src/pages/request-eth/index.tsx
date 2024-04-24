@@ -21,7 +21,7 @@ export default function RequestEth() {
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
   const [amount, setAmount] = useState('0.000000001')
-  const [title, setTitle] = useState('One cool contrib')
+  const [title, setTitle] = useState('One cool contrib (ETH transfer)')
   const [beneficiary, setBeneficiary] = useState('')
   const [description, setDescription] = useState("Let's transfer 0.000000001 ETH to Alice for this cool contrib!")
 
