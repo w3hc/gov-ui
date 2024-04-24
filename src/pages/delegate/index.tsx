@@ -92,9 +92,11 @@ export default function Delegate() {
         const receipt = await tx.wait(1)
         console.log('receipt:', receipt)
         console.log('membership done')
+        return true
       } else {
         console.log('already member')
         console.log('membership done')
+        return true
       }
     } catch (e: any) {
       console.log('handleMembership error', e)
@@ -111,7 +113,7 @@ export default function Delegate() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       } else {
         toast({
           title: 'Error',
@@ -123,7 +125,7 @@ export default function Delegate() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       }
     }
   }
@@ -169,31 +171,25 @@ export default function Delegate() {
 
     try {
       console.log('delegating...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
 
-        // If user is not a member, make him a member (test only)
-        await handleMembership()
-
-        console.log('delegating...')
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
-        const delegate = await nft.delegate(targetAddress)
-        const delegateTx = await delegate.wait(1)
-        console.log('delegate tx:', delegateTx)
-
-        setIsLoading(false)
-      } else {
-        console.log('provider unset')
-        setIsLoading(false)
+      // If user is not a member, make him a member (test only)
+      const membership = await handleMembership()
+      if (membership === false) {
         return
       }
+
+      console.log('delegating...')
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+
+      // If user has not enough ETH, we send some
+      await handleBalance()
+
+      const delegate = await nft.delegate(targetAddress)
+      const delegateTx = await delegate.wait(1)
+      console.log('delegate tx:', delegateTx)
+
+      setIsLoading(false)
+
       setIsLoading(false)
       console.log('delegated')
     } catch (e) {
@@ -230,26 +226,18 @@ export default function Delegate() {
     }
 
     try {
-      console.log('delegating...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
+      // If user has not enough ETH, we send some
+      await handleBalance()
 
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
-        // If user is not a member, make him a member (test only)
-        await handleMembership()
-
-        await handleDelegation()
-        setLoadingDelegateToSelf(false)
-      } else {
-        console.log('provider unset')
-        setLoadingDelegateToSelf(false)
+      // If user is not a member, make him a member (test only)
+      const membership = await handleMembership()
+      if (membership === false) {
         return
       }
+
+      await handleDelegation()
+      setLoadingDelegateToSelf(false)
+
       setLoadingDelegateToSelf(false)
       console.log('delegated')
     } catch (e) {

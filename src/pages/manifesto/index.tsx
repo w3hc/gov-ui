@@ -90,9 +90,11 @@ export default function Manifesto() {
         const receipt = await tx.wait(1)
         console.log('receipt:', receipt)
         console.log('membership done')
+        return true
       } else {
         console.log('already member')
         console.log('membership done')
+        return true
       }
     } catch (e: any) {
       console.log('handleMembership error', e)
@@ -109,7 +111,7 @@ export default function Manifesto() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       } else {
         toast({
           title: 'Error',
@@ -121,7 +123,7 @@ export default function Manifesto() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       }
     }
   }
@@ -173,7 +175,10 @@ export default function Manifesto() {
         signer = await ethersProvider.getSigner()
 
         // If user is not a member, make him a member (test only)
-        await handleMembership()
+        const membership = await handleMembership()
+        if (membership === false) {
+          return
+        }
 
         // Check if user is delegated
         await handleDelegation()

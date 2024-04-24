@@ -64,21 +64,6 @@ export default function Profile() {
 
       await handleBalance()
 
-      // Check if user is logged in
-      if (!isConnected) {
-        toast({
-          title: 'Disconnected',
-          position: 'bottom',
-          description: 'Please connect your wallet first.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 2000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return
-      }
-
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
       const nftBal = Number(await nft.balanceOf(address))
       console.log('nftBal:', nftBal)
@@ -92,9 +77,11 @@ export default function Profile() {
         const receipt = await tx.wait(1)
         console.log('receipt:', receipt)
         console.log('membership done')
+        return true
       } else {
         console.log('already member')
         console.log('membership done')
+        return true
       }
     } catch (e: any) {
       console.log('handleMembership error', e)
@@ -111,7 +98,7 @@ export default function Profile() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       } else {
         toast({
           title: 'Error',
@@ -123,7 +110,7 @@ export default function Profile() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       }
     }
   }
@@ -185,7 +172,10 @@ export default function Profile() {
       console.log('start...')
 
       // If user is not a member, make him a member (test only)
-      await handleMembership()
+      const membership = await handleMembership()
+      if (membership === false) {
+        return
+      }
 
       // Check if user is delegated
       await handleDelegation()

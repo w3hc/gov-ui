@@ -181,7 +181,7 @@ export default function Home() {
         </Text>
         <br />
         <Text>
-          <WarningIcon w={4} h={4} color="red.500" /> Please note that the voting period is set to <strong>5 minutes!</strong>
+          <WarningIcon w={4} h={4} color="red.500" /> Please note that the voting period is set to <strong>5 minutes.</strong>
         </Text>
         <br />
         <Text>
