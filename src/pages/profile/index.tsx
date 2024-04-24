@@ -220,7 +220,7 @@ export default function Profile() {
             <Box borderRadius="lg" overflow="hidden">
               <QRCode
                 size={256}
-                style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
+                style={{ height: 'auto', maxWidth: '400', width: '100%' }}
                 value={address ? address : 'hello'}
                 viewBox={`0 0 256 256`}
               />
