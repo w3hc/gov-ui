@@ -35,9 +35,10 @@ export default function Delegate() {
       }
     }
     init()
-  }, [address, walletProvider, loadingDelegateToSelf, isLoading])
+  }, [address, walletProvider, setIsLoading])
 
   const checkCurrentDelegate = async () => {
+    console.log('checkCurrentDelegate start')
     if (address) {
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
       const getDelegate = await nft.delegates(address)
@@ -49,6 +50,7 @@ export default function Delegate() {
         setIsDelegatedToSelf(false)
       }
     }
+    console.log('checkCurrentDelegate done')
   }
 
   const handleBalance = async () => {
