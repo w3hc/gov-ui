@@ -113,7 +113,7 @@ export default function Proposal() {
           setRawDescription(proposals[i].args[8])
           const proposalExecuted: any = await gov.queryFilter('ProposalExecuted', block)
           // console.log('proposalExecuted:', proposalExecuted)
-          for (let i = 0; i < proposalExecuted.length; i++) {
+          for (let i = 18; i < proposalExecuted.length; i++) {
             // console.log('TEST:', proposalExecuted[i].args[0])
             if (String(proposalExecuted[i].args[0]) === proposalId) {
               // console.log('block:', proposalExecuted[i].blockNumber)
@@ -562,7 +562,9 @@ export default function Proposal() {
               <HeadingComponent as="h4">Execution transaction link</HeadingComponent>
 
               <LinkComponent href={executeTxLink}>
-                <Text>{executeTxLink}</Text>
+                <Text color={'#45a2f8'} _hover={{ color: '#8c1c84' }}>
+                  {executeTxLink}
+                </Text>
               </LinkComponent>
             </Box>
           </>
