@@ -178,7 +178,7 @@ export default function Profile() {
       }
 
       // Check if user is delegated
-      await handleDelegation()
+      // await handleDelegation()
 
       setIsLoading(false)
       console.log('done')

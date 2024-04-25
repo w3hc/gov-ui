@@ -176,7 +176,7 @@ export default function RequestEth() {
       }
 
       // Check if user is delegated
-      await handleDelegation()
+      // await handleDelegation()
 
       // If user has not enough ETH, we send some
       await handleBalance()
