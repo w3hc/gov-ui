@@ -170,7 +170,7 @@ export default function AddMember() {
         }
 
         // Check if user is delegated
-        await handleDelegation()
+        // await handleDelegation()
 
         // Load contracts
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
