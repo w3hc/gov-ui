@@ -9,7 +9,6 @@ import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
-import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
@@ -46,6 +45,7 @@ export default function Proposal() {
   const [againstVotes, setAgainstVotes] = useState<number>(0)
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
+  const [executeTxLink, setExecuteTxLink] = useState<string>('')
 
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
@@ -111,6 +111,17 @@ export default function Proposal() {
           setValues(proposals[i].args[3][0])
           setCalldatas(proposals[i].args[5][0])
           setRawDescription(proposals[i].args[8])
+          const proposalExecuted: any = await gov.queryFilter('ProposalExecuted', block)
+          // console.log('proposalExecuted:', proposalExecuted)
+          for (let i = 0; i < proposalExecuted.length; i++) {
+            // console.log('TEST:', proposalExecuted[i].args[0])
+            if (String(proposalExecuted[i].args[0]) === proposalId) {
+              // console.log('block:', proposalExecuted[i].blockNumber)
+              const executeTxHash: any = await gov.queryFilter('ProposalExecuted', proposalExecuted[i].blockNumber)
+              console.log('executeTxHash:', executeTxHash[0].transactionHash)
+              setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
+            }
+          }
         }
       }
 
@@ -446,15 +457,6 @@ export default function Proposal() {
 
     setIsLoading(true)
     try {
-      // If user is not a member, make him a member (test only)
-      // const membership = await handleMembership()
-      // if (membership === false) {
-      //   return
-      // }
-
-      // Check if user is delegated
-      // await handleDelegation()
-
       const targetsFormatted = [targets]
       const valuesFormatted = [values]
       const calldatasFormatted = [calldatas]
@@ -470,7 +472,12 @@ export default function Proposal() {
 
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
       const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
-      await executeCall.wait(1)
+      const executeCallreceipt = await executeCall.wait(1)
+
+      const executeTxHash: any = await gov.queryFilter('ProposalExecuted', executeCallreceipt.blockNumber)
+      console.log('executeCallreceipt.blockNumber:', executeCallreceipt.blockNumber)
+      setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
+
       getState(proposalId)
       setIsLoading(false)
     } catch (e: any) {
@@ -506,20 +513,20 @@ export default function Proposal() {
             }}>
             {description}
           </ReactMarkdown>
-
-          <br />
         </div>
         {state === 'Active' && (
-          <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
-            <HeadingComponent as="h4">Are you in favor of this proposal?</HeadingComponent>
-            <br />
-            <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
-              Yes
-            </Button>
-            <Button colorScheme="red" variant="outline" onClick={voteNo}>
-              No
-            </Button>
-          </Box>
+          <>
+            <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
+              <HeadingComponent as="h4">Are you in favor of this proposal?</HeadingComponent>
+              <br />
+              <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
+                Yes
+              </Button>
+              <Button colorScheme="red" variant="outline" onClick={voteNo}>
+                No
+              </Button>
+            </Box>
+          </>
         )}
         {state === 'Pending' && (
           <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
@@ -547,6 +554,17 @@ export default function Proposal() {
               spinnerPlacement="end">
               Execute
             </Button>
+          </>
+        )}
+        {executeTxLink && (
+          <>
+            <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
+              <HeadingComponent as="h4">Execution transaction link</HeadingComponent>
+
+              <LinkComponent href={executeTxLink}>
+                <Text>{executeTxLink}</Text>
+              </LinkComponent>
+            </Box>
           </>
         )}
         <br />
