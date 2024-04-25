@@ -13,6 +13,7 @@ import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
+import { firstIteration } from '../../utils/config'
 
 const CustomLink = chakra('a', {
   baseStyle: {
@@ -95,7 +96,7 @@ export default function Proposal() {
       const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
 
       let block
-      for (let i = 12; i < proposalCreatedBlocks.length; i++) {
+      for (let i = firstIteration; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
         const proposals: any = await gov.queryFilter('ProposalCreated', block)
@@ -207,10 +208,7 @@ export default function Proposal() {
 
   const handleDelegation = async () => {
     console.log('handleDelegation start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
+    try {
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
       const delegateTo = await nft.delegates(address)
       if (delegateTo != address) {
@@ -220,7 +218,15 @@ export default function Proposal() {
         const delegate = await nft.delegate(address)
         const delegateTx = await delegate.wait(1)
         console.log('delegate tx:', delegateTx)
+        return true
+      } else {
+        console.log('already delegated to self')
+        console.log('delegation done')
+        return true
       }
+    } catch (e) {
+      console.log('handleDelegation error:', e)
+      return false
     }
   }
 
@@ -260,7 +266,10 @@ export default function Proposal() {
         }
 
         // Check if user is delegated
-        await handleDelegation()
+        const delegated = await handleDelegation()
+        if (delegated === false) {
+          return
+        }
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -377,7 +386,10 @@ export default function Proposal() {
         }
 
         // Check if user is delegated
-        await handleDelegation()
+        const delegated = await handleDelegation()
+        if (delegated === false) {
+          return
+        }
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -434,54 +446,33 @@ export default function Proposal() {
 
     setIsLoading(true)
     try {
-      console.log('try')
+      // If user is not a member, make him a member (test only)
+      // const membership = await handleMembership()
+      // if (membership === false) {
+      //   return
+      // }
 
-      let signer
-      console.log('provider:', provider)
-      if (provider) {
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        console.log('signer', signer)
+      // Check if user is delegated
+      // await handleDelegation()
 
-        // If user is not a member, make him a member (test only)
-        const membership = await handleMembership()
-        if (membership === false) {
-          return
-        }
+      const targetsFormatted = [targets]
+      const valuesFormatted = [values]
+      const calldatasFormatted = [calldatas]
+      const hashedDescription = ethers.id(rawDescription)
 
-        // Check if user is delegated
-        await handleDelegation()
+      console.log('targetsFormatted', targetsFormatted)
+      console.log('valuesFormatted', valuesFormatted)
+      console.log('calldatasFormatted', calldatasFormatted)
+      console.log('hashedDescription', hashedDescription)
 
-        const targetsFormatted = [targets]
-        const valuesFormatted = [values]
-        const calldatasFormatted = [calldatas]
-        const hashedDescription = ethers.id(rawDescription)
+      // If user has not enough ETH, we send some
+      await handleBalance()
 
-        console.log('targetsFormatted', targetsFormatted)
-        console.log('valuesFormatted', valuesFormatted)
-        console.log('calldatasFormatted', calldatasFormatted)
-        console.log('hashedDescription', hashedDescription)
-
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
-        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
-        await executeCall.wait(1)
-        getState(proposalId)
-        setIsLoading(false)
-      } else {
-        toast({
-          title: 'Not connected yet',
-          position: 'bottom',
-          description: 'Please connect your wallet first.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 5000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-      }
+      const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+      const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
+      await executeCall.wait(1)
+      getState(proposalId)
+      setIsLoading(false)
     } catch (e: any) {
       console.log('execute error:', e)
       setIsLoading(false)
