@@ -13,6 +13,7 @@ export const SOCIAL_TWITTER = 'w3hc8'
 export const SOCIAL_GITHUB = 'w3hc/gov-ui'
 
 export const ERC20_CONTRACT_ADRESS = '0xe6BCD785b90dc16d667B022cc871c046587d9Ac5'
+export const firstIteration = 30
 
 export const SERVER_SESSION_SETTINGS = {
   cookieName: SITE_NAME,

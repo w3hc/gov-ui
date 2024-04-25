@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Button, Badge, useToast, Box, Text } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
-import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
 import { LinkComponent } from '../components/layout/LinkComponent'
 import govContract from '../utils/Gov.json'
@@ -9,6 +8,7 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { AddIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
+import { firstIteration } from '../utils/config'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -55,7 +55,7 @@ export default function Home() {
       if (typeof gov.getProposalCreatedBlocks === 'function') {
         const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
         let proposalRaw = proposal
-        for (let i = 12; i < proposalCreatedBlocks.length; i++) {
+        for (let i = firstIteration; i < proposalCreatedBlocks.length; i++) {
           console.log('iteration:', i)
           /////////////////*******//////////////
 
