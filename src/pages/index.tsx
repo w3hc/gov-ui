@@ -118,7 +118,6 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log('useEffect executed')
     if (!initialized) {
       makeProposalObject()
     }
@@ -176,7 +175,7 @@ export default function Home() {
         <Text>The purpose of this DAO is to test Gov. </Text>
         <br />
         <Text>
-          Using Gov, adding a new member typically requires a community vote, but in this version, you can become a member to try out features like
+          Using Gov, adding a new member typically requires a community vote, but in this version you can become a member to try out features like
           submitting a proposal, delegating your voting power to someone, and voting.
         </Text>
         <br />
