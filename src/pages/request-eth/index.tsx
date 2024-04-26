@@ -142,23 +142,23 @@ export default function RequestEth() {
         return
       }
 
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(address))
-      if (nftBal < 1) {
-        toast({
-          title: 'Not a member',
-          position: 'bottom',
-          description: 'You mmust be a member to submit a proposal.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 2000,
-          isClosable: true,
-        })
-        console.log('not a member')
-        setDisplayJoinLink(true)
-        setIsLoading(false)
-        return
-      }
+      // const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
+      // const nftBal = Number(await nft.balanceOf(address))
+      // if (nftBal < 1) {
+      //   toast({
+      //     title: 'Not a member',
+      //     position: 'bottom',
+      //     description: 'You mmust be a member to submit a proposal.',
+      //     status: 'info',
+      //     variant: 'subtle',
+      //     duration: 2000,
+      //     isClosable: true,
+      //   })
+      //   console.log('not a member')
+      //   setDisplayJoinLink(true)
+      //   setIsLoading(false)
+      //   return
+      // }
 
       // Load contract
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
