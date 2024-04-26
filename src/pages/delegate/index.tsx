@@ -151,10 +151,10 @@ export default function Delegate() {
       }
 
       // If user is not a member, make him a member (test only)
-      const membership = await handleMembership()
-      if (membership === false) {
-        return
-      }
+      // const membership = await handleMembership()
+      // if (membership === false) {
+      //   return
+      // }
 
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
