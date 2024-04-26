@@ -156,15 +156,16 @@ export default function Profile() {
           </>
         )}
 
-        {!isLoading ? (
-          <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={join}>
-            Join as a member
-          </Button>
-        ) : (
-          <Button isLoading loadingText="Joining..." mt={4} colorScheme="blue" variant="outline" type="submit">
-            Join as a member
-          </Button>
-        )}
+        <Button
+          mt={4}
+          colorScheme="blue"
+          variant="outline"
+          type="submit"
+          isLoading={isLoading}
+          loadingText="Joining..."
+          onClick={!isLoading ? join : undefined}>
+          {isLoading ? 'Joining...' : 'Join as a member'}
+        </Button>
         <br />
         <br />
         <HeadingComponent as="h2">Delegation</HeadingComponent>
