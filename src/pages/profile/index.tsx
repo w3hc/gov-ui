@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textarea, Box, Wrap, WrapItem, Text } from '@chakra-ui/react'
+import { Button, useToast, Box, Text, Badge } from '@chakra-ui/react'
+import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
@@ -7,15 +8,12 @@ import { Head } from '../../components/layout/Head'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
-import { useRouter } from 'next/router'
 import { LinkComponent } from '../../components/layout/LinkComponent'
-import { AddIcon } from '@chakra-ui/icons'
-import Image from 'next/image'
 import QRCode from 'react-qr-code'
 import { faucetAmount } from '../../utils/config'
 
 export default function Profile() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
@@ -139,7 +137,6 @@ export default function Profile() {
 
       <main>
         <HeadingComponent as="h2">Your wallet address</HeadingComponent>
-        <br />
 
         {isConnected && (
           <>
@@ -152,7 +149,9 @@ export default function Profile() {
               />
             </Box>
             <LinkComponent href={'https://sepolia.etherscan.io/address/' + address}>
-              <Text mt={5}>{address}</Text>
+              <Text color={'#45a2f8'} _hover={{ color: '#8c1c84' }} mt={5}>
+                {address}
+              </Text>
             </LinkComponent>
           </>
         )}
@@ -166,6 +165,28 @@ export default function Profile() {
             Join as a member
           </Button>
         )}
+        <br />
+        <br />
+        <HeadingComponent as="h2">Delegation</HeadingComponent>
+
+        <Text>
+          To vote, you <strong>must</strong> delegate your voting power to yourself or to another member{' '}
+        </Text>
+        <LinkComponent href="/delegate">
+          <Button mt={4} colorScheme="green" variant="outline" rightIcon={<ArrowForwardIcon />}>
+            Delegate
+          </Button>
+        </LinkComponent>
+        <br />
+        <br />
+        <HeadingComponent as="h2">
+          Wallet
+          <Badge ml={3} fontSize="0.5em" colorScheme={'pink'} variant="solid">
+            SOON
+          </Badge>
+        </HeadingComponent>
+
+        <Text>You will be able to transfer some value here. </Text>
 
         <br />
         <br />
