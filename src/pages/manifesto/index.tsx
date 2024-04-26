@@ -11,6 +11,7 @@ import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
+import { faucetAmount } from '../../utils/config'
 
 export default function Manifesto() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -55,13 +56,13 @@ export default function Manifesto() {
     const balance = await ethersProvider.getBalance(String(address))
     const ethBalance = Number(ethers.formatEther(balance))
     console.log('ethBalance:', ethBalance)
-    if (ethBalance < 0.0005) {
+    if (ethBalance < faucetAmount) {
       console.log('waiting for some ETH...')
       const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
       const specialSigner = new ethers.Wallet(pKey, customProvider)
       const tx = await specialSigner.sendTransaction({
         to: address,
-        value: ethers.parseEther('0.0005'),
+        value: ethers.parseEther(String(faucetAmount)),
       })
       const receipt = await tx.wait(1)
       console.log('faucet tx:', receipt)
@@ -128,25 +129,6 @@ export default function Manifesto() {
     }
   }
 
-  const handleDelegation = async () => {
-    console.log('handleDelegation start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegateTo = await nft.delegates(address)
-      if (delegateTo != address) {
-        console.log('delegating...')
-        // If user has not enough ETH, we send some
-        await handleBalance()
-        const delegate = await nft.delegate(address)
-        const delegateTx = await delegate.wait(1)
-        console.log('delegate tx:', delegateTx)
-      }
-    }
-  }
-
   const submitProposal = async (e: any) => {
     e.preventDefault()
     setIsLoading(true)
@@ -175,13 +157,10 @@ export default function Manifesto() {
         signer = await ethersProvider.getSigner()
 
         // If user is not a member, make him a member (test only)
-        const membership = await handleMembership()
-        if (membership === false) {
-          return
-        }
-
-        // Check if user is delegated
-        // await handleDelegation()
+        // const membership = await handleMembership()
+        // if (membership === false) {
+        //   return
+        // }
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)

@@ -77,7 +77,7 @@ export default function Home() {
           }
         }
 
-        // TODO: fix executed twice
+        // TODO: fix executed twice...
         // Remove duplicates based on the `id` property
         const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
         setProposal(uniqueProposals)

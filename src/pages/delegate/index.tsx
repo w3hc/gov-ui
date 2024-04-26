@@ -8,6 +8,7 @@ import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import Image from 'next/image'
+import { faucetAmount } from '../../utils/config'
 
 export default function Delegate() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -56,13 +57,13 @@ export default function Delegate() {
     const balance = await ethersProvider.getBalance(String(address))
     const ethBalance = Number(ethers.formatEther(balance))
     console.log('ethBalance:', ethBalance)
-    if (ethBalance < 0.0005) {
+    if (ethBalance < faucetAmount) {
       console.log('waiting for some ETH...')
       const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
       const specialSigner = new ethers.Wallet(pKey, customProvider)
       const tx = await specialSigner.sendTransaction({
         to: address,
-        value: ethers.parseEther('0.0005'),
+        value: ethers.parseEther(String(faucetAmount)),
       })
       const receipt = await tx.wait(1)
       console.log('faucet tx:', receipt)
@@ -217,10 +218,10 @@ export default function Delegate() {
       }
 
       // If user is not a member, make him a member (test only)
-      const membership = await handleMembership()
-      if (membership === false) {
-        return
-      }
+      // const membership = await handleMembership()
+      // if (membership === false) {
+      //   return
+      // }
 
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 

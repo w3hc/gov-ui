@@ -12,13 +12,13 @@ import { LinkComponent } from '../../components/layout/LinkComponent'
 import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import QRCode from 'react-qr-code'
+import { faucetAmount } from '../../utils/config'
 
 export default function Profile() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
-  const router = useRouter()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
@@ -42,13 +42,13 @@ export default function Profile() {
     const balance = await ethersProvider.getBalance(String(address))
     const ethBalance = Number(ethers.formatEther(balance))
     console.log('ethBalance:', ethBalance)
-    if (ethBalance < 0.0005) {
+    if (ethBalance < faucetAmount) {
       console.log('waiting for some ETH...')
       const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
       const specialSigner = new ethers.Wallet(pKey, customProvider)
       const tx = await specialSigner.sendTransaction({
         to: address,
-        value: ethers.parseEther('0.0005'),
+        value: ethers.parseEther(String(faucetAmount)),
       })
       const receipt = await tx.wait(1)
       console.log('faucet tx:', receipt)
@@ -58,7 +58,25 @@ export default function Profile() {
     }
   }
 
-  const handleMembership = async () => {
+  const join = async (e: any) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    // Check if user is logged in
+    if (!isConnected) {
+      toast({
+        title: 'Disconnected',
+        position: 'bottom',
+        description: 'Please connect your wallet first.',
+        status: 'info',
+        variant: 'subtle',
+        duration: 2000,
+        isClosable: true,
+      })
+      setIsLoading(false)
+      return
+    }
+
     try {
       console.log('handleMembership start')
 
@@ -115,88 +133,6 @@ export default function Profile() {
     }
   }
 
-  const handleDelegation = async () => {
-    console.log('delegation start')
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      return
-    }
-
-    await handleBalance()
-
-    const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-    const delegateTo = await nft.delegates(address)
-    if (delegateTo != address) {
-      console.log('delegating...')
-
-      const delegate = await nft.delegate(address)
-      const delegateTx = await delegate.wait(1)
-      console.log('delegate tx:', delegateTx)
-      console.log('delegation done')
-    } else {
-      console.log('already delegated')
-      console.log('delegation done')
-    }
-  }
-
-  const join = async (e: any) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      console.log('start...')
-
-      // If user is not a member, make him a member (test only)
-      const membership = await handleMembership()
-      if (membership === false) {
-        return
-      }
-
-      // Check if user is delegated
-      // await handleDelegation()
-
-      setIsLoading(false)
-      console.log('done')
-    } catch (e) {
-      console.log('error submitting proposal:', e)
-      toast({
-        title: 'Woops',
-        position: 'bottom',
-        description: 'Sorry',
-        status: 'info',
-        variant: 'subtle',
-        duration: 9000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-    }
-  }
-
   return (
     <>
       <Head />
@@ -220,12 +156,6 @@ export default function Profile() {
             </LinkComponent>
           </>
         )}
-
-        {/* 
-        <Box borderRadius="lg" overflow="hidden">
-          <Image priority width="2000" height="2000" alt="dao-image" src="/warning-sign.gif" />
-        </Box>
-        <br /> */}
 
         {!isLoading ? (
           <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={join}>

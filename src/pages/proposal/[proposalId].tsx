@@ -12,7 +12,7 @@ import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
-import { firstIteration } from '../../utils/config'
+import { firstIteration, faucetAmount } from '../../utils/config'
 
 const CustomLink = chakra('a', {
   baseStyle: {
@@ -112,11 +112,8 @@ export default function Proposal() {
           setCalldatas(proposals[i].args[5][0])
           setRawDescription(proposals[i].args[8])
           const proposalExecuted: any = await gov.queryFilter('ProposalExecuted', block)
-          // console.log('proposalExecuted:', proposalExecuted)
           for (let i = 18; i < proposalExecuted.length; i++) {
-            // console.log('TEST:', proposalExecuted[i].args[0])
             if (String(proposalExecuted[i].args[0]) === proposalId) {
-              // console.log('block:', proposalExecuted[i].blockNumber)
               const executeTxHash: any = await gov.queryFilter('ProposalExecuted', proposalExecuted[i].blockNumber)
               console.log('executeTxHash:', executeTxHash[0].transactionHash)
               setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
@@ -141,22 +138,24 @@ export default function Proposal() {
   }, [proposalId])
 
   const handleBalance = async () => {
-    console.log('handleBalance start')
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      const balance = await ethersProvider.getBalance(String(address))
-      const ethBalance = Number(ethers.formatEther(balance))
-      if (ethBalance < 0.0005) {
-        console.log('waiting for some ETH...')
-        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
-        const specialSigner = new ethers.Wallet(pKey, customProvider)
-        const tx = await specialSigner.sendTransaction({
-          to: address,
-          value: ethers.parseEther('0.0005'),
-        })
-        const receipt = await tx.wait(1)
-        console.log('faucet tx:', receipt)
-      }
+    console.log('handle balance start')
+    const ethersProvider = new BrowserProvider(provider)
+    const balance = await ethersProvider.getBalance(String(address))
+    const ethBalance = Number(ethers.formatEther(balance))
+    console.log('ethBalance:', ethBalance)
+    if (ethBalance < faucetAmount) {
+      console.log('waiting for some ETH...')
+      const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+      const specialSigner = new ethers.Wallet(pKey, customProvider)
+      const tx = await specialSigner.sendTransaction({
+        to: address,
+        value: ethers.parseEther(String(faucetAmount)),
+      })
+      const receipt = await tx.wait(1)
+      console.log('faucet tx:', receipt)
+      console.log('balance ok')
+    } else {
+      console.log('balance ok')
     }
   }
 
@@ -271,16 +270,16 @@ export default function Proposal() {
         signer = await ethersProvider.getSigner()
 
         // If user is not a member, make him a member (test only)
-        const membership = await handleMembership()
-        if (membership === false) {
-          return
-        }
+        // const membership = await handleMembership()
+        // if (membership === false) {
+        //   return
+        // }
 
         // Check if user is delegated
-        const delegated = await handleDelegation()
-        if (delegated === false) {
-          return
-        }
+        // const delegated = await handleDelegation()
+        // if (delegated === false) {
+        //   return
+        // }
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -452,9 +451,6 @@ export default function Proposal() {
   }
 
   const execute = async () => {
-    console.log('executing...')
-    console.log('provider:', provider)
-
     setIsLoading(true)
     try {
       const targetsFormatted = [targets]
@@ -470,15 +466,20 @@ export default function Proposal() {
       // If user has not enough ETH, we send some
       await handleBalance()
 
+      console.log('executing...')
+
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
       const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
       const executeCallreceipt = await executeCall.wait(1)
 
       const executeTxHash: any = await gov.queryFilter('ProposalExecuted', executeCallreceipt.blockNumber)
-      console.log('executeCallreceipt.blockNumber:', executeCallreceipt.blockNumber)
+      // console.log('executeCallreceipt.blockNumber:', executeCallreceipt.blockNumber)
       setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
 
       getState(proposalId)
+      console.log('execute tx:', executeCallreceipt)
+      console.log('execute done')
+
       setIsLoading(false)
     } catch (e: any) {
       console.log('execute error:', e)
