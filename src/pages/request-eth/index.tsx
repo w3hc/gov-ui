@@ -3,6 +3,8 @@ import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textar
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { LinkComponent } from '../../components/layout/LinkComponent'
+import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { Head } from '../../components/layout/Head'
 import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
@@ -12,7 +14,7 @@ import { useRouter } from 'next/router'
 import { faucetAmount } from '../../utils/config'
 
 export default function RequestEth() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
@@ -21,6 +23,7 @@ export default function RequestEth() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
+  const [displayJoinLink, setDisplayJoinLink] = useState<boolean>(false)
   const [amount, setAmount] = useState('0.000000001')
   const [title, setTitle] = useState('One cool contrib (ETH transfer)')
   const [beneficiary, setBeneficiary] = useState('')
@@ -139,6 +142,24 @@ export default function RequestEth() {
         return
       }
 
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nft.balanceOf(address))
+      if (nftBal < 1) {
+        toast({
+          title: 'Not a member',
+          position: 'bottom',
+          description: 'You mmust be a member to submit a proposal.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        console.log('not a member')
+        setDisplayJoinLink(true)
+        setIsLoading(false)
+        return
+      }
+
       // Load contract
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
 
@@ -148,12 +169,6 @@ export default function RequestEth() {
       const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
       const targets = [beneficiary]
       const values = [ethers.parseEther(amount)]
-
-      // If user is not a member, make him a member (test only)
-      // const membership = await handleMembership()
-      // if (membership === false) {
-      //   return
-      // }
 
       // If user has not enough ETH, we send some
       await handleBalance()
@@ -222,15 +237,27 @@ export default function RequestEth() {
           <br />
           <br />
 
-          {!isLoading ? (
-            <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
-          ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit">
-              Submitting proposal
-            </Button>
+          {displayJoinLink && (
+            <>
+              <LinkComponent href="/profile">
+                <Button mt={3} rightIcon={<ArrowForwardIcon />} colorScheme="green" variant="outline" size="sm">
+                  Join
+                </Button>
+              </LinkComponent>
+              <br />
+            </>
           )}
+          <Button
+            mt={4}
+            colorScheme="blue"
+            variant="outline"
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={displayJoinLink}
+            loadingText="Submitting proposal..."
+            onClick={submitProposal}>
+            {isLoading ? 'Submitting proposal' : 'Submit proposal'}
+          </Button>
         </FormControl>
         <br />
         <br />

@@ -3,6 +3,8 @@ import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textar
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { LinkComponent } from '../../components/layout/LinkComponent'
+import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { Head } from '../../components/layout/Head'
 import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
@@ -12,7 +14,7 @@ import { useRouter } from 'next/router'
 import { faucetAmount } from '../../utils/config'
 
 export default function BanMember() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
@@ -21,6 +23,7 @@ export default function BanMember() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
+  const [displayJoinLink, setDisplayJoinLink] = useState<boolean>(false)
   const [title, setTitle] = useState('Ban XYZ')
   const [beneficiary, setBeneficiary] = useState(String('0xe61A1a5278290B6520f0CEf3F2c71Ba70CF5cf4C'))
   const [description, setDescription] = useState('XYZ should be banned because of this and that.')
@@ -119,35 +122,46 @@ export default function BanMember() {
 
   const submitProposal = async (e: any) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-      return
-    }
-
     try {
+      setIsLoading(true)
+
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
+
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nft.balanceOf(address))
+      if (nftBal < 1) {
+        toast({
+          title: 'Not a member',
+          position: 'bottom',
+          description: 'You mmust be a member to submit a proposal.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        console.log('not a member')
+        setDisplayJoinLink(true)
+        setIsLoading(false)
+        return
+      }
+
       console.log('submitting proposal...')
 
-      // If user is not a member, make him a member (test only)
-      // const membership = await handleMembership()
-      // if (membership === false) {
-      //   return
-      // }
-
-      // Load contracts
+      // Load contract
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
       // Prep call
       const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
