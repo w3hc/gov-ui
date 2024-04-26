@@ -6,7 +6,7 @@ import { LinkComponent } from '../components/layout/LinkComponent'
 import govContract from '../utils/Gov.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
-import { AddIcon, WarningIcon } from '@chakra-ui/icons'
+import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import { firstIteration } from '../utils/config'
 
@@ -201,7 +201,7 @@ export default function Home() {
           </strong>
         </Text>
         <LinkComponent href="/profile">
-          <Button mt={3} rightIcon={<AddIcon />} colorScheme="green" variant="outline" size="sm">
+          <Button mt={3} rightIcon={<ArrowForwardIcon />} colorScheme="green" variant="outline" size="sm">
             Join
           </Button>
         </LinkComponent>
