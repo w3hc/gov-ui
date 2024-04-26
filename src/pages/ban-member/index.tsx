@@ -138,52 +138,42 @@ export default function BanMember() {
 
     try {
       console.log('submitting proposal...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
 
-        // If user is not a member, make him a member (test only)
-        // const membership = await handleMembership()
-        // if (membership === false) {
-        //   return
-        // }
+      // If user is not a member, make him a member (test only)
+      // const membership = await handleMembership()
+      // if (membership === false) {
+      //   return
+      // }
 
-        // Load contracts
-        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      // Load contracts
+      const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
 
-        // Prep call
-        const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
-        const govBurn = nft.interface.encodeFunctionData('govBurn', [tokenId])
-        const call = [govBurn.toString()]
-        const calldatas = [call.toString()]
-        const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
-        const targets = [nftContract.address]
-        const values = [0]
+      // Prep call
+      const tokenId = await nft.tokenOfOwnerByIndex(beneficiary, 0)
+      const govBurn = nft.interface.encodeFunctionData('govBurn', [tokenId])
+      const call = [govBurn.toString()]
+      const calldatas = [call.toString()]
+      const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
+      const targets = [nftContract.address]
+      const values = [0]
 
-        // If user has not enough ETH, we send some
-        await handleBalance()
+      // If user has not enough ETH, we send some
+      await handleBalance()
 
-        // Call propose
-        console.log('caller address:', await signer?.getAddress())
-        const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
-        console.log('propose triggered')
-        const proposeReceipt: any = await propose.wait(1)
-        console.log('propose tx', proposeReceipt)
-        const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
-        const proposalId: any = proposals[0].args?.proposalId.toString()
-        console.log('proposalId:', proposalId)
+      // Call propose
+      console.log('caller address:', await signer?.getAddress())
+      const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
+      console.log('propose triggered')
+      const proposeReceipt: any = await propose.wait(1)
+      console.log('propose tx', proposeReceipt)
+      const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
+      const proposalId: any = proposals[0].args?.proposalId.toString()
+      console.log('proposalId:', proposalId)
 
-        // Redirect to proposal page
-        const targetURL = '/proposal/' + proposalId
-        router.push(targetURL)
-      } else {
-        console.log('provider unset')
-        setIsLoading(false)
-        return
-      }
+      // Redirect to proposal page
+      const targetURL = '/proposal/' + proposalId
+      router.push(targetURL)
       setIsLoading(false)
       console.log('proposal submitted')
     } catch (e) {
