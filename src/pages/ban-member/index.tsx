@@ -140,7 +140,7 @@ export default function BanMember() {
         return
       }
 
-      // const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
       // const nftBal = Number(await nft.balanceOf(address))
       // if (nftBal < 1) {
       //   toast({
