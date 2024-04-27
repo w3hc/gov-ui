@@ -19,6 +19,8 @@ export default function Profile() {
   const toast = useToast()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoadingBurn, setIsLoadingBurn] = useState<boolean>(false)
+
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
 
@@ -58,45 +60,47 @@ export default function Profile() {
 
   const join = async (e: any) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-      return
-    }
-
     try {
-      console.log('handleMembership start')
+      setIsLoading(true)
+
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
 
       await handleBalance()
+      const nftCustom = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
 
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(address))
+      const nftBal = Number(await nftCustom.balanceOf(address))
       console.log('nftBal:', nftBal)
 
       if (nftBal < 1) {
         console.log('joining...')
 
         const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+
         const tx = await nft.safeMint(address, uri)
         console.log('tx:', tx)
         const receipt = await tx.wait(1)
         console.log('receipt:', receipt)
         console.log('membership done')
+        setIsLoading(false)
         return true
       } else {
         console.log('already member')
         console.log('membership done')
+        setIsLoading(false)
         return true
       }
     } catch (e: any) {
@@ -126,6 +130,84 @@ export default function Profile() {
           isClosable: true,
         })
         setIsLoading(false)
+        return false
+      }
+    }
+  }
+
+  const burn = async (e: any) => {
+    e.preventDefault()
+    try {
+      setIsLoadingBurn(true)
+
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        setIsLoadingBurn(false)
+        return
+      }
+
+      console.log('burn start')
+
+      await handleBalance()
+
+      const nftCustom = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const nftBal = Number(await nftCustom.balanceOf(address))
+      console.log('nftBal:', nftBal)
+
+      if (nftBal > 0) {
+        console.log('burning nft...')
+        const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+        const tokenId = await nft.tokenOfOwnerByIndex(address, 0)
+        const tx = await nft.burn(Number(tokenId))
+        console.log('tx:', tx)
+        const receipt = await tx.wait(1)
+        console.log('receipt:', receipt)
+        console.log('burn done')
+        setIsLoadingBurn(false)
+
+        return true
+      } else {
+        console.log('not a member')
+        console.log('burn func executed')
+        setIsLoadingBurn(false)
+        return true
+      }
+    } catch (e: any) {
+      console.log('burn error', e)
+
+      if (e.toString().includes('could not coalesce error')) {
+        console.log('This is the coalesce error.')
+        toast({
+          title: 'Email login not supported',
+          position: 'bottom',
+          description: "Sorry, this feature is not supported yet if you're using the email login.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoadingBurn(false)
+        return false
+      } else {
+        toast({
+          title: 'Error',
+          position: 'bottom',
+          description: 'handleMembership error',
+          status: 'error',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
+        setIsLoadingBurn(false)
         return false
       }
     }
@@ -176,6 +258,23 @@ export default function Profile() {
         <LinkComponent href="/delegate">
           <Button mt={4} colorScheme="green" variant="outline" rightIcon={<ArrowForwardIcon />}>
             Delegate
+          </Button>
+        </LinkComponent>
+        <br />
+        <br />
+        <HeadingComponent as="h2">Leave the DAO</HeadingComponent>
+
+        <Text>You can burn your membership to resign from your DAO membership. You will then lose your voting power. </Text>
+        <LinkComponent href="/delegate">
+          <Button
+            mt={4}
+            colorScheme="red"
+            variant="outline"
+            type="submit"
+            isLoading={isLoadingBurn}
+            loadingText="Burning ..."
+            onClick={!isLoading ? burn : undefined}>
+            {isLoading ? 'Burning your NFT...' : 'Leave the DAO'}
           </Button>
         </LinkComponent>
         <br />
