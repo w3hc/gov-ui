@@ -219,21 +219,6 @@ export default function Proposal() {
   const handleDelegation = async () => {
     console.log('handleDelegation start')
     try {
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegateTo = await nft.delegates(address)
-      if (delegateTo != address) {
-        console.log('delegating...')
-        // If user has not enough ETH, we send some
-        await handleBalance()
-        const delegate = await nft.delegate(address)
-        const delegateTx = await delegate.wait(1)
-        console.log('delegate tx:', delegateTx)
-        return true
-      } else {
-        console.log('already delegated to self')
-        console.log('delegation done')
-        return true
-      }
     } catch (e) {
       console.log('handleDelegation error:', e)
       return false
@@ -243,43 +228,59 @@ export default function Proposal() {
   const voteYes = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
-
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-      return
-    }
-
     try {
-      console.log('voting yes...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
+      setIsLoading(true)
 
-        // If user is not a member, make him a member (test only)
-        // const membership = await handleMembership()
-        // if (membership === false) {
-        //   return
-        // }
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
 
-        // Check if user is delegated
-        // const delegated = await handleDelegation()
-        // if (delegated === false) {
-        //   return
-        // }
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+
+      // if (delegateTo != address || delegateTo != '0x0000000000000000000000000000000000000000') {
+      //   console.log('delegated to someone else')
+
+      //   toast({
+      //     title: 'Delegated to someone else',
+      //     position: 'bottom',
+      //     description: "You've delegated to someone else. Delegate to yourself if you want to vote.",
+      //     status: 'info',
+      //     variant: 'subtle',
+      //     duration: 3000,
+      //     isClosable: true,
+      //   })
+      //   return false
+      // }
+
+      if (delegateTo === '0x0000000000000000000000000000000000000000') {
+        console.log('not delegated')
+
+        toast({
+          title: 'Not delegated',
+          position: 'bottom',
+          description: 'You need to delegate to yourself before voting',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return false
+      }
+
+      if (delegateTo === address) {
+        console.log('delegation ok')
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -301,19 +302,6 @@ export default function Proposal() {
           duration: 5000,
           isClosable: true,
         })
-      } else {
-        console.log('no provider')
-        toast({
-          title: 'Disconnected',
-          position: 'bottom',
-          description: 'Please connect your wallet first.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 2000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return
       }
     } catch (e: any) {
       console.log('vote error:', e)
@@ -364,42 +352,58 @@ export default function Proposal() {
   const voteNo = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
-
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      return
-    }
-
     try {
-      console.log('voting no...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
+      setIsLoading(true)
 
-        // If user is not a member, make him a member (test only)
-        const membership = await handleMembership()
-        if (membership === false) {
-          return
-        }
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        return
+      }
 
-        // Check if user is delegated
-        const delegated = await handleDelegation()
-        if (delegated === false) {
-          return
-        }
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+
+      if (delegateTo != address || delegateTo != '0x0000000000000000000000000000000000000000') {
+        console.log('delegated to someone else')
+
+        toast({
+          title: 'Delegated to someone else',
+          position: 'bottom',
+          description: "You've delegated to someone else. Delegate to yourself if you want to vote.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return false
+      }
+
+      if (delegateTo === '0x0000000000000000000000000000000000000000') {
+        console.log('not delegated')
+
+        toast({
+          title: 'Not delegated',
+          position: 'bottom',
+          description: 'You need to delegate to yourself before voting',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return false
+      }
+
+      if (delegateTo === address) {
+        console.log('delegation ok')
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -421,19 +425,6 @@ export default function Proposal() {
           duration: 5000,
           isClosable: true,
         })
-      } else {
-        console.log('no provider')
-        toast({
-          title: 'Disconnected',
-          position: 'bottom',
-          description: 'Please connect your wallet first.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 2000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return
       }
     } catch (e: any) {
       console.log('vote error:', e)
