@@ -216,15 +216,6 @@ export default function Proposal() {
     }
   }
 
-  const handleDelegation = async () => {
-    console.log('handleDelegation start')
-    try {
-    } catch (e) {
-      console.log('handleDelegation error:', e)
-      return false
-    }
-  }
-
   const voteYes = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
@@ -249,20 +240,22 @@ export default function Proposal() {
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
       const delegateTo = await nft.delegates(address)
 
-      // if (delegateTo != address || delegateTo != '0x0000000000000000000000000000000000000000') {
-      //   console.log('delegated to someone else')
+      const nftBal = Number(await nft.balanceOf(address))
+      console.log('nftBal:', nftBal)
 
-      //   toast({
-      //     title: 'Delegated to someone else',
-      //     position: 'bottom',
-      //     description: "You've delegated to someone else. Delegate to yourself if you want to vote.",
-      //     status: 'info',
-      //     variant: 'subtle',
-      //     duration: 3000,
-      //     isClosable: true,
-      //   })
-      //   return false
-      // }
+      if (nftBal < 1) {
+        toast({
+          title: 'Not a member',
+          position: 'bottom',
+          description: 'Please join as a member if you want to vote.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
 
       if (delegateTo === '0x0000000000000000000000000000000000000000') {
         console.log('not delegated')
@@ -276,7 +269,8 @@ export default function Proposal() {
           duration: 3000,
           isClosable: true,
         })
-        return false
+        setIsLoading(false)
+        return
       }
 
       if (delegateTo === address) {
@@ -302,6 +296,18 @@ export default function Proposal() {
           duration: 5000,
           isClosable: true,
         })
+      } else {
+        setIsLoading(false)
+        toast({
+          title: 'Delegation',
+          position: 'bottom',
+          description: 'You need to delegate to yourself before voting',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return
       }
     } catch (e: any) {
       console.log('vote error:', e)
