@@ -9,10 +9,10 @@ import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
-import { AddIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
+import { firstIteration, faucetAmount } from '../../utils/config'
 
 const CustomLink = chakra('a', {
   baseStyle: {
@@ -45,6 +45,7 @@ export default function Proposal() {
   const [againstVotes, setAgainstVotes] = useState<number>(0)
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
+  const [executeTxLink, setExecuteTxLink] = useState<string>('')
 
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
@@ -95,7 +96,7 @@ export default function Proposal() {
       const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
 
       let block
-      for (let i = 12; i < proposalCreatedBlocks.length; i++) {
+      for (let i = firstIteration; i < proposalCreatedBlocks.length; i++) {
         console.log('iteration:', i)
 
         const proposals: any = await gov.queryFilter('ProposalCreated', block)
@@ -110,6 +111,14 @@ export default function Proposal() {
           setValues(proposals[i].args[3][0])
           setCalldatas(proposals[i].args[5][0])
           setRawDescription(proposals[i].args[8])
+          const proposalExecuted: any = await gov.queryFilter('ProposalExecuted', block)
+          for (let i = 18; i < proposalExecuted.length; i++) {
+            if (String(proposalExecuted[i].args[0]) === proposalId) {
+              const executeTxHash: any = await gov.queryFilter('ProposalExecuted', proposalExecuted[i].blockNumber)
+              console.log('executeTxHash:', executeTxHash[0].transactionHash)
+              setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
+            }
+          }
         }
       }
 
@@ -129,75 +138,80 @@ export default function Proposal() {
   }, [proposalId])
 
   const handleBalance = async () => {
-    console.log('handleBalance start')
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      const balance = await ethersProvider.getBalance(String(address))
-      const ethBalance = Number(ethers.formatEther(balance))
-      if (ethBalance < 0.0005) {
-        console.log('waiting for some ETH...')
-        const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
-        const specialSigner = new ethers.Wallet(pKey, customProvider)
-        const tx = await specialSigner.sendTransaction({
-          to: address,
-          value: ethers.parseEther('0.0005'),
-        })
-        const receipt = await tx.wait(1)
-        console.log('faucet tx:', receipt)
-      }
+    console.log('handle balance start')
+    const ethersProvider = new BrowserProvider(provider)
+    const balance = await ethersProvider.getBalance(String(address))
+    const ethBalance = Number(ethers.formatEther(balance))
+    console.log('ethBalance:', ethBalance)
+    if (ethBalance < faucetAmount) {
+      console.log('waiting for some ETH...')
+      const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
+      const specialSigner = new ethers.Wallet(pKey, customProvider)
+      const tx = await specialSigner.sendTransaction({
+        to: address,
+        value: ethers.parseEther(String(faucetAmount)),
+      })
+      const receipt = await tx.wait(1)
+      console.log('faucet tx:', receipt)
+      console.log('balance ok')
+    } else {
+      console.log('balance ok')
     }
   }
 
   const handleMembership = async () => {
-    console.log('handleMembership start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(String(address)))
-      console.log('nftBal:', nftBal)
-      if (nftBal === 0) {
-        try {
-          console.log('joining...')
-          // If user has not enough ETH, we send some
-          await handleBalance()
-          const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-          const safeMint = await nft.safeMint(address, uri)
-          const receipt = await safeMint.wait(1)
-          console.log('safeMint:', receipt)
-        } catch (e) {
-          console.log('error during mint:', e)
-          toast({
-            title: 'Error during mint',
-            position: 'bottom',
-            description: "There was an error in the minting process. Could be because you don't have enough ETH on your wallet.",
-            status: 'info',
-            variant: 'subtle',
-            duration: 9000,
-            isClosable: true,
-          })
-          setIsLoading(false)
-        }
-      }
-    }
-  }
+    try {
+      console.log('handleMembership start')
 
-  const handleDelegation = async () => {
-    console.log('handleDelegation start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
+      await handleBalance()
+
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegateTo = await nft.delegates(address)
-      if (delegateTo != address) {
-        console.log('delegating...')
-        // If user has not enough ETH, we send some
-        await handleBalance()
-        const delegate = await nft.delegate(address)
-        const delegateTx = await delegate.wait(1)
-        console.log('delegate tx:', delegateTx)
+      const nftBal = Number(await nft.balanceOf(address))
+      console.log('nftBal:', nftBal)
+
+      if (nftBal < 1) {
+        console.log('joining...')
+
+        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
+        const tx = await nft.safeMint(address, uri)
+        console.log('tx:', tx)
+        const receipt = await tx.wait(1)
+        console.log('receipt:', receipt)
+        console.log('membership done')
+        return true
+      } else {
+        console.log('already member')
+        console.log('membership done')
+        return true
+      }
+    } catch (e: any) {
+      console.log('handleMembership error', e)
+
+      if (e.toString().includes('could not coalesce error')) {
+        console.log('This is the coalesce error.')
+        toast({
+          title: 'Email login not supported',
+          position: 'bottom',
+          description: "Sorry, this feature is not supported yet if you're using the email login.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return false
+      } else {
+        toast({
+          title: 'Error',
+          position: 'bottom',
+          description: 'handleMembership error',
+          status: 'error',
+          variant: 'subtle',
+          duration: 9000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return false
       }
     }
   }
@@ -205,37 +219,62 @@ export default function Proposal() {
   const voteYes = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
-
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-      return
-    }
-
     try {
-      console.log('voting yes...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
+      setIsLoading(true)
 
-        // If user is not a member, make him a member (test only)
-        await handleMembership()
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
 
-        // Check if user is delegated
-        await handleDelegation()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+
+      const nftBal = Number(await nft.balanceOf(address))
+      console.log('nftBal:', nftBal)
+
+      if (nftBal < 1) {
+        toast({
+          title: 'Not a member',
+          position: 'bottom',
+          description: 'Please join as a member if you want to vote.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
+
+      if (delegateTo === '0x0000000000000000000000000000000000000000') {
+        console.log('not delegated')
+
+        toast({
+          title: 'Not delegated',
+          position: 'bottom',
+          description: 'You need to delegate to yourself before voting',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        setIsLoading(false)
+        return
+      }
+
+      if (delegateTo === address) {
+        console.log('delegation ok')
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -258,17 +297,16 @@ export default function Proposal() {
           isClosable: true,
         })
       } else {
-        console.log('no provider')
+        setIsLoading(false)
         toast({
-          title: 'Disconnected',
+          title: 'Delegation',
           position: 'bottom',
-          description: 'Please connect your wallet first.',
+          description: 'You need to delegate to yourself before voting',
           status: 'info',
           variant: 'subtle',
-          duration: 2000,
+          duration: 3000,
           isClosable: true,
         })
-        setIsLoading(false)
         return
       }
     } catch (e: any) {
@@ -320,36 +358,58 @@ export default function Proposal() {
   const voteNo = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
-
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      return
-    }
-
     try {
-      console.log('voting no...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
+      setIsLoading(true)
 
-        // If user is not a member, make him a member (test only)
-        await handleMembership()
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
+        return
+      }
 
-        // Check if user is delegated
-        await handleDelegation()
+      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
+      const delegateTo = await nft.delegates(address)
+
+      if (delegateTo != address || delegateTo != '0x0000000000000000000000000000000000000000') {
+        console.log('delegated to someone else')
+
+        toast({
+          title: 'Delegated to someone else',
+          position: 'bottom',
+          description: "You've delegated to someone else. Delegate to yourself if you want to vote.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return false
+      }
+
+      if (delegateTo === '0x0000000000000000000000000000000000000000') {
+        console.log('not delegated')
+
+        toast({
+          title: 'Not delegated',
+          position: 'bottom',
+          description: 'You need to delegate to yourself before voting',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return false
+      }
+
+      if (delegateTo === address) {
+        console.log('delegation ok')
 
         // Load contract
         const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -371,19 +431,6 @@ export default function Proposal() {
           duration: 5000,
           isClosable: true,
         })
-      } else {
-        console.log('no provider')
-        toast({
-          title: 'Disconnected',
-          position: 'bottom',
-          description: 'Please connect your wallet first.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 2000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return
       }
     } catch (e: any) {
       console.log('vote error:', e)
@@ -401,56 +448,36 @@ export default function Proposal() {
   }
 
   const execute = async () => {
-    console.log('executing...')
-    console.log('provider:', provider)
-
     setIsLoading(true)
     try {
-      console.log('try')
+      const targetsFormatted = [targets]
+      const valuesFormatted = [values]
+      const calldatasFormatted = [calldatas]
+      const hashedDescription = ethers.id(rawDescription)
 
-      let signer
-      console.log('provider:', provider)
-      if (provider) {
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
-        console.log('signer', signer)
+      console.log('targetsFormatted', targetsFormatted)
+      console.log('valuesFormatted', valuesFormatted)
+      console.log('calldatasFormatted', calldatasFormatted)
+      console.log('hashedDescription', hashedDescription)
 
-        // If user is not a member, make him a member (test only)
-        await handleMembership()
+      // If user has not enough ETH, we send some
+      await handleBalance()
 
-        // Check if user is delegated
-        await handleDelegation()
+      console.log('executing...')
 
-        const targetsFormatted = [targets]
-        const valuesFormatted = [values]
-        const calldatasFormatted = [calldatas]
-        const hashedDescription = ethers.id(rawDescription)
+      const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+      const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
+      const executeCallreceipt = await executeCall.wait(1)
 
-        console.log('targetsFormatted', targetsFormatted)
-        console.log('valuesFormatted', valuesFormatted)
-        console.log('calldatasFormatted', calldatasFormatted)
-        console.log('hashedDescription', hashedDescription)
+      const executeTxHash: any = await gov.queryFilter('ProposalExecuted', executeCallreceipt.blockNumber)
+      // console.log('executeCallreceipt.blockNumber:', executeCallreceipt.blockNumber)
+      setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
 
-        // If user has not enough ETH, we send some
-        await handleBalance()
+      getState(proposalId)
+      console.log('execute tx:', executeCallreceipt)
+      console.log('execute done')
 
-        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-        const executeCall = await gov.execute(targetsFormatted, valuesFormatted, calldatasFormatted, hashedDescription)
-        await executeCall.wait(1)
-        getState(proposalId)
-        setIsLoading(false)
-      } else {
-        toast({
-          title: 'Not connected yet',
-          position: 'bottom',
-          description: 'Please connect your wallet first.',
-          status: 'info',
-          variant: 'subtle',
-          duration: 5000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-      }
+      setIsLoading(false)
     } catch (e: any) {
       console.log('execute error:', e)
       setIsLoading(false)
@@ -484,20 +511,20 @@ export default function Proposal() {
             }}>
             {description}
           </ReactMarkdown>
-
-          <br />
         </div>
         {state === 'Active' && (
-          <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
-            <HeadingComponent as="h4">Are you in favor of this proposal?</HeadingComponent>
-            <br />
-            <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
-              Yes
-            </Button>
-            <Button colorScheme="red" variant="outline" onClick={voteNo}>
-              No
-            </Button>
-          </Box>
+          <>
+            <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
+              <HeadingComponent as="h4">Are you in favor of this proposal?</HeadingComponent>
+              <br />
+              <Button mr="5" colorScheme="green" variant="outline" onClick={voteYes}>
+                Yes
+              </Button>
+              <Button colorScheme="red" variant="outline" onClick={voteNo}>
+                No
+              </Button>
+            </Box>
+          </>
         )}
         {state === 'Pending' && (
           <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
@@ -527,6 +554,19 @@ export default function Proposal() {
             </Button>
           </>
         )}
+        {executeTxLink && (
+          <>
+            <Box mt={10} borderRadius="lg" p={5} shadow="md" borderWidth="2px">
+              <HeadingComponent as="h4">Execution transaction link</HeadingComponent>
+
+              <LinkComponent href={executeTxLink}>
+                <Text color={'#45a2f8'} _hover={{ color: '#8c1c84' }}>
+                  {executeTxLink}
+                </Text>
+              </LinkComponent>
+            </Box>
+          </>
+        )}
         <br />
         <br />
         <br />
@@ -535,6 +575,8 @@ export default function Proposal() {
       </main>
     </>
   ) : (
-    <Image priority width="400" height="400" alt="loader" src="/reggae-loader.svg" />
+    <Box display="flex" justifyContent="center" alignItems="center">
+      <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+    </Box>
   )
 }

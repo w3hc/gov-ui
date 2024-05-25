@@ -3,6 +3,8 @@ import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textar
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { LinkComponent } from '../../components/layout/LinkComponent'
+import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { Head } from '../../components/layout/Head'
 import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
@@ -10,9 +12,10 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
 import { ERC20_CONTRACT_ADDRESS, ERC20_CONTRACT_ABI } from '../../utils/erc20'
+import { faucetAmount } from '../../utils/config'
 
 export default function RequestEur() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
@@ -21,8 +24,9 @@ export default function RequestEur() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
+  const [displayJoinLink, setDisplayJoinLink] = useState<boolean>(false)
   const [amount, setAmount] = useState('1000')
-  const [title, setTitle] = useState('One cool contrib')
+  const [title, setTitle] = useState('One cool contrib (EUR transfer)')
   const [beneficiary, setBeneficiary] = useState<string>('')
   const [description, setDescription] = useState("Let's transfer 1000 € for this cool contrib!")
   const [targetContract, setTargetContract] = useState(ERC20_CONTRACT_ADDRESS)
@@ -46,94 +50,19 @@ export default function RequestEur() {
     const balance = await ethersProvider.getBalance(String(address))
     const ethBalance = Number(ethers.formatEther(balance))
     console.log('ethBalance:', ethBalance)
-    if (ethBalance < 0.0005) {
+    if (ethBalance < faucetAmount) {
       console.log('waiting for some ETH...')
       const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
       const specialSigner = new ethers.Wallet(pKey, customProvider)
       const tx = await specialSigner.sendTransaction({
         to: address,
-        value: ethers.parseEther('0.0005'),
+        value: ethers.parseEther(String(faucetAmount)),
       })
       const receipt = await tx.wait(1)
       console.log('faucet tx:', receipt)
       console.log('balance ok')
     } else {
       console.log('balance ok')
-    }
-  }
-
-  const handleMembership = async () => {
-    try {
-      console.log('handleMembership start')
-
-      await handleBalance()
-
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(address))
-      console.log('nftBal:', nftBal)
-
-      if (nftBal < 1) {
-        console.log('joining...')
-
-        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-        const tx = await nft.safeMint(address, uri)
-        console.log('tx:', tx)
-        const receipt = await tx.wait(1)
-        console.log('receipt:', receipt)
-        console.log('membership done')
-      } else {
-        console.log('already member')
-        console.log('membership done')
-      }
-    } catch (e: any) {
-      console.log('handleMembership error', e)
-
-      if (e.toString().includes('could not coalesce error')) {
-        console.log('This is the coalesce error.')
-        toast({
-          title: 'Email login not supported',
-          position: 'bottom',
-          description: "Sorry, this feature is not supported yet if you're using the email login.",
-          status: 'info',
-          variant: 'subtle',
-          duration: 3000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return
-      } else {
-        toast({
-          title: 'Error',
-          position: 'bottom',
-          description: 'handleMembership error',
-          status: 'error',
-          variant: 'subtle',
-          duration: 9000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return
-      }
-    }
-  }
-
-  const handleDelegation = async () => {
-    console.log('delegation start')
-
-    await handleBalance()
-
-    const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-    const delegateTo = await nft.delegates(address)
-    if (delegateTo != address) {
-      console.log('delegating...')
-
-      const delegate = await nft.delegate(address)
-      const delegateTx = await delegate.wait(1)
-      console.log('delegate tx:', delegateTx)
-      console.log('delegation done')
-    } else {
-      console.log('already delegated')
-      console.log('delegation done')
     }
   }
 
@@ -158,11 +87,7 @@ export default function RequestEur() {
         return
       }
 
-      // If user is not a member, make him a member (test only)
-      await handleMembership()
-
-      // Check if user is delegated
-      await handleDelegation()
+      await handleBalance()
 
       // Load contracts
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
@@ -250,15 +175,27 @@ export default function RequestEur() {
           <FormHelperText>Who should receive the money?</FormHelperText>
           <br />
           <br />
-          {!isLoading ? (
-            <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
-          ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit">
-              Submitting proposal
-            </Button>
+          {displayJoinLink && (
+            <>
+              <LinkComponent href="/profile">
+                <Button mt={3} rightIcon={<ArrowForwardIcon />} colorScheme="green" variant="outline" size="sm">
+                  Join
+                </Button>
+              </LinkComponent>
+              <br />
+            </>
           )}
+          <Button
+            mt={4}
+            colorScheme="blue"
+            variant="outline"
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={displayJoinLink}
+            loadingText="Submitting proposal..."
+            onClick={submitProposal}>
+            {isLoading ? 'Submitting proposal' : 'Submit proposal'}
+          </Button>
         </FormControl>
         <br />
         <br />

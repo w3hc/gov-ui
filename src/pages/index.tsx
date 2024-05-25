@@ -1,14 +1,14 @@
 import * as React from 'react'
 import { Button, Badge, useToast, Box, Text } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
-import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
 import { LinkComponent } from '../components/layout/LinkComponent'
 import govContract from '../utils/Gov.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
-import { AddIcon } from '@chakra-ui/icons'
+import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
+import { firstIteration } from '../utils/config'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -19,7 +19,7 @@ export default function Home() {
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
-  const [name, setName] = useState<string>('Test DAO')
+  const [name, setName] = useState<string>('Berlin04 Demo DAO')
   const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
@@ -55,7 +55,7 @@ export default function Home() {
       if (typeof gov.getProposalCreatedBlocks === 'function') {
         const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
         let proposalRaw = proposal
-        for (let i = 12; i < proposalCreatedBlocks.length; i++) {
+        for (let i = firstIteration; i < proposalCreatedBlocks.length; i++) {
           console.log('iteration:', i)
           /////////////////*******//////////////
 
@@ -77,7 +77,7 @@ export default function Home() {
           }
         }
 
-        // TODO: fix executed twice
+        // TODO: fix executed twice...
         // Remove duplicates based on the `id` property
         const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
         setProposal(uniqueProposals)
@@ -118,7 +118,6 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log('useEffect executed')
     if (!initialized) {
       makeProposalObject()
     }
@@ -149,7 +148,9 @@ export default function Home() {
         {isLoading === false ? (
           proposal.map((p) => <Item key={p.id} title={p.title} state={p.state} id={p.id} link={p.link} />)
         ) : (
-          <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+          </Box>
         )}
       </div>
     )
@@ -174,13 +175,18 @@ export default function Home() {
         <Text>The purpose of this DAO is to test Gov. </Text>
         <br />
         <Text>
-          Using Gov, adding a new member typically requires a community vote, but in this version, you can become a member to try out features like
+          Using Gov, adding a new member typically requires a community vote, but in this version you can become a member to try out features like
           submitting a proposal, delegating your voting power to someone, and voting.
         </Text>
         <br />
         <Text>
-          Please note that the voting period is set to <strong>5 minutes!</strong>
+          <WarningIcon w={4} h={4} color="red.500" /> Please note that the voting period is set to <strong>5 minutes.</strong>
         </Text>
+        {/* <br />
+        <Text>
+          <WarningIcon w={4} h={4} color="red.500" /> Also, if you&apos;re using the email login some faetures may not be working yet. Thanks for your
+          patience!
+        </Text> */}
         <br />
         <Text fontSize={12}>
           DAO contract address:{' '}
@@ -194,8 +200,8 @@ export default function Home() {
             </a>
           </strong>
         </Text>
-        <LinkComponent href="/join">
-          <Button mt={3} rightIcon={<AddIcon />} colorScheme="green" variant="outline" size="sm">
+        <LinkComponent href="/profile">
+          <Button mt={3} rightIcon={<ArrowForwardIcon />} colorScheme="green" variant="outline" size="sm">
             Join
           </Button>
         </LinkComponent>
@@ -212,7 +218,9 @@ export default function Home() {
           </>
         ) : (
           <>
-            <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+            </Box>
 
             <br />
             <br />

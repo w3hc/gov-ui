@@ -3,15 +3,18 @@ import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Textar
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { LinkComponent } from '../../components/layout/LinkComponent'
+import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { Head } from '../../components/layout/Head'
 import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
 import { ethers } from 'ethers'
 import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
+import { faucetAmount } from '../../utils/config'
 
 export default function RequestEth() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
@@ -20,8 +23,9 @@ export default function RequestEth() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
+  const [displayJoinLink, setDisplayJoinLink] = useState<boolean>(false)
   const [amount, setAmount] = useState('0.000000001')
-  const [title, setTitle] = useState('One cool contrib')
+  const [title, setTitle] = useState('One cool contrib (ETH transfer)')
   const [beneficiary, setBeneficiary] = useState('')
   const [description, setDescription] = useState("Let's transfer 0.000000001 ETH to Alice for this cool contrib!")
 
@@ -39,18 +43,18 @@ export default function RequestEth() {
   }, [address, walletProvider])
 
   const handleBalance = async () => {
-    console.log('handleBalance start')
+    console.log('handle balance start')
     const ethersProvider = new BrowserProvider(provider)
     const balance = await ethersProvider.getBalance(String(address))
     const ethBalance = Number(ethers.formatEther(balance))
     console.log('ethBalance:', ethBalance)
-    if (ethBalance < 0.0005) {
+    if (ethBalance < faucetAmount) {
       console.log('waiting for some ETH...')
       const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
       const specialSigner = new ethers.Wallet(pKey, customProvider)
       const tx = await specialSigner.sendTransaction({
         to: address,
-        value: ethers.parseEther('0.0005'),
+        value: ethers.parseEther(String(faucetAmount)),
       })
       const receipt = await tx.wait(1)
       console.log('faucet tx:', receipt)
@@ -79,9 +83,11 @@ export default function RequestEth() {
         const receipt = await tx.wait(1)
         console.log('receipt:', receipt)
         console.log('membership done')
+        return true
       } else {
         console.log('already member')
         console.log('membership done')
+        return true
       }
     } catch (e: any) {
       console.log('handleMembership error', e)
@@ -98,7 +104,7 @@ export default function RequestEth() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       } else {
         toast({
           title: 'Error',
@@ -110,29 +116,8 @@ export default function RequestEth() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       }
-    }
-  }
-
-  const handleDelegation = async () => {
-    console.log('delegation start')
-
-    const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-    const delegateTo = await nft.delegates(address)
-    if (delegateTo != address) {
-      console.log('delegating...')
-
-      // If user has not enough ETH, we send some
-      await handleBalance()
-
-      const delegate = await nft.delegate(address)
-      const delegateTx = await delegate.wait(1)
-      console.log('delegate tx:', delegateTx)
-      console.log('delegation done')
-    } else {
-      console.log('already delegated')
-      console.log('delegation done')
     }
   }
 
@@ -157,6 +142,24 @@ export default function RequestEth() {
         return
       }
 
+      // const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
+      // const nftBal = Number(await nft.balanceOf(address))
+      // if (nftBal < 1) {
+      //   toast({
+      //     title: 'Not a member',
+      //     position: 'bottom',
+      //     description: 'You mmust be a member to submit a proposal.',
+      //     status: 'info',
+      //     variant: 'subtle',
+      //     duration: 2000,
+      //     isClosable: true,
+      //   })
+      //   console.log('not a member')
+      //   setDisplayJoinLink(true)
+      //   setIsLoading(false)
+      //   return
+      // }
+
       // Load contract
       const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
 
@@ -167,19 +170,13 @@ export default function RequestEth() {
       const targets = [beneficiary]
       const values = [ethers.parseEther(amount)]
 
-      // If user is not a member, make him a member (test only)
-      await handleMembership()
-
-      // Check if user is delegated
-      await handleDelegation()
-
       // If user has not enough ETH, we send some
       await handleBalance()
 
       // Call propose
       console.log('caller address:', await signer?.getAddress())
       const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
-      console.log('Propose triggered')
+      console.log('propose triggered')
       const proposeReceipt: any = await propose.wait(1)
       console.log('propose tx', proposeReceipt)
       const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
@@ -240,15 +237,27 @@ export default function RequestEth() {
           <br />
           <br />
 
-          {!isLoading ? (
-            <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
-          ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit">
-              Submitting proposal
-            </Button>
+          {displayJoinLink && (
+            <>
+              <LinkComponent href="/profile">
+                <Button mt={3} rightIcon={<ArrowForwardIcon />} colorScheme="green" variant="outline" size="sm">
+                  Join
+                </Button>
+              </LinkComponent>
+              <br />
+            </>
           )}
+          <Button
+            mt={4}
+            colorScheme="blue"
+            variant="outline"
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={displayJoinLink}
+            loadingText="Submitting proposal..."
+            onClick={submitProposal}>
+            {isLoading ? 'Submitting proposal' : 'Submit proposal'}
+          </Button>
         </FormControl>
         <br />
         <br />

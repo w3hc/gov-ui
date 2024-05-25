@@ -1,8 +1,10 @@
 import * as React from 'react'
-import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Text, Textarea } from '@chakra-ui/react'
+import { Button, useToast, FormControl, FormLabel, FormHelperText, Input, Text, Textarea, Box } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { BrowserProvider } from 'ethers'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { LinkComponent } from '../../components/layout/LinkComponent'
+import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { Head } from '../../components/layout/Head'
 import govContract from '../../utils/Gov.json'
 import nftContract from '../../utils/NFT.json'
@@ -11,9 +13,10 @@ import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { useRouter } from 'next/router'
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
+import { faucetAmount } from '../../utils/config'
 
 export default function Manifesto() {
-  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
@@ -22,6 +25,7 @@ export default function Manifesto() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
   const [signer, setSigner] = useState<any>(undefined)
+  const [displayJoinLink, setDisplayJoinLink] = useState<boolean>(false)
   const [manifesto, setManifesto] = useState('')
   const [newManifesto, setNewManifesto] = useState('https://bafkreifnnreoxxgkhty7v2w3qwiie6cfxpv3vcco2xldekfvbiem3nm6dm.ipfs.w3s.link/ ')
   const [title, setTitle] = useState('Manifesto update')
@@ -55,13 +59,13 @@ export default function Manifesto() {
     const balance = await ethersProvider.getBalance(String(address))
     const ethBalance = Number(ethers.formatEther(balance))
     console.log('ethBalance:', ethBalance)
-    if (ethBalance < 0.0005) {
+    if (ethBalance < faucetAmount) {
       console.log('waiting for some ETH...')
       const pKey = process.env.NEXT_PUBLIC_SIGNER_PRIVATE_KEY || ''
       const specialSigner = new ethers.Wallet(pKey, customProvider)
       const tx = await specialSigner.sendTransaction({
         to: address,
-        value: ethers.parseEther('0.0005'),
+        value: ethers.parseEther(String(faucetAmount)),
       })
       const receipt = await tx.wait(1)
       console.log('faucet tx:', receipt)
@@ -90,9 +94,11 @@ export default function Manifesto() {
         const receipt = await tx.wait(1)
         console.log('receipt:', receipt)
         console.log('membership done')
+        return true
       } else {
         console.log('already member')
         console.log('membership done')
+        return true
       }
     } catch (e: any) {
       console.log('handleMembership error', e)
@@ -109,7 +115,7 @@ export default function Manifesto() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
+        return false
       } else {
         toast({
           title: 'Error',
@@ -121,95 +127,79 @@ export default function Manifesto() {
           isClosable: true,
         })
         setIsLoading(false)
-        return
-      }
-    }
-  }
-
-  const handleDelegation = async () => {
-    console.log('handleDelegation start')
-    let signer
-    if (provider) {
-      const ethersProvider = new BrowserProvider(provider)
-      signer = await ethersProvider.getSigner()
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const delegateTo = await nft.delegates(address)
-      if (delegateTo != address) {
-        console.log('delegating...')
-        // If user has not enough ETH, we send some
-        await handleBalance()
-        const delegate = await nft.delegate(address)
-        const delegateTx = await delegate.wait(1)
-        console.log('delegate tx:', delegateTx)
+        return false
       }
     }
   }
 
   const submitProposal = async (e: any) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Check if user is logged in
-    if (!isConnected) {
-      toast({
-        title: 'Disconnected',
-        position: 'bottom',
-        description: 'Please connect your wallet first.',
-        status: 'info',
-        variant: 'subtle',
-        duration: 2000,
-        isClosable: true,
-      })
-      setIsLoading(false)
-      return
-    }
-
     try {
-      console.log('submitting proposal...')
-      let signer
-      if (provider) {
-        // make signer
-        const ethersProvider = new BrowserProvider(provider)
-        signer = await ethersProvider.getSigner()
+      setIsLoading(true)
 
-        // If user is not a member, make him a member (test only)
-        await handleMembership()
-
-        // Check if user is delegated
-        await handleDelegation()
-
-        // Load contract
-        const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
-
-        // Prep call
-        const setManifesto = gov.interface.encodeFunctionData('setManifesto', [newManifesto])
-        const call = [setManifesto.toString()]
-        const calldatas = [call.toString()]
-        const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
-        const targets = [govContract.address]
-        const values = [0]
-
-        // If user has not enough ETH, we send some
-        await handleBalance()
-
-        // Call propose
-        console.log('caller address:', await signer?.getAddress())
-        const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
-        console.log('Propose triggered')
-        const proposeReceipt: any = await propose.wait(1)
-        console.log('propose tx', proposeReceipt)
-        const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
-        const proposalId: any = proposals[0].args?.proposalId.toString()
-        console.log('proposalId:', proposalId)
-
-        // Redirect to proposal page
-        const targetURL = '/proposal/' + proposalId
-        router.push(targetURL)
-      } else {
-        console.log('provider unset')
+      // Check if user is logged in
+      if (!isConnected) {
+        toast({
+          title: 'Disconnected',
+          position: 'bottom',
+          description: 'Please connect your wallet first.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 2000,
+          isClosable: true,
+        })
         setIsLoading(false)
         return
       }
+
+      // const nft = new ethers.Contract(nftContract.address, nftContract.abi, customProvider)
+      // const nftBal = Number(await nft.balanceOf(address))
+      // if (nftBal < 1) {
+      //   toast({
+      //     title: 'Not a member',
+      //     position: 'bottom',
+      //     description: 'You mmust be a member to submit a proposal.',
+      //     status: 'info',
+      //     variant: 'subtle',
+      //     duration: 2000,
+      //     isClosable: true,
+      //   })
+      //   console.log('not a member')
+      //   setDisplayJoinLink(true)
+      //   setIsLoading(false)
+      //   return
+      // }
+
+      console.log('submitting proposal...')
+
+      // Load contract
+      const gov = new ethers.Contract(govContract.address, govContract.abi, signer)
+
+      // Prep call
+      const setManifesto = gov.interface.encodeFunctionData('setManifesto', [newManifesto])
+      const call = [setManifesto.toString()]
+      const calldatas = [call.toString()]
+      const PROPOSAL_DESCRIPTION: string = '# ' + title + '\n' + description + ''
+      const targets = [govContract.address]
+      const values = [0]
+
+      // If user has not enough ETH, we send some
+      await handleBalance()
+
+      // Call propose
+      console.log('caller address:', await signer?.getAddress())
+      const propose = await gov.propose(targets, values, calldatas, PROPOSAL_DESCRIPTION)
+      console.log('propose triggered')
+      const proposeReceipt: any = await propose.wait(1)
+      console.log('propose tx', proposeReceipt)
+      const proposals: any = await gov.queryFilter('ProposalCreated' as any, proposeReceipt.blockNumber)
+      const proposalId: any = proposals[0].args?.proposalId.toString()
+      console.log('proposalId:', proposalId)
+
+      // Redirect to proposal page
+      const targetURL = '/proposal/' + proposalId
+      router.push(targetURL)
+
       setIsLoading(false)
       console.log('proposal submitted')
     } catch (e) {
@@ -245,7 +235,9 @@ export default function Manifesto() {
           </>
         ) : (
           <>
-            <Image priority width="100" height="100" alt="loader" src="/reggae-loader.svg" />
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Image priority width="200" height="200" alt="loader" src="/reggae-loader.svg" />
+            </Box>
           </>
         )}
 
@@ -269,15 +261,27 @@ export default function Manifesto() {
           <FormHelperText>The URL of the newly edited manifesto</FormHelperText>
           <br />
 
-          {!isLoading ? (
-            <Button mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
-          ) : (
-            <Button isLoading loadingText="Submitting proposal..." mt={4} colorScheme="blue" variant="outline" type="submit" onClick={submitProposal}>
-              Submit proposal
-            </Button>
+          {displayJoinLink && (
+            <>
+              <LinkComponent href="/profile">
+                <Button mt={3} rightIcon={<ArrowForwardIcon />} colorScheme="green" variant="outline" size="sm">
+                  Join
+                </Button>
+              </LinkComponent>
+              <br />
+            </>
           )}
+          <Button
+            mt={4}
+            colorScheme="blue"
+            variant="outline"
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={displayJoinLink}
+            loadingText="Submitting proposal..."
+            onClick={submitProposal}>
+            {isLoading ? 'Submitting proposal' : 'Submit proposal'}
+          </Button>
         </FormControl>
         <br />
         <br />
