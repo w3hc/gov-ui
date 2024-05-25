@@ -182,11 +182,11 @@ export default function Home() {
         <Text>
           <WarningIcon w={4} h={4} color="red.500" /> Please note that the voting period is set to <strong>5 minutes.</strong>
         </Text>
-        <br />
+        {/* <br />
         <Text>
-          <WarningIcon w={4} h={4} color="red.500" /> Also, if you&apos;re using the email login some fetures may not be working yet. Thanks for your
+          <WarningIcon w={4} h={4} color="red.500" /> Also, if you&apos;re using the email login some faetures may not be working yet. Thanks for your
           patience!
-        </Text>
+        </Text> */}
         <br />
         <Text fontSize={12}>
           DAO contract address:{' '}
