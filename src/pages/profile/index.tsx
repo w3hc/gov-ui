@@ -273,8 +273,8 @@ export default function Profile() {
             type="submit"
             isLoading={isLoadingBurn}
             loadingText="Burning ..."
-            onClick={!isLoading ? burn : undefined}>
-            {isLoading ? 'Burning your NFT...' : 'Leave the DAO'}
+            onClick={!isLoadingBurn ? burn : undefined}>
+            {isLoadingBurn ? 'Burning your NFT...' : 'Leave the DAO'}
           </Button>
         </LinkComponent>
         <br />
