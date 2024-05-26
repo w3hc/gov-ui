@@ -44,7 +44,7 @@ export default function Home() {
 
   const makeProposalObject = async () => {
     const uniswapGraphQuery: string = `query proposalsCreated {
-      proposalCreateds {
+        proposalCreateds(orderDirection: desc, orderBy: voteEnd) {
         proposalId
         blockNumber
         calldatas
