@@ -57,12 +57,6 @@ export default function Home() {
       }
     }`
 
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: uniswapGraphQuery }),
-    }
-
     try {
       // Get the response
       const response = await axios.post(
