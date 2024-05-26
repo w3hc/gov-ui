@@ -9,12 +9,14 @@ import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import { firstIteration } from '../utils/config'
+import axios from 'axios'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
+  const queryURL: string = 'https://api.studio.thegraph.com/query/52496/gov-subgraph/version/latest'
 
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -41,6 +43,44 @@ export default function Home() {
   }
 
   const makeProposalObject = async () => {
+    console.log('yo')
+
+    const uniswapGraphQuery: string = `query proposalsCreated {
+      proposalCreateds {
+        proposalId
+        blockNumber
+        calldatas
+        description
+        voteEnd
+        voteStart
+        transactionHash
+      }
+    }`
+
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: uniswapGraphQuery }),
+    }
+
+    try {
+      // Get the response
+      const response = await axios.post(
+        queryURL,
+        {
+          query: uniswapGraphQuery,
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+
+      // Display the list of tokens
+      console.log('response', response.data.data)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
+
     try {
       console.log('fetching proposals...')
       if (initialized) {
