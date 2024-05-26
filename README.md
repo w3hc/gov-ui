@@ -42,21 +42,15 @@ pnpm build
 
 You can use this repo as a template for your own DAO.
 
-You can replace the `GOV_CONTRACT_ADDRESS` and `startBlock` in the [`config.ts`](https://github.com/w3hc/gov-ui/blob/main/src/utils/config.ts) file. Also, make sure the network id is correct everywhere in the app (in [`index.ts`](https://github.com/w3hc/gov-ui/blob/main/src/pages/index.tsx#L51), but also in [`proposal/\[proposalId\].tsx`](https://github.com/w3hc/gov-ui/blob/main/src/pages/proposal/%5BproposalId%5D.tsx#L109)).
-
-Feel free to [contact me](https://github.com/w3hc/gov-ui/tree/main?tab=readme-ov-file#support) if you need anything.
+You can replace the `GOV_CONTRACT_ADDRESS` in the [`config.ts`](https://github.com/w3hc/gov-ui/blob/main/src/utils/config.ts) file. Also, make sure the network id is correct everywhere in the app (in [`index.ts`](https://github.com/w3hc/gov-ui/blob/main/src/pages/index.tsx#L51), but also in [`proposal/\[proposalId\].tsx`](https://github.com/w3hc/gov-ui/blob/main/src/pages/proposal/%5BproposalId%5D.tsx#L109)).
 
 ## Includes
 
 - [Next.js](https://nextjs.org/docs)
 - [Chakra UI](https://chakra-ui.com/)
 - [Ethers v6](https://docs.ethers.org/v6/)
-- [viem](https://viem.sh/)
-- [wagmi](https://wagmi.sh/)
 - [Web3Modal SDK from WalletConnect](https://docs.walletconnect.com/)
-- [Sign-In with Ethereum](https://www.login.xyz/)
-- [Gitcoin Passport](https://docs.passport.gitcoin.co/)
-- [usehooks-ts](https://usehooks-ts.com/)
+- [Subgraph](https://thegraph.com/docs/en/)
 - [next-SEO](https://github.com/garmeeh/next-seo)
 - [TypeScript](https://www.typescriptlang.org/)
 - [eslint](https://eslint.org/)
@@ -66,7 +60,3 @@ Feel free to [contact me](https://github.com/w3hc/gov-ui/tree/main?tab=readme-ov
 ## Support
 
 You can contact me via [Element](https://matrix.to/#/@julienbrg:matrix.org), [Farcaster](https://warpcast.com/julien-), [Telegram](https://t.me/julienbrg), [Twitter](https://twitter.com/julienbrg), [Discord](https://discordapp.com/users/julienbrg), or [LinkedIn](https://www.linkedin.com/in/julienberanger/).
-
-## Credits
-
-[Nexth](https://github.com/wslyvh/nexth/) boilerplate was built by [wslyvh](https://github.com/wslyvh) and [others](https://github.com/wslyvh/nexth/graphs/contributors).
