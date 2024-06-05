@@ -87,6 +87,38 @@ export default function RequestEur() {
         return
       }
 
+      // TODO: Check if user is MEMBER
+      //  if (!isConnected) {
+      //   toast({
+      //     title: 'Disconnected',
+      //     position: 'bottom',
+      //     description: 'Please connect your wallet first.',
+      //     status: 'info',
+      //     variant: 'subtle',
+      //     duration: 2000,
+      //     isClosable: true,
+      //   })
+      //   console.log('user disconnected')
+      //   setIsLoading(false)
+      //   return
+      // }
+
+      // TODO: Check if user is DELEGATED
+      //  if (!isConnected) {
+      //   toast({
+      //     title: 'Disconnected',
+      //     position: 'bottom',
+      //     description: 'Please connect your wallet first.',
+      //     status: 'info',
+      //     variant: 'subtle',
+      //     duration: 2000,
+      //     isClosable: true,
+      //   })
+      //   console.log('user disconnected')
+      //   setIsLoading(false)
+      //   return
+      // }
+
       await handleBalance()
 
       // Load contracts
