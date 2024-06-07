@@ -92,7 +92,7 @@ export default function Proposal() {
       let i: number = 0
 
       if (proposals[0].args != undefined) {
-        for (i; i < Number(proposals.length); i++) {
+        for (i = firstIteration; i < Number(proposals.length); i++) {
           const id = String(proposals[i].args?.proposalId)
 
           if (id == proposalId) {
