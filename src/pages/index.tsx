@@ -8,14 +8,13 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
-import { firstIteration } from '../utils/config'
+import { startBlock, firstIteration, listOfBlocks } from '../utils/config'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
-  const queryURL: string = 'https://api.studio.thegraph.com/query/52496/gov-subgraph/version/latest'
 
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -52,39 +51,114 @@ export default function Home() {
       setIsLoading(true)
       setProposal([])
 
-      const block = await customProvider.getBlockNumber()
+      const currentBlock = await customProvider.getBlockNumber()
       const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
-      const proposals: any = await gov.queryFilter('ProposalCreated' as any, 6031421, block)
-      console.log('proposals:', proposals)
 
+      console.log('listOfBlocks:', listOfBlocks)
+
+      let proposals: any
       let i: number = 0
-      let proposalsRaw = proposal
+      let proposalsRaw: any = proposal
 
-      // console.log('proposals:', proposals[0]) // https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1722195086
+      // TODO: add a static list of blocks https://github.com/w3hc/gov-ui/issues/79
+      if (listOfBlocks.length > 0) {
+        console.log('listOfBlocks.length > 0')
 
-      // console.log((<EventLog>proposals[0]).args)
+        let staticProposalsRaw = proposal
 
-      // if (“args” in proposals[0]) { console.log(proposals[0]).args; }
+        const firstBlock = listOfBlocks[0]
+        console.log('firstBlock', firstBlock)
 
-      if (proposals[0].args != undefined) {
-        for (i = 0; i < Number(proposals.length); i++) {
-          proposalsRaw.push(
+        const lastBlock = listOfBlocks[listOfBlocks.length - 1]
+        console.log(' lastBlock', lastBlock)
+
+        const staticProposals = await gov.queryFilter('ProposalCreated' as any, firstBlock, lastBlock)
+        console.log('staticProposals', staticProposals)
+
+        console.log('Number(listOfBlocks.length)', Number(listOfBlocks.length))
+
+        for (i = 0; i < Number(listOfBlocks.length); i++) {
+          console.log('iterations', i)
+
+          const staticProposal: any = await gov.queryFilter('ProposalCreated' as any, firstBlock, firstBlock)
+          console.log('staticProposal', staticProposal)
+
+          console.log('staticProposal proposalId', staticProposal[0].args?.proposalId)
+          console.log('staticProposal description', staticProposal[0].args?.description)
+          console.log('staticProposal title', staticProposal[0].args?.description)
+
+          staticProposalsRaw.push(
             ...[
               {
-                id: String(proposals[i].args?.proposalId),
-                link: baseUrl + String(proposals[i].args?.proposalId),
-                title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
-                state: await getState(proposals[i].args?.proposalId),
+                id: String(staticProposal[0].args?.proposalId),
+                link: baseUrl + String(staticProposal[0].args?.proposalId),
+                // title: 'hey',
+                title: staticProposal[0].args?.description.substring(
+                  staticProposal[0].args?.description == '#' ? 2 : 0,
+                  staticProposal[0].args?.description.indexOf('\n')
+                ),
+                state: await getState(staticProposal[0].args?.proposalId),
               },
             ]
           )
         }
-        const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+
+        const uniqueProposals = staticProposalsRaw.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
         setProposal(uniqueProposals)
         console.log('all proposals fetched ✅')
         setInitialized(true)
         setIsLoading(false)
+
+        // proposals = await gov.queryFilter('ProposalCreated' as any, lastBlock, currentBlock)
+        // console.log('proposals:', proposals)
+
+        // let proposalsRaw = proposal // to remove
+
+        // if (proposals[0].args != undefined) {
+        //   for (i = 0; i < Number(proposals.length); i++) {
+        //     proposalsRaw.push(
+        //       ...[
+        //         {
+        //           id: String(proposals[i].args?.proposalId),
+        //           link: baseUrl + String(proposals[i].args?.proposalId),
+        //           title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
+        //           state: await getState(proposals[i].args?.proposalId),
+        //         },
+        //       ]
+        //     )
+        //   }
+        //   const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+        //   setProposal(uniqueProposals)
+        //   console.log('all proposals fetched ✅')
+        //   setInitialized(true)
+        //   setIsLoading(false)
+        // }
+        // }
+      } else {
+        proposals = await gov.queryFilter('ProposalCreated' as any, startBlock, currentBlock)
+        console.log('proposals:', proposals)
+
+        if (proposals[0].args != undefined) {
+          for (i = firstIteration; i < Number(proposals.length); i++) {
+            proposalsRaw.push(
+              ...[
+                {
+                  id: String(proposals[i].args?.proposalId),
+                  link: baseUrl + String(proposals[i].args?.proposalId),
+                  title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
+                  state: await getState(proposals[i].args?.proposalId),
+                },
+              ]
+            )
+          }
+          const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+          setProposal(uniqueProposals)
+          console.log('all proposals fetched ✅')
+          setInitialized(true)
+          setIsLoading(false)
+        }
       }
+      setIsLoading(false)
     } catch (error: any) {
       setIsLoading(false)
       setInitialized(true)
