@@ -84,50 +84,46 @@ export default function Proposal() {
 
   const getProposalData = async () => {
     setIsLoading(true)
+    const block = await customProvider.getBlockNumber()
+    const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
+    const proposals: any = await gov.queryFilter('ProposalCreated' as any, 6031421, block)
+
     try {
-      if (initialized) {
-        console.log('already initialized')
-        setIsLoading(false)
-        return
-      }
+      let i: number = 0
 
-      const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
+      if (proposals[0].args != undefined) {
+        for (i = firstIteration; i < Number(proposals.length); i++) {
+          const id = String(proposals[i].args?.proposalId)
 
-      const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
+          if (id == proposalId) {
+            setTitle(proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')))
+            setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n')))
+            setCalldatas(proposals[0].args[5])
 
-      let block
-      for (let i = firstIteration; i < proposalCreatedBlocks.length; i++) {
-        console.log('iteration:', i)
+            await getState(proposalId)
+            await getCurrentVotes(proposalId)
 
-        const proposals: any = await gov.queryFilter('ProposalCreated', block)
+            setTargets(proposals[i].args[2][0])
+            setValues(proposals[i].args[3][0])
 
-        if (String(proposals[i].args[0]) === proposalId) {
-          setTitle(proposals[i].args[8].substring(proposals[i].args[8] == '#' ? 2 : 2, proposals[i].args[8].indexOf('\n')))
-          setDescription(proposals[i].args[8].substring(proposals[i].args[8].indexOf('\n')))
-          setCalldatas(proposals[i].args[5])
-          await getState(proposalId)
-          await getCurrentVotes(proposalId)
-          setTargets(proposals[i].args[2][0])
-          setValues(proposals[i].args[3][0])
-          setCalldatas(proposals[i].args[5][0])
-          setRawDescription(proposals[i].args[8])
-          const proposalExecuted: any = await gov.queryFilter('ProposalExecuted', block)
-          for (let i = 18; i < proposalExecuted.length; i++) {
-            if (String(proposalExecuted[i].args[0]) === proposalId) {
-              const executeTxHash: any = await gov.queryFilter('ProposalExecuted', proposalExecuted[i].blockNumber)
-              console.log('executeTxHash:', executeTxHash[0].transactionHash)
-              setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
+            setCalldatas(proposals[i].args[5][0])
+            setRawDescription(proposals[i].args[8])
+            const proposalExecuted: any = await gov.queryFilter('ProposalExecuted', block)
+            for (let i = 18; i < proposalExecuted.length; i++) {
+              if (String(proposalExecuted[i].args[0]) === proposalId) {
+                const executeTxHash: any = await gov.queryFilter('ProposalExecuted', proposalExecuted[i].blockNumber)
+                console.log('executeTxHash:', executeTxHash[0].transactionHash)
+                setExecuteTxLink('https://sepolia.etherscan.io/tx/' + executeTxHash[0].transactionHash)
+              }
             }
           }
         }
       }
-
       setInitialized(true)
       setIsLoading(false)
     } catch (error) {
       console.error('error:', error)
       setInitialized(true)
-      setIsLoading(false)
     }
   }
 

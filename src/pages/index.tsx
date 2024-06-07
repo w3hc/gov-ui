@@ -8,20 +8,18 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
-import { firstIteration } from '../utils/config'
-import axios from 'axios'
+import { startBlock, firstIteration, listOfBlocks } from '../utils/config'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
-  const queryURL: string = 'https://api.studio.thegraph.com/query/52496/gov-subgraph/version/latest'
 
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
-  const [name, setName] = useState<string>('Berlin04 Demo DAO')
+  const [name, setName] = useState<string>('Test DAO')
   const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
@@ -43,18 +41,6 @@ export default function Home() {
   }
 
   const makeProposalObject = async () => {
-    const uniswapGraphQuery: string = `query proposalsCreated {
-        proposalCreateds(orderDirection: desc, orderBy: voteEnd) {
-        proposalId
-        blockNumber
-        calldatas
-        description
-        voteEnd
-        voteStart
-        transactionHash
-      }
-    }`
-
     try {
       console.log('fetching proposals...')
       if (initialized) {
@@ -64,43 +50,114 @@ export default function Home() {
       }
       setIsLoading(true)
       setProposal([])
-      const response = await axios.post(
-        queryURL,
-        {
-          query: uniswapGraphQuery,
-        },
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
 
-      const proposals = response.data.data.proposalCreateds
-      console.log('proposals', proposals)
-      let proposalRaw = proposal
+      const currentBlock = await customProvider.getBlockNumber()
+      const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
 
-      console.log('proposals[0].proposalId', proposals[0].proposalId)
-      console.log('proposals.length', proposals.length)
-      if (proposals.length > 0) {
-        for (let i = 0; i < proposals.length; i++) {
-          proposalRaw.push(
+      console.log('listOfBlocks:', listOfBlocks)
+
+      let proposals: any
+      let i: number = 0
+      let proposalsRaw: any = proposal
+
+      // TODO: add a static list of blocks https://github.com/w3hc/gov-ui/issues/79
+      if (listOfBlocks.length > 0) {
+        console.log('listOfBlocks.length > 0')
+
+        let staticProposalsRaw = proposal
+
+        const firstBlock = listOfBlocks[0]
+        console.log('firstBlock', firstBlock)
+
+        const lastBlock = listOfBlocks[listOfBlocks.length - 1]
+        console.log(' lastBlock', lastBlock)
+
+        const staticProposals = await gov.queryFilter('ProposalCreated' as any, firstBlock, lastBlock)
+        console.log('staticProposals', staticProposals)
+
+        console.log('Number(listOfBlocks.length)', Number(listOfBlocks.length))
+
+        for (i = 0; i < Number(listOfBlocks.length); i++) {
+          console.log('iterations', i)
+
+          const staticProposal: any = await gov.queryFilter('ProposalCreated' as any, firstBlock, firstBlock)
+          console.log('staticProposal', staticProposal)
+
+          console.log('staticProposal proposalId', staticProposal[0].args?.proposalId)
+          console.log('staticProposal description', staticProposal[0].args?.description)
+          console.log('staticProposal title', staticProposal[0].args?.description)
+
+          staticProposalsRaw.push(
             ...[
               {
-                id: String(proposals[i].proposalId),
-                link: baseUrl + String(proposals[i].proposalId),
-                title: proposals[i].description.substring(proposals[i].description == '#' ? 2 : 2, proposals[i].description.indexOf('\n')),
-                state: Number(await getState(proposals[i].proposalId)),
+                id: String(staticProposal[0].args?.proposalId),
+                link: baseUrl + String(staticProposal[0].args?.proposalId),
+                // title: 'hey',
+                title: staticProposal[0].args?.description.substring(
+                  staticProposal[0].args?.description == '#' ? 2 : 0,
+                  staticProposal[0].args?.description.indexOf('\n')
+                ),
+                state: await getState(staticProposal[0].args?.proposalId),
               },
             ]
           )
         }
-      } else {
-        console.log('\nNo proposals found')
-      }
 
-      const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
-      setProposal(uniqueProposals)
-      console.log('all proposals fetched ✅')
-      setInitialized(true)
+        const uniqueProposals = staticProposalsRaw.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+        setProposal(uniqueProposals)
+        console.log('all proposals fetched ✅')
+        setInitialized(true)
+        setIsLoading(false)
+
+        // proposals = await gov.queryFilter('ProposalCreated' as any, lastBlock, currentBlock)
+        // console.log('proposals:', proposals)
+
+        // let proposalsRaw = proposal // to remove
+
+        // if (proposals[0].args != undefined) {
+        //   for (i = 0; i < Number(proposals.length); i++) {
+        //     proposalsRaw.push(
+        //       ...[
+        //         {
+        //           id: String(proposals[i].args?.proposalId),
+        //           link: baseUrl + String(proposals[i].args?.proposalId),
+        //           title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
+        //           state: await getState(proposals[i].args?.proposalId),
+        //         },
+        //       ]
+        //     )
+        //   }
+        //   const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+        //   setProposal(uniqueProposals)
+        //   console.log('all proposals fetched ✅')
+        //   setInitialized(true)
+        //   setIsLoading(false)
+        // }
+        // }
+      } else {
+        proposals = await gov.queryFilter('ProposalCreated' as any, startBlock, currentBlock)
+        console.log('proposals:', proposals)
+
+        if (proposals[0].args != undefined) {
+          for (i = firstIteration; i < Number(proposals.length); i++) {
+            proposalsRaw.push(
+              ...[
+                {
+                  id: String(proposals[i].args?.proposalId),
+                  link: baseUrl + String(proposals[i].args?.proposalId),
+                  title: proposals[i].args[8].substring(proposals[i].args[8][0] == '#' ? 2 : 0, proposals[i].args[8].indexOf('\n')),
+                  state: await getState(proposals[i].args?.proposalId),
+                },
+              ]
+            )
+          }
+          const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
+          setProposal(uniqueProposals)
+          console.log('all proposals fetched ✅')
+          setInitialized(true)
+          setIsLoading(false)
+        }
+      }
       setIsLoading(false)
     } catch (error: any) {
       setIsLoading(false)
@@ -118,81 +175,6 @@ export default function Home() {
         })
       }
     }
-
-    // try {
-    //   console.log('fetching proposals...')
-    //   if (initialized) {
-    //     console.log('already initialized')
-    //     setIsLoading(false)
-    //     return
-    //   }
-    //   setIsLoading(true)
-    //   const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
-    //   setProposal([])
-
-    //   if (typeof gov.getProposalCreatedBlocks === 'function') {
-    //     const proposalCreatedBlocks = await gov.getProposalCreatedBlocks()
-    //     let proposalRaw = proposal
-    //     for (let i = firstIteration; i < proposalCreatedBlocks.length; i++) {
-    //       console.log('iteration:', i)
-    //       /////////////////*******//////////////
-
-    //       const proposals = (await gov.queryFilter('ProposalCreated', proposalCreatedBlocks[i])) as any
-
-    //       if (proposals.length > 0) {
-    //         proposalRaw.push(
-    //           ...[
-    //             {
-    //               id: String(proposals[0].args[0]),
-    //               link: baseUrl + String(proposals[0].args[0]),
-    //               title: proposals[0].args[8].substring(proposals[0].args[8] == '#' ? 2 : 2, proposals[0].args[8].indexOf('\n')),
-    //               state: Number(await getState(proposals[0].args[0])),
-    //             },
-    //           ]
-    //         )
-    //       } else {
-    //         console.log('\nNo proposals found at block #' + Number(proposalCreatedBlocks[i]))
-    //       }
-    //     }
-
-    //     // TODO: fix executed twice...
-    //     // Remove duplicates based on the `id` property
-    //     const uniqueProposals = proposal.filter((item, index, self) => index === self.findIndex((t) => t.id === item.id))
-    //     setProposal(uniqueProposals)
-
-    //     console.log('all proposals fetched ✅')
-    //     setInitialized(true)
-    //     setIsLoading(false)
-    //   } else {
-    //     console.error('getProposalCreatedBlocks method not available on this DAO contract')
-    //     setInitialized(true)
-    //     setIsLoading(false)
-    //     toast({
-    //       title: 'Oh no!',
-    //       description: 'The getProposalCreatedBlocks method is NOT available on this contract',
-    //       status: 'error',
-    //       position: 'bottom',
-    //       variant: 'subtle',
-    //       duration: 9000,
-    //       isClosable: true,
-    //     })
-    //   }
-    // } catch (error: any) {
-    //   setIsLoading(false)
-    //   setInitialized(true)
-    //   console.error('error:', error)
-    //   if (!error.message.includes('could not decode result data')) {
-    //     toast({
-    //       title: 'Woops',
-    //       description: 'Something went wrong...',
-    //       status: 'error',
-    //       position: 'bottom',
-    //       variant: 'subtle',
-    //       duration: 9000,
-    //       isClosable: true,
-    //     })
-    //   }
-    // }
   }
 
   useEffect(() => {
