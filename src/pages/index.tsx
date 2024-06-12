@@ -19,7 +19,7 @@ export default function Home() {
   const [initialized, setInitialized] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [provider, setProvider] = useState<any>(undefined)
-  const [name, setName] = useState<string>('Test DAO')
+  const [name, setName] = useState<string>('')
   const [proposal, setProposal] = useState<{ id: string; link: string; title: string; state: number }[]>([])
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
@@ -38,6 +38,11 @@ export default function Home() {
   const getState = async (proposalId: any) => {
     const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
     return await gov.state(proposalId)
+  }
+
+  const getName = async () => {
+    const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
+    setName(await gov.name())
   }
 
   const makeProposalObject = async () => {
@@ -180,6 +185,7 @@ export default function Home() {
   useEffect(() => {
     if (!initialized) {
       makeProposalObject()
+      getName()
     }
   }, [initialized])
 
