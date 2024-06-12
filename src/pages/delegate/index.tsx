@@ -238,7 +238,7 @@ export default function Delegate() {
 
       setCurrentDelegate(String(address))
       setLoadingDelegateToSelf(false)
-      setIsDelegatedToSelf(true)
+      setIsDelegatedToSelf(false)
       toast({
         title: 'Success',
         position: 'bottom',

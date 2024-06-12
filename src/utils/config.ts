@@ -13,7 +13,7 @@ export const SOCIAL_TWITTER = 'w3hc8'
 export const SOCIAL_GITHUB = 'w3hc/gov-ui'
 
 export const ERC20_CONTRACT_ADRESS = '0xe6BCD785b90dc16d667B022cc871c046587d9Ac5'
-export const firstIteration = 2
+export const firstIteration = 5
 export const faucetAmount = 0.005
 export const startBlock = 6031421
 // export const listOfBlocks = [6043490, 6043750]

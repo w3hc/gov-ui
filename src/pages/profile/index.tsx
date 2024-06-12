@@ -11,12 +11,14 @@ import { HeadingComponent } from '../../components/layout/HeadingComponent'
 import { LinkComponent } from '../../components/layout/LinkComponent'
 import QRCode from 'react-qr-code'
 import { faucetAmount } from '../../utils/config'
+import { useRouter } from 'next/router'
 
 export default function Profile() {
   const { address, isConnected } = useWeb3ModalAccount()
   const { walletProvider } = useWeb3ModalProvider()
   const customProvider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_ENDPOINT_URL)
   const toast = useToast()
+  const router = useRouter()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isLoadingBurn, setIsLoadingBurn] = useState<boolean>(false)
@@ -96,6 +98,17 @@ export default function Profile() {
         console.log('receipt:', receipt)
         console.log('membership done')
         setIsLoading(false)
+        toast({
+          title: 'Success',
+          position: 'bottom',
+          description: "Congrats, you're now a member of the DAO! You can now delegate your voting power to yourself.",
+          status: 'success',
+          variant: 'subtle',
+          duration: 8000,
+          isClosable: true,
+        })
+        const targetURL = '/delegate/'
+        router.push(targetURL)
         return true
       } else {
         console.log('already member')
@@ -272,7 +285,7 @@ export default function Profile() {
             variant="outline"
             type="submit"
             isLoading={isLoadingBurn}
-            loadingText="Burning ..."
+            loadingText="Leaving the DAO ..."
             onClick={!isLoadingBurn ? burn : undefined}>
             {isLoadingBurn ? 'Burning your NFT...' : 'Leave the DAO'}
           </Button>

@@ -195,10 +195,10 @@ export default function AddMember() {
     } catch (e) {
       console.log('error submitting proposal:', e)
       toast({
-        title: "Can't propose",
+        title: "Can't submit a proposal",
         position: 'bottom',
-        description: "You can't submit this kind of proposal.",
-        status: 'info',
+        description: 'To submit a proposal, you must (1) be a member and (2) delegate your voting power to yourself.',
+        status: 'error',
         variant: 'subtle',
         duration: 9000,
         isClosable: true,
