@@ -157,9 +157,9 @@ export default function RequestEur() {
     } catch (e) {
       console.log('submitProposal error:', e)
       toast({
-        title: 'Error',
+        title: "Can't submit a proposal",
         position: 'bottom',
-        description: 'submitProposal error',
+        description: 'To submit a proposal, you must (1) be a member and (2) delegate your voting power to yourself.',
         status: 'error',
         variant: 'subtle',
         duration: 9000,
