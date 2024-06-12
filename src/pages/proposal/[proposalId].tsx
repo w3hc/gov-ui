@@ -155,63 +155,6 @@ export default function Proposal() {
     }
   }
 
-  const handleMembership = async () => {
-    try {
-      console.log('handleMembership start')
-
-      await handleBalance()
-
-      const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
-      const nftBal = Number(await nft.balanceOf(address))
-      console.log('nftBal:', nftBal)
-
-      if (nftBal < 1) {
-        console.log('joining...')
-
-        const uri = 'https://bafkreicj62l5xu6pk2xx7x7n6b7rpunxb4ehlh7fevyjapid3556smuz4y.ipfs.w3s.link/'
-        const tx = await nft.safeMint(address, uri)
-        console.log('tx:', tx)
-        const receipt = await tx.wait(1)
-        console.log('receipt:', receipt)
-        console.log('membership done')
-        return true
-      } else {
-        console.log('already member')
-        console.log('membership done')
-        return true
-      }
-    } catch (e: any) {
-      console.log('handleMembership error', e)
-
-      if (e.toString().includes('could not coalesce error')) {
-        console.log('This is the coalesce error.')
-        toast({
-          title: 'Email login not supported',
-          position: 'bottom',
-          description: "Sorry, this feature is not supported yet if you're using the email login.",
-          status: 'info',
-          variant: 'subtle',
-          duration: 3000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return false
-      } else {
-        toast({
-          title: 'Error',
-          position: 'bottom',
-          description: 'handleMembership error',
-          status: 'error',
-          variant: 'subtle',
-          duration: 9000,
-          isClosable: true,
-        })
-        setIsLoading(false)
-        return false
-      }
-    }
-  }
-
   const voteYes = async () => {
     // https://docs.openzeppelin.com/contracts/4.x/api/governance#IGovernor-COUNTING_MODE--
     // 0 = Against, 1 = For, 2 = Abstain
