@@ -311,25 +311,28 @@ export default function Proposal() {
           duration: 2000,
           isClosable: true,
         })
+        setIsLoading(false)
         return
       }
 
       const nft = new ethers.Contract(nftContract.address, nftContract.abi, signer)
       const delegateTo = await nft.delegates(address)
 
-      if (delegateTo != address || delegateTo != '0x0000000000000000000000000000000000000000') {
-        console.log('delegated to someone else')
+      const nftBal = Number(await nft.balanceOf(address))
+      console.log('nftBal:', nftBal)
 
+      if (nftBal < 1) {
         toast({
-          title: 'Delegated to someone else',
+          title: 'Not a member',
           position: 'bottom',
-          description: "You've delegated to someone else. Delegate to yourself if you want to vote.",
+          description: 'Please join as a member if you want to vote.',
           status: 'info',
           variant: 'subtle',
           duration: 3000,
           isClosable: true,
         })
-        return false
+        setIsLoading(false)
+        return
       }
 
       if (delegateTo === '0x0000000000000000000000000000000000000000') {
@@ -344,7 +347,8 @@ export default function Proposal() {
           duration: 3000,
           isClosable: true,
         })
-        return false
+        setIsLoading(false)
+        return
       }
 
       if (delegateTo === address) {
@@ -370,18 +374,61 @@ export default function Proposal() {
           duration: 5000,
           isClosable: true,
         })
+      } else {
+        setIsLoading(false)
+        toast({
+          title: 'Delegation',
+          position: 'bottom',
+          description: 'You need to delegate to yourself before voting',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+        return
       }
     } catch (e: any) {
       console.log('vote error:', e)
-      toast({
-        title: 'Error',
-        position: 'bottom',
-        description: "You can't vote twice.",
-        status: 'info',
-        variant: 'subtle',
-        duration: 3000,
-        isClosable: true,
-      })
+
+      switch (e) {
+        case String(e).includes('coalesce'):
+          console.log('This is the coalesce error.')
+          toast({
+            title: 'Woops',
+            position: 'bottom',
+            description: 'Please refresh the page and try again.',
+            status: 'info',
+            variant: 'subtle',
+            duration: 3000,
+            isClosable: true,
+          })
+          break
+
+        default:
+          console.log('Basic error')
+      }
+
+      if (state === 'Pending') {
+        toast({
+          title: 'Pending proposal',
+          position: 'bottom',
+          description: 'The proposal is still pending. Please try again in a few seconds.',
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+      } else {
+        toast({
+          title: 'Already voted',
+          position: 'bottom',
+          description: "You can't vote twice.",
+          status: 'info',
+          variant: 'subtle',
+          duration: 3000,
+          isClosable: true,
+        })
+      }
       setIsLoading(false)
     }
   }
