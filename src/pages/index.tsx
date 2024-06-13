@@ -226,7 +226,7 @@ export default function Home() {
     <>
       <main>
         <Box borderRadius="lg" overflow="hidden">
-          <Image priority width="2000" height="2000" alt="dao-image" src="/huangshan.jpeg" />
+          <Image priority width="2000" height="2000" alt="dao-image" src="/huangshan.png" />
         </Box>
         <Text fontSize={9}>
           <i>
