@@ -10,6 +10,7 @@ import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
 import { startBlock, firstIteration, listOfBlocks, SITE_URL, SITE_NAME } from '../utils/config'
+import { Head } from '../components/layout/Head'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -226,6 +227,7 @@ export default function Home() {
 
   return (
     <>
+      <Head />
       <NextSeo
         title="Gov"
         description="DAOs for everyday people"

@@ -1,7 +1,7 @@
 import { ThemingProps } from '@chakra-ui/react'
-export const SITE_DESCRIPTION = 'W3HC Next.js app template'
+export const SITE_DESCRIPTION = 'DAOs for everyday people.'
 export const SITE_NAME = 'Gov'
-export const SITE_URL = 'https://gov-ui.netlify.app'
+export const SITE_URL = 'https://deploy-preview-84--gov-ui.netlify.app'
 
 export const THEME_INITIAL_COLOR = 'system'
 export const THEME_COLOR_SCHEME: ThemingProps['colorScheme'] = 'blue'
