@@ -1,28 +1,26 @@
 import type { AppProps } from 'next/app'
 import Layout from '../components/layout'
-import { useEffect, useState } from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
 import { Seo } from '../components/layout/Seo'
-import govContract from '../utils/Gov.json'
+import { useIsMounted } from '../hooks/useIsMounted'
+
+// https://github.com/wslyvh/nexth/blob/chakra/src/pages/_app.tsx
+// https://socialsharepreview.com/
+// https://www.opengraph.xyz/
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    setReady(true)
-    console.log('DAO contract address:', govContract.address)
-  }, [])
+  const isMounted = useIsMounted()
 
   return (
     <>
-      {ready ? (
-        <ChakraProvider>
-          <Seo />
+      <ChakraProvider>
+        <Seo />
+        {isMounted && (
           <Layout>
             <Component {...pageProps} />
           </Layout>
-        </ChakraProvider>
-      ) : null}
+        )}
+      </ChakraProvider>
     </>
   )
 }
