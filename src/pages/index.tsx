@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { NextSeo } from 'next-seo'
 import { Button, Badge, useToast, Box, Text } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
@@ -8,7 +9,8 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
-import { startBlock, firstIteration, listOfBlocks } from '../utils/config'
+import { startBlock, firstIteration, listOfBlocks, SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '../utils/config'
+import { Head } from '../components/layout/Head'
 
 export default function Home() {
   const { address, chainId, isConnected } = useWeb3ModalAccount()
@@ -24,6 +26,7 @@ export default function Home() {
   const stateText = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed']
   const stateColor = ['orange', 'green', 'blue', 'red', 'purple', 'blue', 'blue', 'blue']
 
+  const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : SITE_URL
   const baseUrl = '/proposal/'
 
   useEffect(() => {
@@ -224,9 +227,31 @@ export default function Home() {
 
   return (
     <>
+      <Head title="Gov" description={SITE_DESCRIPTION} />
+      <NextSeo
+        title="Gov"
+        description="DAOs for everyday people"
+        titleTemplate={`%s`}
+        // description={SITE_DESCRIPTION}
+        // defaultOpenGraphImageWidth={1200}
+        // defaultOpenGraphImageHeight={630}
+        openGraph={{
+          type: 'website',
+          siteName: SITE_NAME,
+          url: origin,
+          images: [
+            {
+              url: `${origin}/huangshan.png`,
+              width: 1200,
+              height: 630,
+              alt: 'Huangshan',
+            },
+          ],
+        }}
+      />
       <main>
         <Box borderRadius="lg" overflow="hidden">
-          <Image priority width="2000" height="2000" alt="dao-image" src="/huangshan.jpeg" />
+          <Image priority width="2000" height="2000" alt="dao-image" src="/huangshan.png" />
         </Box>
         <Text fontSize={9}>
           <i>
