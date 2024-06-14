@@ -9,7 +9,7 @@ import { ethers } from 'ethers'
 import { HeadingComponent } from '../components/layout/HeadingComponent'
 import { ArrowForwardIcon, WarningIcon } from '@chakra-ui/icons'
 import Image from 'next/image'
-import { startBlock, firstIteration, listOfBlocks, SITE_URL, SITE_NAME } from '../utils/config'
+import { startBlock, firstIteration, listOfBlocks, SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '../utils/config'
 import { Head } from '../components/layout/Head'
 
 export default function Home() {
@@ -227,7 +227,7 @@ export default function Home() {
 
   return (
     <>
-      <Head />
+      <Head title="Gov" description={SITE_DESCRIPTION} />
       <NextSeo
         title="Gov"
         description="DAOs for everyday people"
