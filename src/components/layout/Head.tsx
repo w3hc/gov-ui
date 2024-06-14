@@ -1,6 +1,6 @@
 import React from 'react'
 import { default as NextHead } from 'next/head'
-import { SITE_DESCRIPTION, SITE_NAME } from '../../utils/config'
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../../utils/config'
 
 interface Props {
   title?: string
@@ -8,6 +8,8 @@ interface Props {
 }
 
 export function Head(props: Props) {
+  const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : SITE_URL
+  const img = `${origin}/huangshan.png`
   return (
     <NextHead>
       <title>{props.title ?? SITE_NAME} </title>
@@ -16,7 +18,7 @@ export function Head(props: Props) {
       <meta property="og:title" content={props.title ?? SITE_NAME} />
       <meta name="twitter:card" content={SITE_DESCRIPTION} />
       <meta property="og:description" content={props.description ?? SITE_DESCRIPTION} />
-      <meta property="og:image" content={'https://deploy-preview-84--gov-ui.netlify.app/huangshan.png'} />
+      <meta property="og:image" content={img} />
       <meta name="description" content={props.description ?? SITE_DESCRIPTION} />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
 
