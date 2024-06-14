@@ -12,11 +12,15 @@ export function Head({ title, description }: Props) {
   const img = `${origin}/huangshan.png`
   return (
     <NextHead>
-      <title>{title ?? SITE_NAME}</title>
-      <meta name="description" content={description ?? SITE_DESCRIPTION} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
       <meta property="og:image" content={img} />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      {/* Add any additional meta tags that are specific to your app */}
+      <meta property="og:url" content={origin} />
+      <meta name="twitter:card" content={img} />
+      <meta name="twitter:site" content="@W3HC8" />
+      <meta name="twitter:title" content="Gov" />
+      <meta name="twitter:description" content="DAOs for everyday people." />
+      <meta name="twitter:image" content={img} />
     </NextHead>
   )
 }
