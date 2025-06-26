@@ -86,7 +86,7 @@ export default function Proposal() {
     setIsLoading(true)
     const block = await customProvider.getBlockNumber()
     const gov = new ethers.Contract(govContract.address, govContract.abi, customProvider)
-    const proposals: any = await gov.queryFilter('ProposalCreated' as any, 6031421, block)
+    const proposals: any = await gov.queryFilter('ProposalCreated' as any, 8631221, block)
 
     try {
       let i: number = 0
