@@ -1,7 +1,7 @@
 import React from 'react'
 import { Flex, useColorModeValue, Spacer, Heading, MenuList, MenuItem, Menu, MenuButton, IconButton } from '@chakra-ui/react'
 import { AddIcon, ExternalLinkIcon, RepeatIcon, EditIcon, HamburgerIcon, ArrowBackIcon } from '@chakra-ui/icons'
-import { FaEthereum, FaEuroSign, FaHome, FaFeather } from 'react-icons/fa'
+import { FaEthereum, FaEuroSign, FaFeather } from 'react-icons/fa'
 import { GiReceiveMoney } from 'react-icons/gi'
 import { IoExitOutline, IoEnterOutline } from 'react-icons/io5'
 import { GrValidate } from 'react-icons/gr'
@@ -24,45 +24,29 @@ export function Header(props: Props) {
         <MenuButton as={IconButton} aria-label="Options" icon={<HamburgerIcon />} variant="outline" />
         <MenuList>
           <LinkComponent href="/">
-            <MenuItem fontSize="xl" icon={<FaHome />}>
-              Home
-            </MenuItem>
+            <MenuItem fontSize="xl">Home</MenuItem>
           </LinkComponent>
           <LinkComponent href="/profile">
-            <MenuItem fontSize="xl" icon={<LuUserPlus />}>
-              User profile
-            </MenuItem>
+            <MenuItem fontSize="xl">User profile</MenuItem>
           </LinkComponent>
 
           <LinkComponent href="/delegate">
-            <MenuItem fontSize="xl" icon={<GrValidate />}>
-              Delegate
-            </MenuItem>
+            <MenuItem fontSize="xl">Delegate</MenuItem>
           </LinkComponent>
           <LinkComponent href="/request-eth">
-            <MenuItem fontSize="xl" icon={<FaEthereum />}>
-              Request ETH
-            </MenuItem>
+            <MenuItem fontSize="xl">Request ETH</MenuItem>
           </LinkComponent>
           <LinkComponent href="/request-eur">
-            <MenuItem fontSize="xl" icon={<FaEuroSign />}>
-              Request EUR
-            </MenuItem>
+            <MenuItem fontSize="xl">Request EUR</MenuItem>
           </LinkComponent>
           <LinkComponent href="/manifesto">
-            <MenuItem fontSize="xl" icon={<FaFeather />}>
-              Edit manifesto
-            </MenuItem>
+            <MenuItem fontSize="xl">Edit manifesto</MenuItem>
           </LinkComponent>
           <LinkComponent href="/add-member">
-            <MenuItem fontSize="xl" icon={<IoEnterOutline />}>
-              Add a member
-            </MenuItem>
+            <MenuItem fontSize="xl">Add a member</MenuItem>
           </LinkComponent>
           <LinkComponent href="/ban-member">
-            <MenuItem fontSize="xl" icon={<IoExitOutline />}>
-              Ban a member
-            </MenuItem>
+            <MenuItem fontSize="xl">Ban a member</MenuItem>
           </LinkComponent>
         </MenuList>
       </Menu>
