@@ -1,5 +1,7 @@
 # Gov UI
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/5acc7402-345c-415d-8686-9adb00f7a030/deploy-status)](https://app.netlify.com/projects/gov-ui/deploys)
+
 An interface for your DAO.
 
 The goal is to provide an interface that's easy to deploy. Ideally 1 click for Gov Solidity contracts, 1 click for this interface.
